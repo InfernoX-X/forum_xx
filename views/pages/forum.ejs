@@ -195,6 +195,10 @@ body {
     margin: 0 0 10px 0;
     font-size: 1.4rem;
 }
+.post-display-text{
+    font-size: 1rem;
+    text-transform: none;
+}
 
 .post-display-link {
     display: block;
@@ -227,6 +231,26 @@ body {
 
 </style>
 
+<style>
+    .btn-link {
+    background: none;
+    border: none;
+    color: var(--text-muted); /* Grey color from your root variables */
+    font-size: 0.75rem;
+    font-weight: bold;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: color 0.2s;
+    margin-right: 10px; /* Space between Edit and Delete */
+    padding: 0;
+}
+
+.btn-link:hover {
+    color: var(--accent-clr); /* Changes to your red accent color on hover */
+    text-decoration: underline;
+}
+</style>
+
 <div class="container">
 
     <h1 id="forum-title" style="margin: 20px 0;"><%= forumTitle %></h1>
@@ -255,33 +279,77 @@ body {
     <div id="posts-feed">
 
         <% for (const post of posts) { %>
-            
-            <div class="post-card ">
+            <div class="post-card" id="post-<%= post.id %>">
                 <div class="post-header">
-                    <span class="post-author" style="text-transform: none;"><%= post.username %></span> • 
-                    <span class="post-time"><%= timeAgo(post.created_at) %> • <%= post.id %></span>
+                    <span class="post-author"><%= post.username %></span> • 
+                    <span class="post-time"><%= timeAgo(post.created_at) %></span>
 
                     <% if (user && user.id === post.user_id) { %>
-                        <form action="/forum/posts/delete/<%= post.id %>" method="POST" style="display:inline; float:right;">
-                            <input type="hidden" name="forum_id" value="<%= post.forum_id %>">
-                            <button type="submit" class="delete-btn" onclick="return confirm('Delete this post?')">
-                                &times;
-                            </button>
-                        </form>
+                        <div style="float:right;">
+                            <button class="btn-link" onclick="toggleEdit('<%= post.id %>')">Edit</button>
+                            
+                            <form action="/forum/posts/delete/<%= post.id %>" method="POST" style="display:inline;">
+                                <input type="hidden" name="forum_id" value="<%= post.forum_id %>">
+                                <button type="submit" class="delete-btn" onclick="return confirm('Delete?')">&times;</button>
+                            </form>
+                        </div>
                     <% } %>
                 </div>
-                <h2 class="post-display-title"><%= post.title %></h2>
-                <p class="post-display-text" style="text-transform: none;"><%= post.content %></p>
-                <a href="<%= post.url %>" style="text-transform: none;" class="post-display-link" target="_blank"><%= post.url %></a>
-                <div class="popUpClass">
-                    <img src="<%= post.image %>?width=700&quality=70" loading="lazy" class="post-display-image" alt="User Image">
+
+                <div id="view-mode-<%= post.id %>">
+                    <h2 class="post-display-title"><%= post.title %></h2>
+                    <p class="post-display-text"><%= post.content %></p>
+                    <a href="<%= post.url %>" style="text-transform: none;" class="post-display-link" target="_blank"><%= post.url %></a>
+                    <div class="popUpClass">
+                        <img src="<%= post.image %>" class="post-display-image" alt="Post Image">
+                    </div>
                 </div>
+
+                    <% if (user && user.id === post.user_id) { %>
+                        <div id="edit-mode-<%= post.id %>" style="display: none; margin-top: 15px;">
+                            <form action="/forum/posts/edit/<%= post.id %>" method="POST" enctype="multipart/form-data" class="post-composer">
+                                <label>Title</label>
+                                <input type="text" name="title" value="<%= post.title %>">
+                                
+                                <label>Summary</label>
+                                <textarea name="content" rows="3"><%= post.content %></textarea>
+                                
+                                <label>Link (URL)</label>
+                                <input type="text" name="url" value="<%= post.url %>" placeholder="https://...">
+                                
+                                <div style="margin-top: 10px;">
+                                    <label>Change Image (Optional)</label>
+                                    <input type="file" name="image" accept="image/*">
+                                </div>
+                                
+                                <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+                                    <button type="button" class="btn-link" onclick="toggleEdit('<%= post.id %>')">Cancel</button>
+                                    <button type="submit" class="btn-accent">Save Changes</button>
+                                </div>
+                            </form>
+                        </div>
+                    <% } %>
+
             </div>
-        
         <% } %>
 
     </div>
 </div>
+
+<script>
+    function toggleEdit(postId) {
+    const viewDiv = document.getElementById(`view-mode-${postId}`);
+    const editDiv = document.getElementById(`edit-mode-${postId}`);
+    
+    if (viewDiv.style.display === "none") {
+        viewDiv.style.display = "block";
+        editDiv.style.display = "none";
+    } else {
+        viewDiv.style.display = "none";
+        editDiv.style.display = "block";
+    }
+}
+</script>
 
 <%- include("../partials/imageViewer") %>
 

@@ -97,6 +97,53 @@ router.post('/posts/create', upload.single('image'), async (req, res) => {
     }
 });
 
+
+router.post('/posts/edit/:id', upload.single('image'), async (req, res) => {
+    const postId = req.params.id;
+    const { title, content, url } = req.body;
+    
+    try {
+        let newImgLink = null;
+        let newPubId = null;
+
+        // 1. Handle Image Upload (Only if user selected a new file)
+        if (req.file) {
+            const uploadToCloudinary = () => {
+                return new Promise((resolve, reject) => {
+                    const stream = cloudinary.uploader.upload_stream(
+                        { resource_type: 'auto' },
+                        (error, result) => { result ? resolve(result) : reject(error); }
+                    );
+                    stream.end(req.file.buffer);
+                });
+            };
+            const result = await uploadToCloudinary();
+            newImgLink = result.secure_url;
+            newPubId = result.public_id;
+        }
+
+        // 2. The "Keep Old Data" SQL
+        const sql = `
+            UPDATE posts 
+            SET title = COALESCE(NULLIF(?, ''), title), 
+                content = COALESCE(NULLIF(?, ''), content), 
+                url = COALESCE(NULLIF(?, ''), url),
+                image = COALESCE(?, image),
+                img_public_id = COALESCE(?, img_public_id)
+            WHERE id = ?`;
+
+        // 3. Execute with form data
+        // We pass newImgLink and newPubId. If they are null, COALESCE keeps the old ones.
+        await db.execute(sql, [title, content, url, newImgLink, newPubId, postId]);
+
+        res.redirect('back');
+        
+    } catch (err) {
+        console.error('Update Error:', err);
+        res.status(500).send('Failed to update post');
+    }
+});
+
 router.post('/posts/delete/:postId', async (req, res) => {
     try {
         const postId = req.params.postId;
