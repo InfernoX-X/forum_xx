@@ -290,7 +290,7 @@ body {
                             
                             <form action="/forum/posts/delete/<%= post.id %>" method="POST" style="display:inline;">
                                 <input type="hidden" name="forum_id" value="<%= post.forum_id %>">
-                                <button type="submit" class="delete-btn" onclick="return confirm('Delete?')">&times;</button>
+                                <button id="deleteBtn" type="submit" class="delete-btn" onclick="return confirm('Delete?')">&times;</button>
                             </form>
                         </div>
                     <% } %>
@@ -340,11 +340,14 @@ body {
     function toggleEdit(postId) {
     const viewDiv = document.getElementById(`view-mode-${postId}`);
     const editDiv = document.getElementById(`edit-mode-${postId}`);
-    
+    const deleteBtn = document.getElementById('deleteBtn');
+
     if (viewDiv.style.display === "none") {
         viewDiv.style.display = "block";
         editDiv.style.display = "none";
+        deleteBtn.style.display = "block";
     } else {
+        deleteBtn.style.display = "none";
         viewDiv.style.display = "none";
         editDiv.style.display = "block";
     }

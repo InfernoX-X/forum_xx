@@ -63,7 +63,7 @@ router.get('/search-results',verifyToken, async (req, res) => {
             SELECT 
                 id, title, content, url, image, created_at
             FROM posts
-            WHERE title LIKE ? OR content LIKE ?  
+            WHERE title LIKE ? OR content LIKE ?  AND deleted = 0 
             ORDER BY created_at DESC
         `;
 
