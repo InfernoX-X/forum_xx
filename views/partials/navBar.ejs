@@ -1,0 +1,362 @@
+
+<style>
+    /* Navbar */
+.desktop-navbar{
+    height: 75px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px ;
+    /* background-color: rgb(31, 31, 31); */
+    background-color: rgb(22, 22, 22);
+    filter: drop-shadow(0px 2px 2px rgb(20, 20, 20));
+    position: sticky;
+    left: 0;
+    right: 0;
+    top: 0;
+    z-index: 100;
+}
+
+.desktop-navbar .nav-left {
+    width: 270px;
+}
+
+.desktop-navbar .nav-right {
+    min-width: max-content;
+    display: flex;
+    align-items: center;
+    justify-content: end;
+}
+
+/* Nav Logo */
+.desktop-navbar .logo{
+    font-size: 1.5rem;
+    color: rgb(255, 255, 255);
+    cursor: pointer;
+    text-decoration: none;
+    font-family: "Poppins", serif;
+}
+.desktop-navbar .logo span{
+    color: var(--accent-clr);
+}
+
+.desktop-navbar .nav-links{
+    height: 50px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+.desktop-navbar .nav-link,.desktop-navbar .profile-link{
+    width: 50px;
+    height: 50px;
+    border: 2px solid var(--accent-clr);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    opacity: 0.5;
+    transition: all 0.3s ease-in-out;
+    margin-right: 6px;
+}
+
+.desktop-navbar .nav-link:hover, .desktop-navbar .profile-link:hover{
+    opacity: 1;
+}
+
+.desktop-navbar .nav-active{
+    opacity: 1;
+}
+
+.desktop-navbar .nav-link img{
+    width: 60%;
+    height: 60%;
+    object-fit: cover;
+}
+
+.desktop-navbar .profile-link{
+    opacity: 1;
+}
+
+.desktop-navbar .profile-link:hover{
+    border-radius: 10%;
+}
+
+.desktop-navbar .profile-link img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+}
+
+
+/* NavBar Mobile Version */
+.mobile-navbar{
+    height: 75px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px ;
+    background-color: rgb(22, 22, 22);
+    filter: drop-shadow(0px 2px 2px rgb(20,20,20));
+
+    position: sticky;
+    left: 0;
+    right: 0;
+    top: 0;
+    z-index: 1000000;
+}
+
+.mobile-navbar .nav-right{
+    width: 30px;
+    height: 30px;
+    margin-right: 10px;
+}
+
+/* Nav Logo */
+.mobile-navbar .logo{
+    font-size: 1rem;
+    color: rgb(255, 255, 255);
+    cursor: pointer;
+    text-decoration: none;
+    font-family: "Poppins", serif;
+}
+.mobile-navbar .logo span{
+    color: var(--accent-clr);
+}
+
+.mobile-navbar .menuHambugerBtn{
+    width: 30px;
+    height: 30px;
+    margin-left: 10px;
+    cursor: pointer;
+}
+
+.mobile-navbar .menuHambugerBtn img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.mobile-navbar .nav-content {
+    display: none;
+    position: absolute;
+    margin-top: 30px;
+    right: 0;
+    height: calc(100vh - 45px);
+    top: 45px;
+    width: 80%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(20, 20, 20);
+}
+
+
+.mobile-navbar .nav-links{
+    width: 100%;
+    height: 100%;
+    padding: 0 20px;
+    padding-top: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: flex-start;
+}
+
+.mobile-navbar .nav-links div{
+    width: 100%;
+    height: 75px;
+    margin-bottom: 10px;
+    border-bottom: 2px solid rgba(190, 190, 190, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    text-transform: uppercase;
+    color: rgb(235, 235, 235);
+    transition: all 0.3s ease-in;
+}
+.mobile-navbar .nav-links div:hover{
+    letter-spacing: 2px;
+}
+
+.mobile-navbar .nav-link, .mobile-navbar .profile-link{
+    width: 50px;
+    height: 50px;
+    border: 2px solid var(--accent-clr);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    opacity: 0.5;
+    transition: all 0.3s ease-in-out;
+    margin-right: 6px;
+    margin-left: 15px;
+}
+
+.mobile-navbar .nav-link:hover{
+    opacity: 1;
+}
+
+.mobile-navbar .nav-active{
+    opacity: 1;
+}
+
+.mobile-navbar .nav-link img{
+    width: 60%;
+    height: 60%;
+    object-fit: cover;
+}
+
+.mobile-navbar .profile-link{
+    opacity: 1;
+}
+
+.mobile-navbar .profile-link:hover{
+    border-radius: 10%;
+}
+
+.mobile-navbar .profile-link img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+}
+
+.mobile-navbar .search{
+    width: 180px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    position: relative;
+    border: 2px solid rgb(128, 128, 128,0.5);
+    padding-left: 40px;
+    padding-right: 20px;
+    border-radius: 20px;
+}
+
+.mobile-navbar .search input{
+    width: 95%;
+    background-color: transparent;
+    border: none;
+    outline: none;
+    color: rgb(201, 201, 201);
+    font-size: 0.9rem;
+}
+
+.mobile-navbar .search-icon{
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    opacity: 0.5;
+}
+
+.mobile-navbar .search-icon img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+
+@media only screen and (max-width: 700px) {
+    .mobile-navbar {
+        display: flex;
+    }
+    .desktop-navbar{
+        display: none;
+    }
+}
+@media only screen and (min-width: 700px) {
+    .mobile-navbar {
+        display: none;
+    }
+    .desktop-navbar{
+        display: flex;
+    }
+}
+
+
+</style>
+
+<nav class="desktop-navbar" id="desktopNavbar">
+    <div class="nav-left">
+        <a href="/" class="logo">
+            <h3>Forum<span>X</span></h3>
+        </a>
+    </div>
+    <div class="nav-right">
+        <div class="nav-links">
+            
+        </div>
+    </div>
+</nav>
+
+<nav class="mobile-navbar" id="mobileNavBar">
+    <div class="nav-left">
+        <a href="/" class="logo">
+            <h3>Forum<span>X</span></h3>
+        </a>
+    </div>
+    
+
+
+    <div id="navMobileLinks" class="nav-content">
+        <div class="nav-links">
+            
+        </div>
+    </div>
+
+</nav>
+
+
+<!-- Navbar Navigation Opacity -->
+<script>
+    const characterNavLink = document.getElementById('characterNav');
+    const movieNavLink = document.getElementById('movieNav');
+    const storeNavLink = document.getElementById('storeNav');
+
+    if (window.location.href.includes("movies")) {
+        movieNavLink.classList.add("nav-active")
+        characterNavLink.classList.remove("nav-active")
+        storeNavLink.classList.remove("nav-active")
+
+    }else if (window.location.href.includes("characters")){
+        characterNavLink.classList.add("nav-active")
+        storeNavLink.classList.remove("nav-active")
+        movieNavLink.classList.remove("nav-active")
+
+    }else if(window.location.href.includes("store")){
+        storeNavLink.classList.add("nav-active")
+        characterNavLink.classList.remove("nav-active")
+        movieNavLink.classList.remove("nav-active")
+    }
+    
+
+</script>
+
+<!-- Menu Button -->
+<script>
+const menuBtn = document.getElementById("menuBtn");
+const menuBtnImg = document.getElementById('menuBtnImg');
+const navMobileLinksContainer = document.getElementById('navMobileLinks');
+
+menuBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+
+    // Toggle the menu button image
+    const isCloseIcon = menuBtnImg.src.endsWith("close.png");
+    menuBtnImg.src = isCloseIcon ? "/img/icons/menu.png" : "/img/icons/close.png";
+
+    // Toggle navigation links visibility
+    navMobileLinksContainer.style.display = isCloseIcon ? "none" : "flex"
+});
+
+</script>

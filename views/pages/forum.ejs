@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= siteTitle %></title>
+  <link rel="icon" href="<%= favIcon %>">
+
+</head>
+<body>
+<%- include("../partials/navBar") %>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Acme&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Raleway:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;    
+    
+    /* Main Colors */
+    --accent-clr:#F93742;
+    --bgClrbackup: #121212;
+    /* --secondary-bgClr: #3a3a3a; */
+    
+    --primary-color: var(--accent-clr);
+    --primary-bg-light: rgba(79, 70, 229, 0.1); /* 10% opacity */
+    --gray-900: #1f2937;
+    --gray-700: #374151;
+    --gray-500: #6b7280;
+    --gray-300: #d1d5db;
+    --gray-100: #f3f4f6;
+    --bg-clr: #f9fafb;
+
+
+
+    /* Card Colors */
+    --epic_color: #daa520;
+    --legendary_color : #d400d4;
+    --rare_color : #00ccff;
+    --uncommon_color : #00ff0a;
+    --common_color : #a3a3a3;
+}
+
+html {
+    scroll-behavior: smooth;
+    cursor: default;
+}
+
+::selection{
+    color: rgb(255, 255, 255);
+    background-color: var(--accent-clr);
+}
+
+::-webkit-scrollbar {
+    min-width: 7px;
+    max-width: 0.5vw;
+    height: 0;
+    background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb{
+    background-color: var(--accent-clr);
+    border-radius: 20px;
+}
+
+body { 
+    font-family: 'Courier New', Courier, monospace; 
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+:root {
+    --bg-color: rgb(22, 22, 22);
+    --row-bg: #1a1a1a;
+    --row-alt: #222222;
+    --text-main: #efefef;
+    --text-muted: #888;
+    --border-clr: #333;
+    }
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    font-family: Arial, sans-serif;
+    margin: 0;
+}
+
+.container{
+    padding: 20px;
+}
+
+/* Composer Styling */
+.post-composer {
+    background: #1a1a1a;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #333;
+}
+.post-composer h3{
+    margin-bottom: 8px;
+}
+
+.post-composer input, .post-composer textarea {
+    width: 100%;
+    background: #111;
+    border: 1px solid #444;
+    color: white;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.post-composer input:focus {
+    border-color: var(--accent-clr);
+    outline: none;
+}
+.post-composer select {
+    width: 100%;
+    background-color: #111; /* Match the input background */
+    color: var(--text-main);
+    border: 1px solid #444;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    appearance: none; /* Removes default browser arrow */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    
+    /* Custom arrow icon using a background image SVG */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23888' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: calc(100% - 15px) center;
+}
+
+.post-composer select:focus {
+    border-color: var(--accent-clr);
+    outline: none;
+    background-color: #151515;
+}
+
+/* Style the options inside the dropdown */
+.post-composer select option {
+    background-color: rgb(22, 22, 22);
+    color: var(--text-main);
+    padding: 10px;
+}
+
+/* Optional: styling the label if you have one */
+.post-composer label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-accent {
+    background-color: var(--accent-clr);
+    color: #000;
+    border: none;
+    padding: 10px 20px;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    float: right;
+    transition: all 0.4s ease-out;
+}
+
+.btn-accent:hover{
+    color: var(--accent-clr);
+    background-color: #000;
+}
+
+/* Post Card Styling (The Feed) */
+.post-card {
+    background: rgb(28, 28, 28);
+    border: 1px solid #333;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+}
+
+.post-header {
+    font-size: 0.8rem;
+    color: #888;
+    margin-bottom: 10px;
+}
+
+.post-display-title {
+    margin: 0 0 10px 0;
+    font-size: 1.4rem;
+}
+
+.post-display-link {
+    display: block;
+    color: var(--accent-clr);
+    margin-bottom: 10px;
+    text-decoration: none;
+    word-break: break-all;
+}
+
+.post-display-image {
+    max-width: 300px;
+    border-radius: 4px;
+    margin-top: 10px;
+    border: 1px solid #444;
+}
+
+.delete-btn {
+    background: transparent;
+    border: none;
+    color: #666;
+    font-size: 3rem;
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.2s;
+}
+
+.delete-btn:hover {
+    color: #ff4444; /* Standard red for danger/delete */
+}
+
+</style>
+
+<div class="container">
+
+    <h1 id="forum-title" style="margin: 20px 0;"><%= forumTitle %></h1>
+
+    <div class="post-composer">
+        <form action="/forum/posts/create" method="post" enctype="multipart/form-data">
+
+            <h3>CREATE A NEW POST</h3>
+            
+            <input type="text" name="title" id="post-title" placeholder="POST TITLE (REQUIRED)">
+            <input type="text" name="content" id="post-content" placeholder="SUMMARY">
+            <input type="text" name="url" id="post-url" placeholder="URL (OPTIONAL)">
+            <input type="text" name="forumId" hidden value="<%= forum_id %>">
+            <div class="file-input-wrapper">
+                <label for="post-image" class="file-label">UPLOAD IMAGE</label>
+                <input type="file" id="post-image" name="image" accept="image/*" required>
+            </div>
+            
+            <button id="submit-post" type="submit" class="btn-accent">POST</button>
+        </form>
+    </div>
+
+
+    <hr style="border: 0; border-top: 1px solid #333; margin: 40px 0;">
+
+    <div id="posts-feed">
+
+        <% for (const post of posts) { %>
+            
+            <div class="post-card ">
+                <div class="post-header">
+                    <span class="post-author" style="text-transform: none;"><%= post.username %></span> • 
+                    <span class="post-time"><%= timeAgo(post.created_at) %> • <%= post.id %></span>
+
+                    <% if (user && user.id === post.user_id) { %>
+                        <form action="/forum/posts/delete/<%= post.id %>" method="POST" style="display:inline; float:right;">
+                            <input type="hidden" name="forum_id" value="<%= post.forum_id %>">
+                            <button type="submit" class="delete-btn" onclick="return confirm('Delete this post?')">
+                                &times;
+                            </button>
+                        </form>
+                    <% } %>
+                </div>
+                <h2 class="post-display-title"><%= post.title %></h2>
+                <p class="post-display-text" style="text-transform: none;"><%= post.content %></p>
+                <a href="<%= post.url %>" style="text-transform: none;" class="post-display-link" target="_blank"><%= post.url %></a>
+                <div class="popUpClass">
+                    <img src="<%= post.image %>?width=700&quality=70" loading="lazy" class="post-display-image" alt="User Image">
+                </div>
+            </div>
+        
+        <% } %>
+
+    </div>
+</div>
+
+<%- include("../partials/imageViewer") %>
+
+<script>
+  initializeImageGallery("popUpClass");
+</script>
+
+</body>
+</html>

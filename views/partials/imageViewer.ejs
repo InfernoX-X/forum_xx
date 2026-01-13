@@ -1,0 +1,388 @@
+<!-- Popup Image Viewer (CSS) -->
+<style>
+    /* POPUP VIEWER STYLES */
+.popup-image {
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: rgba(0, 0, 0, 0.95);
+    height: 100vh;
+    width: 100%;
+    z-index: 10000000;
+    display: none;
+    backdrop-filter: blur(5px);
+    transition: opacity 0.3s;
+}
+
+.popup-image_hide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.image-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.popup-image-content {
+    position: absolute; 
+    top: 50%; 
+    left: 50%;
+    transform: translate(-50%, -50%) scale(1);
+
+    width: auto;
+    height: auto;
+    max-width: 90%;
+    max-height: 90%;
+
+    cursor: zoom-in; /* Default state */
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
+    user-select: none;
+    touch-action: none; /* Prevents default browser panning behavior */
+    border-radius: 8px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+}
+
+.popup-image-content.zoomed {
+    cursor: grab;
+}
+
+.popup-image-content.zoomed.dragging {
+    cursor: grabbing;
+}
+
+.close-btn {
+    position: absolute;
+    top: 16px;
+    right: 24px;
+    cursor: pointer;
+    z-index: 1010;
+    color: var(--accent-clr);
+    transition: color 0.2s;
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+    padding: 10px;
+}
+.close-btn:hover {
+    color: #fff;
+}
+.close-btn svg {
+    width: 40px;
+    height: 40px;
+    display: block;
+}
+
+/* Navigation buttons (arrows) */
+.nav-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    color: white;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    z-index: 1005;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-arrow:hover {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.nav-arrow svg {
+    width: 32px;
+    height: 32px;
+}
+
+#prev-btn { left: 16px; }
+#next-btn { right: 16px; }
+
+/* Zoom Status Indicator */
+#zoom-status {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 16px;
+    background-color: rgba(31, 41, 55, 0.8);
+    color: white;
+    font-size: 0.875rem;
+    border-radius: 8px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+}
+
+
+/* Media Queries for Responsiveness */
+@media (max-width: 640px) {
+    .gallery-header h1 {
+        font-size: 1.8rem;
+    }
+    .nav-arrow {
+        padding: 6px 12px;
+    }
+    .nav-arrow svg {
+        width: 24px;
+        height: 24px;
+    }
+    #prev-btn { left: 8px; }
+    #next-btn { right: 8px; }
+    .close-btn {
+        top: 8px;
+        right: 8px;
+    }
+    .close-btn svg {
+        width: 30px;
+        height: 30px;
+    }
+}
+</style>
+
+<!-- Popup Image Viewer (HTML) -->
+<div class="popup-image" id="popup-viewer">
+      <span class="close-btn" id="close-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 10.586l4.95-4.95a1.5 1.5 0 112.122 2.121L14.121 12l4.95 4.95a1.5 1.5 0 01-2.121 2.122L12 14.121l-4.95 4.95a1.5 1.5 0 01-2.122-2.121L9.879 12 4.93 7.05a1.5 1.5 0 012.122-2.121L12 10.586z"/>
+          </svg>
+      </span>
+      
+      <span id="prev-btn" class="nav-arrow">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/>
+          </svg>
+      </span>
+      <span id="next-btn" class="nav-arrow">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+          </svg>
+      </span>
+
+      <div class="popup-image_hide" id="popup-image-hide"></div>
+
+      <div class="image-container">
+          <img src="" alt="Popup Image" id="popup-img" class="popup-image-content">
+          
+          <div id="zoom-status">
+              Click to Zoom (Current: 1x)
+          </div>
+      </div>
+  </div>
+
+<!-- Popup Image Viewer (JS) -->
+<script>
+    const initializeImageGallery = (
+    selector="imageLinks",
+    popupViewerId="popup-viewer",
+    popupImgId="popup-img",
+    closeBtnId="close-btn",
+    hideDivId="popup-image-hide",
+    prevBtnId="prev-btn",
+    nextBtnId="next-btn",
+    zoomStatusId="zoom-status"
+) => {
+    const popupViewer = document.getElementById(popupViewerId);
+    const popupImg = document.getElementById(popupImgId);
+    const closeBtn = document.getElementById(closeBtnId);
+    const hideDiv = document.getElementById(hideDivId);
+    const prevBtn = document.getElementById(prevBtnId);
+    const nextBtn = document.getElementById(nextBtnId);
+    const zoomStatus = document.getElementById(zoomStatusId);
+    const imageLinks = document.querySelectorAll("." + selector);
+
+    if (!popupViewer || !popupImg || !imageLinks.length) {
+        console.error("Image Gallery initialization failed: One or more required elements not found.");
+        return;
+    }
+
+    let allImages = [];
+    let currentIndex = -1;
+    let scale = 1;
+    let translateX = 0;
+    let translateY = 0;
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+    let dragMove = 0; // Tracks total accumulated movement
+    const dragThreshold = 5; // Pixels of movement required to be considered a drag
+    const maxScale = 3;
+
+    const applyTransform = () => {
+        popupImg.style.transform = `translate(-50%, -50%) translate(${translateX}px, ${translateY}px) scale(${scale})`;
+        zoomStatus.textContent = `Click to Zoom (Current: ${scale}x)`;
+        zoomStatus.classList.remove('opacity-0');
+        if (scale === 1) {
+            setTimeout(() => zoomStatus.classList.add('opacity-0'), 1000);
+        }
+    };
+
+    imageLinks.forEach(link => {
+        const imgSrc = link.querySelector('img').src;
+        allImages.push(imgSrc);
+    });
+
+    const resetZoom = () => {
+        scale = 1;
+        translateX = 0;
+        translateY = 0;
+        isDragging = false;
+        popupImg.classList.remove('zoomed', 'dragging');
+        popupImg.style.cursor = 'zoom-in';
+        applyTransform();
+    };
+
+    const showImage = (index) => {
+        if (index < 0 || index >= allImages.length) {
+            return; // Out of bounds
+        }
+        currentIndex = index;
+        popupViewer.style.display = 'block';
+        popupImg.src = allImages[currentIndex];
+        resetZoom(); // Always reset when switching images
+
+        prevBtn.style.visibility = (currentIndex === 0) ? 'hidden' : 'visible';
+        nextBtn.style.visibility = (currentIndex === allImages.length - 1) ? 'hidden' : 'visible';
+    };
+
+    imageLinks.forEach((link, index) => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            showImage(index);
+        });
+    });
+
+    const closePopup = () => {
+        popupViewer.style.display = 'none';
+        resetZoom();
+    };
+
+    closeBtn.addEventListener('click', closePopup);
+    hideDiv.addEventListener('click', (e) => {
+        if (e.target.id === hideDivId) {
+            closePopup();
+        }
+    });
+
+    prevBtn.addEventListener('click', () => {
+        if (currentIndex > 0) {
+            showImage(currentIndex - 1);
+        }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        if (currentIndex < allImages.length - 1) {
+            showImage(currentIndex + 1);
+        }
+    });
+
+    popupImg.addEventListener('click', () => {
+        if (scale === 1) {
+            // Zoom In
+            scale = maxScale;
+            popupImg.classList.add('zoomed');
+            popupImg.style.cursor = 'grab';
+            applyTransform();
+        } else {
+            // Zoom Out
+            resetZoom();
+        }
+    });
+
+    const getClientCoords = (e) => e.touches ? e.touches[0] : e;
+
+    const startDrag = (e) => {
+        if (scale > 1) {
+            e.preventDefault(); 
+            isDragging = true;
+            dragMove = 0; // Reset movement counter
+            popupImg.classList.add('dragging');
+
+            const coords = getClientCoords(e);
+            startX = coords.clientX - translateX;
+            startY = coords.clientY - translateY;
+        }
+    };
+    popupImg.addEventListener('mousedown', startDrag);
+    popupImg.addEventListener('touchstart', startDrag);
+
+    // 3. Move/Pan (Mouse & Touch)
+    const doDrag = (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+
+        const coords = getClientCoords(e);
+        const currentX = coords.clientX;
+        const currentY = coords.clientY;
+
+        const newTranslateX = currentX - startX;
+        const newTranslateY = currentY - startY;
+        
+        const dx = newTranslateX - translateX;
+        const dy = newTranslateY - translateY;
+        dragMove += Math.sqrt(dx * dx + dy * dy); 
+
+        const rect = popupImg.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+
+        const actualScaledWidth = rect.width;
+        const actualScaledHeight = rect.height;
+
+        const limitX = Math.max(0, (actualScaledWidth - viewportWidth) / 2);
+        const limitY = Math.max(0, (actualScaledHeight - viewportHeight) / 2);
+
+        translateX = Math.max(-limitX, Math.min(limitX, newTranslateX));
+        translateY = Math.max(-limitY, Math.min(limitY, newTranslateY));
+
+        applyTransform();
+    };
+    document.addEventListener('mousemove', doDrag);
+    document.addEventListener('touchmove', doDrag, { passive: false });
+
+    const stopDrag = () => {
+        if (!isDragging) return;
+        
+        isDragging = false;
+        popupImg.classList.remove('dragging');
+    };
+    document.addEventListener('mouseup', stopDrag);
+    document.addEventListener('touchend', stopDrag);
+    document.addEventListener('mouseleave', stopDrag);
+
+
+    popupImg.addEventListener('click', (e) => {
+        if (dragMove > dragThreshold && scale > 1) {
+            e.stopPropagation(); 
+            e.preventDefault(); 
+            dragMove = 0; 
+        } else {
+             dragMove = 0;
+        }
+    }, true);
+
+    // Optional: Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        if (popupViewer.style.display === 'block') {
+            if (e.key === 'Escape') {
+                closePopup();
+            } else if (e.key === 'ArrowLeft') {
+                prevBtn.click();
+            } else if (e.key === 'ArrowRight') {
+                nextBtn.click();
+            }
+        }
+    });
+};
+</script>
