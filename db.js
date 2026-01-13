@@ -12,7 +12,7 @@ const pool = mysql.createPool({
     database: process.env.DATABASE_NAME,
     port: 12479,
     ssl: {
-        ca: fs.readFileSync(path.join(__dirname, 'certs/ca.pem')),
+        ca: process.env.CA_FILE
     },
     waitForConnections: true,
     connectTimeout: 10000, // 10 seconds
