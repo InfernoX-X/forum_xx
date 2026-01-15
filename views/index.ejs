@@ -422,7 +422,7 @@
 
         <% forums.forEach(category => { %>
             <div class="category-section" id="cat-<%= category.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase() %>">
-                <h2 class="category-label" style="--cat-color: <%= category.color || '#F93742' %>; border-bottom: 2px solid var(--cat-color);">
+                <h2 class="category-label" style="--cat-color: <%= category.color || '#F93742' %>; border-bottom: 2px solid var(--cat-color); width:100%;">
                     <i class="fas <%= category.icon %>" style="color: var(--cat-color); margin-right: 10px;"></i>
                     <%= category.name %>
                 </h2>

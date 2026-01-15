@@ -4,14 +4,10 @@ const db = require('../db');
 const {verifyToken} = require('../utils/verify');
 
 const categoryConfig = [
-    { id: "SEDUCTION, DEALS & GAMES", icon: "fa-heart", color: "#F93742" },
-    { id: "HARD RESISTANCE & COERCION", icon: "fa-user-secret", color: "#ff944d" },
-    { id: "HARDCORE SURRENDER", icon: "fa-biohazard", color: "#cc33ff" },
-
+    { id: "General", icon: "fa-skull-crossbones", color: "#fc6c2a" },
     { id: "The Seduction Series (Willing & Talked Into)", icon: "fa-heart", color: "#F93742" },
-    { id: "The Cheating Series", icon: "fa-user-secret", color: "#ff944d" },
-    { id: "The Corruption", icon: "fa-biohazard", color: "#cc33ff" },
     { id: "The Reluctant Series (The Pushed & Used)", icon: "fa-hand-paper", color: "#ff3300" },
+    { id: "The Corruption", icon: "fa-biohazard", color: "#cc33ff" },
     { id: "The Gangbang Hub", icon: "fa-users", color: "#00ccff" },
     { id: "Spouse Sharing & Cuckoldry", icon: "fa-eye", color: "#33cc33" },
     { id: "The Exchange (Deals & Leverage)", icon: "fa-hand-holding-dollar", color: "#ffd700" },
