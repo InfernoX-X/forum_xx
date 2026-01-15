@@ -280,6 +280,75 @@
         color: var(--accent);
     }
     
+    .sidebar-leaderboard {
+        position: fixed;
+        top: 150px;
+        right: calc(50% - 880px); /* Positions it to the right of your 1100px container */
+        width: 220px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .sidebar-header {
+        background: #1a1a1a;
+        padding: 12px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 1px;
+        color: var(--text-main);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .leaderboard-content {
+        padding: 10px;
+    }
+
+    .contributor-item {
+        display: flex;
+        align-items: center;
+        padding: 8px 5px;
+        border-bottom: 1px solid rgba(255,255,255,0.03);
+    }
+
+    .contributor-item:last-child { border-bottom: none; }
+
+    .rank {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        width: 20px;
+    }
+
+    .name {
+        flex: 1;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-main);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .count {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--accent);
+        background: rgba(249, 55, 66, 0.1);
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+
+    /* Hide leaderboard if screen is too narrow to avoid overlapping content */
+    @media (max-width: 1550px) {
+        .sidebar-leaderboard {
+            display: none;
+        }
+    }
+
+
     /* Mobile Optimization: Hide non-essential info */
     @media (max-width: 768px) {
         /* Change the 3-column grid to 1 column for the title only */
@@ -319,25 +388,22 @@
 <%- include("./partials/navBar") %>
 
 <body>
+    
+
     <div class="container">
         <div class="search-bar">
             <input type="text" placeholder="Start typing to filter forums..." id="searchInput" autocomplete="off">
             <button id="inputSubBtn" class="btn-search">SEARCH</button>
         </div>
 
-        <div id="noResults" style="display:none; text-align:center; padding: 40px; color: var(--text-muted);">
-            No forums found matching your search.
-        </div>
-        <button id="backToTop" title="Go to top">↑</button>
-
         <div class="composer">
             <h3>Start a Discussion</h3>
             <form action="/forum/create" method="post" class="composer-grid">
                 <input type="text" name="title" placeholder="Thread Title" required>
                 <select name="category">
-                    <option value="HARD RESISTANCE & COERCION">Resistance & Coercion</option>
-                    <option value="SEDUCTION, DEALS & GAMES">Deals & Games</option>
-                    <option value="HARDCORE SURRENDER">Hardcore Surrender</option>
+                    <% forums.forEach(category => { %>
+                        <option value="<%= category.name %>"><%= category.name %></option>
+                    <% }) %>
                 </select>
                 <button type="submit" class="btn-search">CREATE</button>
             </form>
@@ -346,39 +412,36 @@
         <div class="quick-jump-container">
             <span class="jump-label">Jump to:</span>
             <div class="jump-links">
-                <% for (const cate in forums) { %>
-                    <a href="#cat-<%= cate.replace(/\s+/g, '-').toLowerCase() %>" class="jump-btn">
-                        <%= cate %>
+                <% forums.forEach(category => { %>
+                    <a href="#cat-<%= category.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase() %>" class="jump-btn">
+                        <i class="fas <%= category.icon %>"></i> <%= category.name.split('(')[0] %>
                     </a>
-                <% } %>
+                <% }) %>
             </div>
         </div>
 
-        <% for (const cate in forums) { %>
-            <div class="category-section" id="cat-<%= cate.replace(/\s+/g, '-').toLowerCase() %>" >
-                <h2 class="category-label"><%= cate %></h2>
+        <% forums.forEach(category => { %>
+            <div class="category-section" id="cat-<%= category.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase() %>">
+                <h2 class="category-label" style="--cat-color: <%= category.color || '#F93742' %>; border-bottom: 2px solid var(--cat-color);">
+                    <i class="fas <%= category.icon %>" style="color: var(--cat-color); margin-right: 10px;"></i>
+                    <%= category.name %>
+                </h2>
                 
-                <% forums[cate].forEach(forum => { %>
+                <% category.data.forEach(forum => { %>
                     <div class="forum-row">
                         <div class="forum-info">
                             <div style="display: flex; align-items: center;">
                                 <a href="/forum/<%= forum.id %>" class="forum-title"><%= forum.title %></a>
                                 
                                 <% 
-                                    // Logic for badges
                                     const isNew = forum.lastPostDate && (new Date() - new Date(forum.lastPostDate) < 24 * 60 * 60 * 1000);
                                     const isHot = forum.postCount >= 25; 
                                 %>
 
-                                <% if (isHot) { %>
-                                    <span class="badge badge-hot">🔥 HOT</span>
-                                <% } %>
-                                
-                                <% if (isNew) { %>
-                                    <span class="badge badge-new">✨ NEW</span>
-                                <% } %>
+                                <% if (isHot) { %> <span class="badge badge-hot">🔥 HOT</span> <% } %>
+                                <% if (isNew) { %> <span class="badge badge-new">✨ NEW</span> <% } %>
                             </div>
-                            <span class="forum-desc"><%= forum.bio || "Discuss and share strategies." %></span>
+                            <span class="forum-desc"><%= forum.bio %></span>
                         </div>
                         
                         <div class="forum-stats">
@@ -399,8 +462,29 @@
                     </div>
                 <% }); %>
             </div>
-        <% } %>
+        <% }) %>
+
+        <div class="sidebar-leaderboard">
+            <div class="sidebar-header">
+                <i class="fas fa-trophy" style="color: gold; margin-right: 8px;"></i>
+                TOP CONTRIBUTORS
+            </div>
+            <div class="leaderboard-content">
+                <% if (topContributors.length > 0) { %>
+                    <% topContributors.forEach((contributor, index) => { %>
+                        <div class="contributor-item">
+                            <span class="rank"><%= index + 1 %></span>
+                            <span class="name"><%= contributor.username %></span>
+                            <span class="count"><%= contributor.post_count %></span>
+                        </div>
+                    <% }) %>
+                <% } else { %>
+                    <div style="font-size: 0.7rem; color: var(--text-muted); padding: 10px;">No posts yet</div>
+                <% } %>
+            </div>
+        </div>
     </div>
+
 
 <script>
     const searchInput = document.getElementById('searchInput');

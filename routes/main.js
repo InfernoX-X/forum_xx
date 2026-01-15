@@ -3,6 +3,22 @@ const router = express.Router();
 const db = require('../db');
 const {verifyToken} = require('../utils/verify');
 
+const categoryConfig = [
+    { id: "SEDUCTION, DEALS & GAMES", icon: "fa-heart", color: "#F93742" },
+    { id: "HARD RESISTANCE & COERCION", icon: "fa-user-secret", color: "#ff944d" },
+    { id: "HARDCORE SURRENDER", icon: "fa-biohazard", color: "#cc33ff" },
+
+    { id: "The Seduction Series (Willing & Talked Into)", icon: "fa-heart", color: "#F93742" },
+    { id: "The Cheating Series", icon: "fa-user-secret", color: "#ff944d" },
+    { id: "The Corruption", icon: "fa-biohazard", color: "#cc33ff" },
+    { id: "The Reluctant Series (The Pushed & Used)", icon: "fa-hand-paper", color: "#ff3300" },
+    { id: "The Gangbang Hub", icon: "fa-users", color: "#00ccff" },
+    { id: "Spouse Sharing & Cuckoldry", icon: "fa-eye", color: "#33cc33" },
+    { id: "The Exchange (Deals & Leverage)", icon: "fa-hand-holding-dollar", color: "#ffd700" },
+    { id: "The Hardcore & Extreme Section", icon: "fa-skull-crossbones", color: "#888888" }
+];
+
+
 function timeAgo(date) {
     const seconds = Math.floor((new Date() - new Date(date)) / 1000);
     let interval = Math.floor(seconds / 31536000);
@@ -20,10 +36,9 @@ function timeAgo(date) {
 }
 
 router.get('/',verifyToken, async (req, res) => {
-  try {
-
-    // Updated SQL query with JOIN and GROUP BY
-        const query = `SELECT 
+    try {
+        const query = `
+            SELECT 
                 f.id, f.title, f.bio, f.category, 
                 COUNT(p.id) AS postCount,
                 lp.title AS lastPostTitle,
@@ -31,43 +46,60 @@ router.get('/',verifyToken, async (req, res) => {
                 u.username AS lastPostUser
             FROM forums f
             LEFT JOIN posts p ON f.id = p.forum_id
-            -- Subquery to find the ID of the latest post per forum
             LEFT JOIN (
                 SELECT forum_id, MAX(id) as max_id
                 FROM posts
                 GROUP BY forum_id
             ) latest_post_id ON f.id = latest_post_id.forum_id
-            -- Join again to get the actual details of that specific post
             LEFT JOIN posts lp ON latest_post_id.max_id = lp.id
-            -- Join users to get the name of the person who posted it
             LEFT JOIN users u ON lp.user_id = u.id
             GROUP BY f.id
-            ORDER BY f.created_at DESC`
+            ORDER BY f.created_at DESC`;
 
+        // Query to get the top 10 contributors based on post count
+        const contributorsQuery = `
+            SELECT u.username, COUNT(p.id) AS post_count 
+            FROM users u
+            JOIN posts p ON u.id = p.user_id
+            GROUP BY u.id
+            ORDER BY post_count DESC 
+            LIMIT 10`
+        ;
 
-    const [rawForums] = await db.execute(query);
+        const [topContributors] = await db.execute(contributorsQuery);
 
-    const forums = rawForums.reduce((acc, forum) => {
-        const key = forum.category;
-        if (!acc[key]) {
-            acc[key] = [];
-        }
-        acc[key].push(forum);
-        return acc;
-    }, {});
+        const [rawForums] = await db.execute(query);        
 
-    res.render('index', { 
-        forums: forums,
-        user: res.userInfo,
-        timeAgo
-    });
+        // 1. Group the raw database results
+        const grouped = rawForums.reduce((acc, forum) => {
+            const key = forum.category;
+            if (!acc[key]) acc[key] = [];
+            acc[key].push(forum);
+            return acc;
+        }, {});
+
+        // 2. Build final ordered list with icons
+        const finalForums = categoryConfig.map(config => {
+            return {
+                name: config.id,
+                icon: config.icon,
+                color: config.color,
+                data: grouped[config.id] || [] // Empty array if no forums exist in this category yet
+            };
+        }).filter(category => category.data.length > 0); // Hide categories that have 0 forums
+
+        res.render('index', { 
+            forums: finalForums, // Now an array of objects
+            user: res.userInfo,
+            topContributors: topContributors,
+            timeAgo
+        });
+
     } catch (err) {
         console.error('Database Error on main page load:', err);
         res.status(500).send('Could not load characters.');
     }
 });
-
-
 
 router.get('/search-results',verifyToken, async (req, res) => {
   try {
@@ -95,10 +127,6 @@ router.get('/search-results',verifyToken, async (req, res) => {
     }
 });
 
-
-
-
-// Create Forum
 router.post('/forum/create', async (req, res) => {
   const userId = req.user.userId;
   const { title, category, bio } = req.body;
