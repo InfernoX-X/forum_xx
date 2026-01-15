@@ -4,293 +4,110 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= siteTitle %></title>
-  <link rel="icon" href="<%= favIcon %>">
-
+    <link rel="icon" href="<%= favIcon %>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
+<style>
+    :root {
+        --accent: #F93742;
+        --bg: #000;
+        --surface: #111;
+        --border: #222;
+        --text-main: #FFF;
+        --text-muted: #888;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background-color: var(--bg); color: var(--text-main); font-family: 'Inter', sans-serif; line-height: 1.5; }
+
+    .container { max-width: 1000px; margin: 60px auto; padding: 0 20px; }
+
+    /* Header */
+    #forum-title { font-size: 2.2rem; margin-bottom: 30px; font-weight: 800; border-left: 4px solid var(--accent); padding-left: 15px; }
+
+    /* Composer & Edit Form */
+    .post-composer { background: var(--surface); border: 1px solid var(--border); padding: 25px; border-radius: 8px; margin-bottom: 40px; }
+    .post-composer h3 { font-size: 0.75rem; color: var(--accent); letter-spacing: 2px; margin-bottom: 15px; text-transform: uppercase; }
+    
+    .post-composer input, .post-composer textarea { 
+        width: 100%; background: #000; border: 1px solid var(--border); 
+        color: #fff; padding: 12px; margin-bottom: 12px; border-radius: 4px; font-family: inherit;
+    }
+    
+    .post-composer label { display: block; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 5px; }
+    .post-composer input:focus, .post-composer textarea:focus { border-color: var(--accent); outline: none; }
+
+    .btn-accent { background: var(--accent); color: #fff; border: none; padding: 10px 25px; font-weight: 700; border-radius: 4px; cursor: pointer; transition: 0.2s; }
+    .btn-accent:hover { opacity: 0.9; }
+    
+    .btn-link { background: none; border: none; color: var(--text-muted); font-size: 0.75rem; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+    .btn-link:hover { color: #fff; text-decoration: underline; }
+
+    /* Post Cards */
+    .post-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 30px; padding: 25px; position: relative; }
+    
+    .post-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 10px; }
+    .post-author { color: var(--accent); font-weight: 700; font-size: 0.9rem; }
+    .post-time { color: var(--text-muted); font-size: 0.8rem; }
+
+    .delete-btn { background: transparent; border: none; color: var(--text-muted); font-size: 1.8rem; cursor: pointer; line-height: 1; margin-left: 10px; }
+    .delete-btn:hover { color: var(--accent); }
+
+    .post-display-title { font-size: 1.6rem; margin-bottom: 10px; font-weight: 700; }
+    .post-display-text { color: #ccc; margin-bottom: 15px; font-size: 1rem; }
+    .post-display-link { color: var(--accent); text-decoration: none; font-size: 0.85rem; display: block; margin-bottom: 15px; word-break: break-all; }
+
+    /* Images */
+    .popUpClass { width: 100%; cursor: pointer; margin-top: 15px; border-radius: 4px; overflow: hidden; }
+    .post-display-image { width: 100%; max-height: 700px; object-fit: contain; background: #080808; display: block; border: 1px solid #222; }
+
+    .file-input-wrapper { display: inline-block; margin-bottom: 10px; }
+    .file-label { background: #222; padding: 8px 15px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; border: 1px solid var(--border); }
+</style>
+
 <body>
 <%- include("../partials/navBar") %>
 
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Acme&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Raleway:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
-
-*{
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;    
-    
-    /* Main Colors */
-    --accent-clr:#F93742;
-    --bgClrbackup: #121212;
-    /* --secondary-bgClr: #3a3a3a; */
-    
-    --primary-color: var(--accent-clr);
-    --primary-bg-light: rgba(79, 70, 229, 0.1); /* 10% opacity */
-    --gray-900: #1f2937;
-    --gray-700: #374151;
-    --gray-500: #6b7280;
-    --gray-300: #d1d5db;
-    --gray-100: #f3f4f6;
-    --bg-clr: #f9fafb;
-
-
-
-    /* Card Colors */
-    --epic_color: #daa520;
-    --legendary_color : #d400d4;
-    --rare_color : #00ccff;
-    --uncommon_color : #00ff0a;
-    --common_color : #a3a3a3;
-}
-
-html {
-    scroll-behavior: smooth;
-    cursor: default;
-}
-
-::selection{
-    color: rgb(255, 255, 255);
-    background-color: var(--accent-clr);
-}
-
-::-webkit-scrollbar {
-    min-width: 7px;
-    max-width: 0.5vw;
-    height: 0;
-    background-color: transparent;
-}
-
-::-webkit-scrollbar-thumb{
-    background-color: var(--accent-clr);
-    border-radius: 20px;
-}
-
-body { 
-    font-family: 'Courier New', Courier, monospace; 
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-:root {
-    --bg-color: rgb(22, 22, 22);
-    --row-bg: #1a1a1a;
-    --row-alt: #222222;
-    --text-main: #efefef;
-    --text-muted: #888;
-    --border-clr: #333;
-    }
-
-body {
-    background-color: var(--bg-color);
-    color: var(--text-main);
-    font-family: Arial, sans-serif;
-    margin: 0;
-}
-
-.container{
-    padding: 20px;
-}
-
-/* Composer Styling */
-.post-composer {
-    background: #1a1a1a;
-    padding: 20px;
-    border-radius: 8px;
-    border: 1px solid #333;
-}
-.post-composer h3{
-    margin-bottom: 8px;
-}
-
-.post-composer input, .post-composer textarea {
-    width: 100%;
-    background: #111;
-    border: 1px solid #444;
-    color: white;
-    padding: 12px;
-    margin-bottom: 10px;
-    border-radius: 4px;
-    box-sizing: border-box;
-}
-
-.post-composer input:focus {
-    border-color: var(--accent-clr);
-    outline: none;
-}
-.post-composer select {
-    width: 100%;
-    background-color: #111; /* Match the input background */
-    color: var(--text-main);
-    border: 1px solid #444;
-    padding: 12px;
-    margin-bottom: 10px;
-    border-radius: 4px;
-    appearance: none; /* Removes default browser arrow */
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    cursor: pointer;
-    font-size: 0.95rem;
-    
-    /* Custom arrow icon using a background image SVG */
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23888' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: calc(100% - 15px) center;
-}
-
-.post-composer select:focus {
-    border-color: var(--accent-clr);
-    outline: none;
-    background-color: #151515;
-}
-
-/* Style the options inside the dropdown */
-.post-composer select option {
-    background-color: rgb(22, 22, 22);
-    color: var(--text-main);
-    padding: 10px;
-}
-
-/* Optional: styling the label if you have one */
-.post-composer label {
-    display: block;
-    margin-bottom: 5px;
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.btn-accent {
-    background-color: var(--accent-clr);
-    color: #000;
-    border: none;
-    padding: 10px 20px;
-    font-weight: bold;
-    border-radius: 4px;
-    cursor: pointer;
-    float: right;
-    transition: all 0.4s ease-out;
-}
-
-.btn-accent:hover{
-    color: var(--accent-clr);
-    background-color: #000;
-}
-
-/* Post Card Styling (The Feed) */
-.post-card {
-    background: rgb(28, 28, 28);
-    border: 1px solid #333;
-    padding: 20px;
-    margin-bottom: 20px;
-    border-radius: 4px;
-}
-
-.post-header {
-    font-size: 0.8rem;
-    color: #888;
-    margin-bottom: 10px;
-}
-
-.post-display-title {
-    margin: 0 0 10px 0;
-    font-size: 1.4rem;
-}
-.post-display-text{
-    font-size: 1rem;
-    text-transform: none;
-}
-
-.post-display-link {
-    display: block;
-    color: var(--accent-clr);
-    margin-bottom: 10px;
-    text-decoration: none;
-    word-break: break-all;
-}
-
-.post-display-image {
-    max-width: 300px;
-    border-radius: 4px;
-    margin-top: 10px;
-    border: 1px solid #444;
-}
-
-.delete-btn {
-    background: transparent;
-    border: none;
-    color: #666;
-    font-size: 3rem;
-    cursor: pointer;
-    line-height: 1;
-    transition: color 0.2s;
-}
-
-.delete-btn:hover {
-    color: #ff4444; /* Standard red for danger/delete */
-}
-
-</style>
-
-<style>
-    .btn-link {
-    background: none;
-    border: none;
-    color: var(--text-muted); /* Grey color from your root variables */
-    font-size: 0.75rem;
-    font-weight: bold;
-    cursor: pointer;
-    text-transform: uppercase;
-    transition: color 0.2s;
-    margin-right: 10px; /* Space between Edit and Delete */
-    padding: 0;
-}
-
-.btn-link:hover {
-    color: var(--accent-clr); /* Changes to your red accent color on hover */
-    text-decoration: underline;
-}
-</style>
-
 <div class="container">
-
-    <h1 id="forum-title" style="margin: 20px 0;"><%= forumTitle %></h1>
+    <h1 id="forum-title"><%= forumTitle %></h1>
 
     <div class="post-composer">
         <form action="/forum/posts/create" method="post" enctype="multipart/form-data">
-
             <h3>CREATE A NEW POST</h3>
-            
-            <input type="text" name="title" id="post-title" placeholder="POST TITLE (REQUIRED)">
-            <input type="text" name="content" id="post-content" placeholder="SUMMARY">
-            <input type="text" name="url" id="post-url" placeholder="URL (OPTIONAL)">
+            <input type="text" name="title" placeholder="POST TITLE (REQUIRED)" required>
+            <input type="text" name="content" placeholder="SUMMARY/BODY">
+            <input type="text" name="url" placeholder="VIDEO URL">
             <input type="text" name="forumId" hidden value="<%= forum_id %>">
-            <div class="file-input-wrapper">
-                <label for="post-image" class="file-label">UPLOAD IMAGE</label>
-                <input type="file" id="post-image" name="image" accept="image/*" required>
-            </div>
             
-            <button id="submit-post" type="submit" class="btn-accent">POST</button>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="file-input-wrapper">
+                    <label for="post-image" class="file-label" id="main-file-label">📎 UPLOAD IMAGE</label>
+                    <input type="file" id="post-image" name="image" accept="image/*" required style="display:none" onchange="document.getElementById('main-file-label').innerText = '📂 ' + this.files[0].name">
+                </div>
+                <button type="submit" class="btn-accent">POST</button>
+            </div>
         </form>
     </div>
 
-
-    <hr style="border: 0; border-top: 1px solid #333; margin: 40px 0;">
+    <hr style="border: 0; border-top: 1px solid #222; margin: 40px 0;">
 
     <div id="posts-feed">
-
         <% for (const post of posts) { %>
             <div class="post-card" id="post-<%= post.id %>">
+                
                 <div class="post-header">
-                    <span class="post-author"><%= post.username %></span> • 
-                    <span class="post-time"><%= timeAgo(post.created_at) %></span>
+                    <div>
+                        <span class="post-author"><%= post.username %></span> 
+                        <span class="post-time">• <%= timeAgo(post.created_at) %></span>
+                    </div>
 
                     <% if (user && user.id === post.user_id) { %>
-                        <div style="float:right;">
+                        <div style="display: flex; align-items: center;">
                             <button class="btn-link" onclick="toggleEdit('<%= post.id %>')">Edit</button>
                             
                             <form action="/forum/posts/delete/<%= post.id %>" method="POST" style="display:inline;">
                                 <input type="hidden" name="forum_id" value="<%= post.forum_id %>">
-                                <button id="deleteBtn" type="submit" class="delete-btn" onclick="return confirm('Delete?')">&times;</button>
+                                <button type="submit" class="delete-btn" onclick="return confirm('Delete this post?')">&times;</button>
                             </form>
                         </div>
                     <% } %>
@@ -299,65 +116,62 @@ body {
                 <div id="view-mode-<%= post.id %>">
                     <h2 class="post-display-title"><%= post.title %></h2>
                     <p class="post-display-text"><%= post.content %></p>
-                    <a href="<%= post.url %>" style="text-transform: none;" class="post-display-link" target="_blank"><%= post.url %></a>
+                    <% if (post.url) { %>
+                        <a href="<%= post.url %>" class="post-display-link" target="_blank">🔗 <%= post.url %></a>
+                    <% } %>
                     <div class="popUpClass">
                         <img src="<%= post.image %>" class="post-display-image" alt="Post Image">
                     </div>
                 </div>
 
-                    <% if (user && user.id === post.user_id) { %>
-                        <div id="edit-mode-<%= post.id %>" style="display: none; margin-top: 15px;">
-                            <form action="/forum/posts/edit/<%= post.id %>" method="POST" enctype="multipart/form-data" class="post-composer">
-                                <label>Title</label>
-                                <input type="text" name="title" value="<%= post.title %>">
-                                
-                                <label>Summary</label>
-                                <textarea name="content" rows="3"><%= post.content %></textarea>
-                                
-                                <label>Link (URL)</label>
-                                <input type="text" name="url" value="<%= post.url %>" placeholder="https://...">
-                                
-                                <div style="margin-top: 10px;">
-                                    <label>Change Image (Optional)</label>
-                                    <input type="file" name="image" accept="image/*">
-                                </div>
-                                
-                                <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
-                                    <button type="button" class="btn-link" onclick="toggleEdit('<%= post.id %>')">Cancel</button>
-                                    <button type="submit" class="btn-accent">Save Changes</button>
-                                </div>
-                            </form>
-                        </div>
-                    <% } %>
+                <% if (user && user.id === post.user_id) { %>
+                    <div id="edit-mode-<%= post.id %>" style="display: none;">
+                        <form action="/forum/posts/edit/<%= post.id %>" method="POST" enctype="multipart/form-data" class="post-composer" style="margin-bottom: 0; padding: 0; border: none; background: none;">
+                            <label>Title</label>
+                            <input type="text" name="title" value="<%= post.title %>" required>
+                            
+                            <label>Summary</label>
+                            <textarea name="content" rows="4"><%= post.content %></textarea>
+                            
+                            <label>Link (URL)</label>
+                            <input type="text" name="url" value="<%= post.url %>">
+                            
+                            <label>Change Image (Optional)</label>
+                            <input type="file" name="image" accept="image/*" style="background: #222; padding: 5px;">
+                            
+                            <div style="display: flex; gap: 15px; justify-content: flex-end; margin-top: 10px;">
+                                <button type="button" class="btn-link" onclick="toggleEdit('<%= post.id %>')">Cancel</button>
+                                <button type="submit" class="btn-accent">Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
+                <% } %>
 
             </div>
         <% } %>
-
     </div>
 </div>
-
-<script>
-    function toggleEdit(postId) {
-    const viewDiv = document.getElementById(`view-mode-${postId}`);
-    const editDiv = document.getElementById(`edit-mode-${postId}`);
-    const deleteBtn = document.getElementById('deleteBtn');
-
-    if (viewDiv.style.display === "none") {
-        viewDiv.style.display = "block";
-        editDiv.style.display = "none";
-        deleteBtn.style.display = "block";
-    } else {
-        deleteBtn.style.display = "none";
-        viewDiv.style.display = "none";
-        editDiv.style.display = "block";
-    }
-}
-</script>
 
 <%- include("../partials/imageViewer") %>
 
 <script>
-  initializeImageGallery("popUpClass");
+    function toggleEdit(postId) {
+        const viewDiv = document.getElementById(`view-mode-${postId}`);
+        const editDiv = document.getElementById(`edit-mode-${postId}`);
+
+        if (viewDiv.style.display === "none") {
+            viewDiv.style.display = "block";
+            editDiv.style.display = "none";
+        } else {
+            viewDiv.style.display = "none";
+            editDiv.style.display = "block";
+        }
+    }
+
+    // Init gallery
+    if (typeof initializeImageGallery === "function") {
+        initializeImageGallery("popUpClass");
+    }
 </script>
 
 </body>

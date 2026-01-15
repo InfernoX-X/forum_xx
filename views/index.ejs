@@ -3,423 +3,458 @@
 <head>
     <title><%= siteTitle %> | FORUMS</title>
     <link rel="icon" href="<%= favIcon %>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body>
-    <%- include("partials/navBar.ejs") %>
-
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Acme&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Raleway:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
-
-*{
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;    
-    
-    /* Main Colors */
-    --accent-clr:#F93742;
-    --bgClrbackup: #121212;
-    /* --secondary-bgClr: #3a3a3a; */
-    
-    --primary-color: var(--accent-clr);
-    --primary-bg-light: rgba(79, 70, 229, 0.1); /* 10% opacity */
-    --gray-900: #1f2937;
-    --gray-700: #374151;
-    --gray-500: #6b7280;
-    --gray-300: #d1d5db;
-    --gray-100: #f3f4f6;
-    --bg-clr: #f9fafb;
-
-
-
-    /* Card Colors */
-    --epic_color: #daa520;
-    --legendary_color : #d400d4;
-    --rare_color : #00ccff;
-    --uncommon_color : #00ff0a;
-    --common_color : #a3a3a3;
-}
-
-html {
-    scroll-behavior: smooth;
-    cursor: default;
-}
-
-::selection{
-    color: rgb(255, 255, 255);
-    background-color: var(--accent-clr);
-}
-
-::-webkit-scrollbar {
-    min-width: 7px;
-    max-width: 0.5vw;
-    height: 0;
-    background-color: transparent;
-}
-
-::-webkit-scrollbar-thumb{
-    background-color: var(--accent-clr);
-    border-radius: 20px;
-}
-
-body { 
-    font-family: 'Courier New', Courier, monospace; 
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-:root {
-  --bg-color: rgb(22, 22, 22);
-  --row-bg: #1a1a1a;
-  --row-alt: #222222;
-  --text-main: #efefef;
-  --text-muted: #888;
-  --border-clr: #333;
-}
-
-body {
-  background-color: var(--bg-color);
-  color: var(--text-main);
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-}
-
-.forum-category {
-  padding: 20px;
-  max-width: 80%;
-  margin: 0 auto 30px auto;
-  margin-top: 70px;
-  /* border: 1px solid var(--border-clr); */
-}
-
-.category-header {
-  background-color: var(--accent-clr);
-  color: #000;
-  padding: 10px 15px;
-  font-weight: bold;
-  text-transform: uppercase;
-  font-size: 0.9rem;
-}
-
-/* Forum Rows */
-.forum-row {
-  display: grid;
-  grid-template-columns: 50px 1fr 150px 200px;
-  background-color: var(--row-bg);
-  border-bottom: 1px solid var(--border-clr);
-  align-items: center;
-}
-
-.forum-row:nth-child(even) { background-color: var(--row-alt); }
-
-.forum-row:hover { background-color: #282828; }
-
-.icon { text-align: center; color: var(--accent-clr); font-size: 1.2rem; }
-
-.info { padding: 15px; }
-.info a { 
-  color: var(--accent-clr); 
-  text-decoration: none; 
-  font-size: 1.1rem; 
-  font-weight: bold; 
-}
-.info p { margin: 5px 0 0; color: var(--text-muted); font-size: 0.7rem; }
-
-.stats, .last-post {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  border-left: 1px solid var(--border-clr);
-  padding: 10px;
-  text-align: center;
-}
-
-.last-post { text-align: left; }
-.last-post span { color: var(--text-main); display: block; }
-:root {
-    --bg-color: rgb(22, 22, 22);
-    --row-bg: #1a1a1a;
-    --row-alt: #222222;
-    --text-main: #efefef;
-    --text-muted: #888;
-    --border-clr: #333;
+    :root {
+        --accent: #F93742;
+        --bg: #000000;
+        --surface: #111111;
+        --border: #222222;
+        --text-main: #FFFFFF;
+        --text-muted: #888888;
+    }
+    /* Ensure smooth scrolling when clicking links */
+    html {
+        scroll-behavior: smooth;
+        scroll-padding-top: 100px; /* Adjust based on your navbar height */
+    }
+    ::-webkit-scrollbar {
+        min-width: 7px;
+        max-width: 0.5vw;
+        height: 0;
+        background-color: transparent;
     }
 
-body {
-    background-color: var(--bg-color);
-    color: var(--text-main);
-    font-family: Arial, sans-serif;
-    margin: 0;
-}
+    ::-webkit-scrollbar-thumb{
+        background-color: var(--accent);
+        border-radius: 20px;
+    }
 
-.container{
-    padding: 20px;
-}
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
-/* Composer Styling */
-.post-composer {
-    background: #1a1a1a;
-    padding: 20px;
-    border-radius: 8px;
-    border: 1px solid #333;
-}
-.post-composer h3{
-    margin-bottom: 8px;
-}
+    body {
+        background-color: var(--bg);
+        color: var(--text-main);
+        font-family: 'Inter', sans-serif;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+    }
 
-.post-composer input, .post-composer textarea {
-    width: 100%;
-    background: #111;
-    border: 1px solid #444;
-    color: white;
-    padding: 12px;
-    margin-bottom: 10px;
-    border-radius: 4px;
-    box-sizing: border-box;
-}
+    .container {
+        max-width: 1100px;
+        margin: 80px auto;
+        padding: 0 20px;
+    }
 
-.post-composer input:focus {
-    border-color: var(--accent-clr);
-    outline: none;
-}
-.post-composer select {
-    width: 100%;
-    background-color: #111; /* Match the input background */
-    color: var(--text-main);
-    border: 1px solid #444;
-    padding: 12px;
-    margin-bottom: 10px;
-    border-radius: 4px;
-    appearance: none; /* Removes default browser arrow */
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    cursor: pointer;
-    font-size: 0.95rem;
+    /* --- FAST SEARCH BAR --- */
+    .search-bar {
+        display: flex;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 4px;
+        margin-bottom: 40px;
+    }
+
+    .search-bar input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: white;
+        padding: 12px 16px;
+        font-size: 1rem;
+        outline: none;
+    }
+
+    .btn-search {
+        background: var(--accent);
+        color: white;
+        border: none;
+        padding: 0 20px;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    /* --- COMPOSER (Collapsed for Speed) --- */
+    .composer {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 50px;
+    }
+
+    .composer h3 { font-size: 0.9rem; text-transform: uppercase; color: var(--accent); margin-bottom: 15px; letter-spacing: 1px; }
+
+    .composer-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 12px;
+    }
+
+    .composer input, .composer select {
+        background: #000;
+        border: 1px solid var(--border);
+        color: white;
+        padding: 12px;
+        border-radius: 6px;
+        font-size: 0.9rem;
+    }
+
+    /* --- FORUM LIST (Table Style for Speed) --- */
+    .category-section { margin-bottom: 40px; }
+
+    .category-label {
+        font-weight: 700;
+        font-size: 1.1rem;
+        padding-bottom: 12px;
+        border-bottom: 2px solid var(--accent);
+        margin-bottom: 10px;
+        display: inline-block;
+    }
+
+    .forum-row {
+        display: grid;
+        grid-template-columns: 1fr 100px 250px;
+        padding: 16px;
+        border-bottom: 1px solid var(--border);
+        transition: background 0.2s;
+        align-items: center;
+    }
+
+    .forum-row:hover {
+        background: #0a0a0a;
+    }
+
+    .forum-title {
+        color: var(--text-main);
+        text-decoration: none;
+        font-size: 1.1rem;
+        font-weight: 600;
+        display: block;
+        margin-bottom: 4px;
+    }
+
+    .forum-title:hover { color: var(--accent); }
+
+    .forum-desc { color: var(--text-muted); font-size: 0.85rem; }
+
+    .forum-stats {
+        text-align: center;
+        font-weight: 600;
+        color: var(--accent);
+        font-size: 0.95rem;
+    }
+
+    .forum-stats span {
+        display: block;
+        color: var(--text-muted);
+        font-size: 0.7rem;
+        text-transform: uppercase;
+    }
+
+    .forum-last-post {
+        border-left: 1px solid var(--border);
+        padding-left: 20px;
+    }
+
+    .lp-title {
+        color: var(--text-main);
+        font-size: 0.85rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+    }
+
+    .lp-meta {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        margin-top: 4px;
+    }
+
+    .lp-meta b { color: var(--text-main); }
+
+    /* Badges Styling */
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        margin-left: 10px;
+        vertical-align: middle;
+        letter-spacing: 0.5px;
+    }
+
+    .badge-hot {
+        background: rgba(249, 55, 66, 0.15);
+        color: var(--accent);
+        border: 1px solid var(--accent);
+        box-shadow: 0 0 10px rgba(249, 55, 66, 0.2);
+    }
+
+    .badge-new {
+        background: rgba(55, 249, 168, 0.15); /* A fresh green color */
+        color: #37f9a8;
+        border: 1px solid #37f9a8;
+    }
+
+    /* Tooltip on hover for stats */
+    .forum-row:hover .forum-stats {
+        transform: scale(1.1);
+        transition: transform 0.2s ease;
+    }
+    /* This highlights the text when searching */
+    .highlight {
+        background: rgba(249, 55, 66, 0.3);
+        color: white;
+        padding: 0 2px;
+        border-radius: 2px;
+    }
+    .quick-jump-container {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 25px;
+        padding: 10px 0;
+        overflow-x: auto; /* For mobile scroll */
+        border-bottom: 1px solid var(--border);
+        white-space: nowrap;
+    }
+
+    .jump-label {
+        font-size: 0.75rem;
+        font-weight: 800;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .jump-links {
+        display: flex;
+        gap: 8px;
+    }
+
+    .jump-btn {
+        text-decoration: none;
+        background: var(--surface);
+        color: var(--text-muted);
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border: 1px solid var(--border);
+        transition: all 0.2s ease;
+    }
+
+    .jump-btn:hover {
+        color: #fff;
+        border-color: var(--accent);
+        background: rgba(249, 55, 66, 0.05);
+    }
+
+    #backToTop {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 99;
+        border: none;
+        outline: none;
+        background-color: var(--accent);
+        color: white;
+        cursor: pointer;
+        padding: 12px 16px;
+        border-radius: 4px;
+        font-weight: bold;
+        display: none; /* Hidden by default */
+        box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    #backToTop:hover {
+        background-color: #fff;
+        color: var(--accent);
+    }
     
-    /* Custom arrow icon using a background image SVG */
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23888' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: calc(100% - 15px) center;
-}
+    /* Mobile Optimization: Hide non-essential info */
+    @media (max-width: 768px) {
+        /* Change the 3-column grid to 1 column for the title only */
+        .forum-row {
+            grid-template-columns: 1fr; 
+            padding: 15px 10px;
+        }
 
-.post-composer select:focus {
-    border-color: var(--accent-clr);
-    outline: none;
-    background-color: #151515;
-}
+        /* Hide the stats and the last post info */
+        .forum-stats, 
+        .forum-last-post {
+            display: none !important;
+        }
 
-/* Style the options inside the dropdown */
-.post-composer select option {
-    background-color: rgb(22, 22, 22);
-    color: var(--text-main);
-    padding: 10px;
-}
+        /* Make the title slightly larger for easier tapping */
+        .forum-title {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+        }
 
-/* Optional: styling the label if you have one */
-.post-composer label {
-    display: block;
-    margin-bottom: 5px;
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
+        /* Adjust the search bar and composer for mobile spacing */
+        .composer-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .search-bar {
+            margin-bottom: 25px;
+        }
 
-.btn-accent {
-    background-color: var(--accent-clr);
-    color: #000;
-    border: none;
-    padding: 10px 20px;
-    font-weight: bold;
-    border-radius: 4px;
-    cursor: pointer;
-    float: right;
-    transition: all 0.4s ease-out;
-}
-
-.btn-accent:hover{
-    color: var(--accent-clr);
-    background-color: #000;
-}
-
-/* Post Card Styling (The Feed) */
-.post-card {
-    background: rgb(28, 28, 28);
-    border: 1px solid #333;
-    padding: 20px;
-    margin-bottom: 20px;
-    border-radius: 4px;
-}
-
-.post-header {
-    font-size: 0.8rem;
-    color: #888;
-    margin-bottom: 10px;
-}
-
-.post-display-title {
-    margin: 0 0 10px 0;
-    font-size: 1.4rem;
-}
-
-.post-display-link {
-    display: block;
-    color: var(--accent-clr);
-    margin-bottom: 10px;
-    text-decoration: none;
-    word-break: break-all;
-}
-
-.post-display-image {
-    max-width: 300px;
-    border-radius: 4px;
-    margin-top: 10px;
-    border: 1px solid #444;
-}
-
-.delete-btn {
-    background: transparent;
-    border: none;
-    color: #666;
-    font-size: 3rem;
-    cursor: pointer;
-    line-height: 1;
-    transition: color 0.2s;
-}
-
-.delete-btn:hover {
-    color: #ff4444; /* Standard red for danger/delete */
-}
-
-
+        /* Make badges smaller so they don't wrap to a new line */
+        .badge {
+            padding: 1px 6px;
+            font-size: 9px;
+        }
+    }
 </style>
+<%- include("./partials/navBar") %>
 
+<body>
+    <div class="container">
+        <div class="search-bar">
+            <input type="text" placeholder="Start typing to filter forums..." id="searchInput" autocomplete="off">
+            <button id="inputSubBtn" class="btn-search">SEARCH</button>
+        </div>
 
-<style>
-    /* Search Section Styling */
-.search-container {
-    max-width: 100%;
-    margin: 20px auto 0 auto;
-    padding: 0 20px;
-}
+        <div id="noResults" style="display:none; text-align:center; padding: 40px; color: var(--text-muted);">
+            No forums found matching your search.
+        </div>
+        <button id="backToTop" title="Go to top">↑</button>
 
-.search-box {
-    display: flex;
-    gap: 10px;
-    background: #1a1a1a;
-    padding: 15px;
-    border-radius: 8px;
-    border: 1px solid #333;
-}
-
-.search-box input {
-    flex: 1;
-    background: #111;
-    border: 1px solid #444;
-    color: white;
-    padding: 12px;
-    border-radius: 4px;
-    font-family: inherit;
-}
-
-.search-box input:focus {
-    border-color: var(--accent-clr);
-    outline: none;
-}
-
-.btn-search {
-    background-color: transparent;
-    color: var(--accent-clr);
-    border: 1px solid var(--accent-clr);
-    padding: 10px 25px;
-    font-weight: bold;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-}
-
-.btn-search:hover {
-    background-color: var(--accent-clr);
-    color: #000;
-}
-</style>
-
-
-    <div class="forum-category">
-        <div class="post-composer">
-            <form action="/forum/create", method="post">
-
-                <h3>NEW FORUM</h3>
-                <input type="text" id="post-title" name="title" placeholder="POST TITLE (REQUIRED)">
-                <input type="text" id="post-bio" name="bio" placeholder="SUMMARY">
-                <select name="category" id="category">
-                    <option value="HARD RESISTANCE & COERCION" selected>HARD RESISTANCE & COERCION</option>
-                    <option value="SEDUCTION, DEALS & GAMES" >SEDUCTION, DEALS & GAMES</option>
-                    <option value="HARDCORE SURRENDER" >HARDCORE SURRENDER</option>
-                    
-                    <!-- <option value="Family & Friends" selected>FAMILY & FRIENDS</option>
-                    <option value="Mind Games">MIND GAMES</option>
-                    <option value="Authority & Power">AUTHORITY & POWER</option>
-                    <option value="Public">PUBLIC</option>
-                    <option value="Group & Social Dynamics">GROUP & SOCIAL DYNAMICS</option>
-                    <option value="Restraint & Kink">RESTRAINT & KINK</option>
-                    <option value="BBC">BBC</option>
-                    <option value="porn">PORN</option>
-                    <option value="gore">GORE (INCLUDE PORN)</option>
-                    <option value="other">OTHER</option> -->
+        <div class="composer">
+            <h3>Start a Discussion</h3>
+            <form action="/forum/create" method="post" class="composer-grid">
+                <input type="text" name="title" placeholder="Thread Title" required>
+                <select name="category">
+                    <option value="HARD RESISTANCE & COERCION">Resistance & Coercion</option>
+                    <option value="SEDUCTION, DEALS & GAMES">Deals & Games</option>
+                    <option value="HARDCORE SURRENDER">Hardcore Surrender</option>
                 </select>
-                
-                <button id="submit-post" type="submit" class="btn-accent">CREATE</button>
+                <button type="submit" class="btn-search">CREATE</button>
             </form>
         </div>
-        
-        <br><br>
-        <div class="search-container">
-            <div class="search-box">
-                <input type="text" placeholder="SEARCH" id="searchInput">
-                <button type="button" id="inputSubBtn" class="btn-search">SEARCH</button>
+
+        <div class="quick-jump-container">
+            <span class="jump-label">Jump to:</span>
+            <div class="jump-links">
+                <% for (const cate in forums) { %>
+                    <a href="#cat-<%= cate.replace(/\s+/g, '-').toLowerCase() %>" class="jump-btn">
+                        <%= cate %>
+                    </a>
+                <% } %>
             </div>
         </div>
 
-        <script>
-            const inputSubBtn = document.getElementById("inputSubBtn");
-            inputSubBtn.addEventListener("click", (e) => {
-                e.preventDefault();
-                document.location.href = "/search-results?q=" + document.getElementById("searchInput").value;
-            })
-        </script>
-
-        <br><br><br>
-
         <% for (const cate in forums) { %>
-
-            <div class="zxR">
-                <div class="category-header"><%= cate.toUpperCase(); %></div>
-            
+            <div class="category-section" id="cat-<%= cate.replace(/\s+/g, '-').toLowerCase() %>" >
+                <h2 class="category-label"><%= cate %></h2>
+                
                 <% forums[cate].forEach(forum => { %>
-
                     <div class="forum-row">
-                        <div class="icon">📁</div>
-                        <div class="info">
-                            <a href="/forum/<%= forum.id %>"><%= forum.title %></a>
-                            <p><%= forum.bio || "No description available." %></p>
+                        <div class="forum-info">
+                            <div style="display: flex; align-items: center;">
+                                <a href="/forum/<%= forum.id %>" class="forum-title"><%= forum.title %></a>
+                                
+                                <% 
+                                    // Logic for badges
+                                    const isNew = forum.lastPostDate && (new Date() - new Date(forum.lastPostDate) < 24 * 60 * 60 * 1000);
+                                    const isHot = forum.postCount >= 25; 
+                                %>
+
+                                <% if (isHot) { %>
+                                    <span class="badge badge-hot">🔥 HOT</span>
+                                <% } %>
+                                
+                                <% if (isNew) { %>
+                                    <span class="badge badge-new">✨ NEW</span>
+                                <% } %>
+                            </div>
+                            <span class="forum-desc"><%= forum.bio || "Discuss and share strategies." %></span>
                         </div>
-                        <div class="stats">
-                            <b><%= forum.postCount %></b> Posts
+                        
+                        <div class="forum-stats">
+                            <%= forum.postCount %>
+                            <span>Posts</span>
                         </div>
-                        <!-- <div class="last-post">
-                            <span>The Future of AI</span>
-                            by User123 • 5 mins ago
-                        </div> -->
+
+                        <div class="forum-last-post">
+                            <% if (forum.lastPostDate) { %>
+                                <span class="lp-title"><%= forum.lastPostTitle %></span>
+                                <div class="lp-meta">
+                                    by <b><%= forum.lastPostUser %></b> • <%= timeAgo(forum.lastPostDate) %>
+                                </div>
+                            <% } else { %>
+                                <span class="lp-meta">No activity yet</span>
+                            <% } %>
+                        </div>
                     </div>
-    
                 <% }); %>
-    
-                <br><br>
             </div>
         <% } %>
-        
-
     </div>
 
+<script>
+    const searchInput = document.getElementById('searchInput');
+    const forumRows = document.querySelectorAll('.forum-row');
+    const categories = document.querySelectorAll('.category-section');
+    const noResults = document.getElementById('noResults');
+
+    searchInput.addEventListener('input', function(e) {
+        const query = e.target.value.toLowerCase();
+        let anyVisible = false;
+
+        // Loop through every forum row
+        forumRows.forEach(row => {
+            const title = row.querySelector('.forum-title').innerText.toLowerCase();
+            const desc = row.querySelector('.forum-desc').innerText.toLowerCase();
+            
+            if (title.includes(query) || desc.includes(query)) {
+                row.style.display = 'grid'; // Matches your CSS display type
+                anyVisible = true;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // Hide categories that have no visible rows
+        categories.forEach(cat => {
+            const visibleInCat = cat.querySelectorAll('.forum-row[style="display: grid;"]');
+            cat.style.display = visibleInCat.length > 0 ? 'block' : 'none';
+        });
+
+        // Show/Hide "No Results" message
+        noResults.style.display = anyVisible ? 'none' : 'block';
+    });
+
+    // Keep your original button functionality for "Hard Search" (database search)
+    document.getElementById("inputSubBtn").addEventListener("click", () => {
+        const q = searchInput.value;
+        if(q) window.location.href = "/search-results?q=" + encodeURIComponent(q);
+    });
+
+    // Show button when user scrolls down 400px
+    window.onscroll = function() {
+        if (document.body.scrollTop > 400 || document.documentElement.scrollTop > 400) {
+            document.getElementById("backToTop").style.display = "block";
+        } else {
+            document.getElementById("backToTop").style.display = "none";
+        }
+    };
+
+    document.getElementById("backToTop").onclick = function() {
+        window.scrollTo({top: 0, behavior: 'smooth'});
+    };
+
+
+</script>
 </body>
 </html>

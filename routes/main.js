@@ -3,42 +3,6 @@ const router = express.Router();
 const db = require('../db');
 const {verifyToken} = require('../utils/verify');
 
-router.get('/',verifyToken, async (req, res) => {
-  try {
-
-    // Updated SQL query with JOIN and GROUP BY
-        const query = `
-            SELECT 
-                f.id, f.title, f.bio, f.category, 
-                COUNT(IF(p.deleted = 0, p.id, NULL)) AS postCount
-            FROM forums f
-            LEFT JOIN posts p ON f.id = p.forum_id
-            GROUP BY f.id
-            ORDER BY f.created_at DESC
-        `;
-
-
-    const [rawForums] = await db.execute(query);
-
-    const forums = rawForums.reduce((acc, forum) => {
-        const key = forum.category;
-        if (!acc[key]) {
-            acc[key] = [];
-        }
-        acc[key].push(forum);
-        return acc;
-    }, {});
-
-    res.render('index', { 
-        forums: forums,
-        user: res.userInfo
-    });
-    } catch (err) {
-        console.error('Database Error on main page load:', err);
-        res.status(500).send('Could not load characters.');
-    }
-});
-
 function timeAgo(date) {
     const seconds = Math.floor((new Date() - new Date(date)) / 1000);
     let interval = Math.floor(seconds / 31536000);
@@ -55,16 +19,66 @@ function timeAgo(date) {
     return Math.floor(seconds) + " seconds ago";
 }
 
+router.get('/',verifyToken, async (req, res) => {
+  try {
+
+    // Updated SQL query with JOIN and GROUP BY
+        const query = `SELECT 
+                f.id, f.title, f.bio, f.category, 
+                COUNT(p.id) AS postCount,
+                lp.title AS lastPostTitle,
+                lp.created_at AS lastPostDate,
+                u.username AS lastPostUser
+            FROM forums f
+            LEFT JOIN posts p ON f.id = p.forum_id
+            -- Subquery to find the ID of the latest post per forum
+            LEFT JOIN (
+                SELECT forum_id, MAX(id) as max_id
+                FROM posts
+                GROUP BY forum_id
+            ) latest_post_id ON f.id = latest_post_id.forum_id
+            -- Join again to get the actual details of that specific post
+            LEFT JOIN posts lp ON latest_post_id.max_id = lp.id
+            -- Join users to get the name of the person who posted it
+            LEFT JOIN users u ON lp.user_id = u.id
+            GROUP BY f.id
+            ORDER BY f.created_at DESC`
+
+
+    const [rawForums] = await db.execute(query);
+
+    const forums = rawForums.reduce((acc, forum) => {
+        const key = forum.category;
+        if (!acc[key]) {
+            acc[key] = [];
+        }
+        acc[key].push(forum);
+        return acc;
+    }, {});
+
+    res.render('index', { 
+        forums: forums,
+        user: res.userInfo,
+        timeAgo
+    });
+    } catch (err) {
+        console.error('Database Error on main page load:', err);
+        res.status(500).send('Could not load characters.');
+    }
+});
+
+
+
 router.get('/search-results',verifyToken, async (req, res) => {
   try {
 
     // Updated SQL query with JOIN and GROUP BY
         const query = `
             SELECT 
-                id, title, content, url, image, created_at
-            FROM posts
-            WHERE title LIKE ? OR content LIKE ?  AND deleted = 0 
-            ORDER BY created_at DESC
+                p.id, p.title, p.content, p.url, p.image, p.created_at, u.username
+            FROM posts p JOIN users u ON p.user_id = u.id
+            WHERE p.title LIKE ? OR p.content LIKE ?  AND p.deleted = 0 
+            ORDER BY p.created_at DESC
         `;
 
     const [posts] = await db.execute(query, [`%${req.query.q}%`,`%${req.query.q}%`]);
