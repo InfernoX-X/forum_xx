@@ -41,7 +41,7 @@ router.post('/register', async (req, res) => {
 
     // Store the token in a cookie
     res.cookie('token', token, {
-      maxAge: 1000 * 60 * 60 * 24, // 24 hours
+      maxAge: 1000 * 60 * 60 * 24 * 30, // 24 hours * 30 = 30 dayys
       path: '/',
       secure: process.env.NODE_ENV === 'production', // Only secure in production
       httpOnly: true,
@@ -92,7 +92,7 @@ router.post('/login', async (req, res) => {
 
     // Store the token in a cookie
     res.cookie('token', token, {
-      maxAge: 1000 * 60 * 60 * 24, // 24 hours
+      maxAge: 1000 * 60 * 60 * 24 * 30, // 30 day
       path: '/',
       secure: process.env.NODE_ENV === 'production', // Only secure in production
       httpOnly: true,
