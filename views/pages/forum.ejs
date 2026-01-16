@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= siteTitle %></title>
+    <title><%= siteTitle %> | <%= forumTitle %></title>
     <link rel="icon" href="<%= favIcon %>">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -107,7 +107,7 @@
                             
                             <form action="/forum/posts/delete/<%= post.id %>" method="POST" style="display:inline;">
                                 <input type="hidden" name="forum_id" value="<%= post.forum_id %>">
-                                <button type="submit" class="delete-btn" onclick="return confirm('Delete this post?')">&times;</button>
+                                <button id="deleteBtn-<%= post.id %>" type="submit" class="delete-btn" onclick="return confirm('Delete this post?')">&times;</button>
                             </form>
                         </div>
                     <% } %>
@@ -168,11 +168,14 @@
     function toggleEdit(postId) {
         const viewDiv = document.getElementById(`view-mode-${postId}`);
         const editDiv = document.getElementById(`edit-mode-${postId}`);
+        const delBtn = document.getElementById(`deleteBtn-${postId}`);
 
         if (viewDiv.style.display === "none") {
+            delBtn.style.display = "block";
             viewDiv.style.display = "block";
             editDiv.style.display = "none";
         } else {
+            delBtn.style.display = "none";
             viewDiv.style.display = "none";
             editDiv.style.display = "block";
         }

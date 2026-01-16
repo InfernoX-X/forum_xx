@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title><%= siteTitle %> | FORUMS</title>
+    <title><%= siteTitle %></title>
     <link rel="icon" href="<%= favIcon %>">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -187,9 +187,10 @@
         font-size: 10px;
         font-weight: 800;
         text-transform: uppercase;
-        margin-left: 10px;
         vertical-align: middle;
         letter-spacing: 0.5px;
+        margin-left: 10px;
+        margin-bottom: 4px;
     }
 
     .badge-hot {
@@ -203,6 +204,24 @@
         background: rgba(55, 249, 168, 0.15); /* A fresh green color */
         color: #37f9a8;
         border: 1px solid #37f9a8;
+    }
+
+    .badge-quiet {
+        background: rgba(55, 123, 249, 0.15); /* A fresh blue color */
+        color: #3774f9;
+        border: 1px solid #3774f9;
+    }
+
+    .badge-trending {
+        background: rgba(ffa502, 0.15);
+        color: #ffa502;
+        border: 1px solid #ffa502;
+    }
+
+    .badge-recent {
+        background: rgba(162, 155, 254, 0.15);
+        color: #a29bfe;
+        border: 1px solid #a29bfe;
     }
 
     /* Tooltip on hover for stats */
@@ -389,7 +408,6 @@
 <%- include("./partials/navBar") %>
 
 <body>
-    
 
     <div class="container">
         <div class="search-bar">
@@ -436,12 +454,22 @@
                                 <a href="/forum/<%= forum.id %>" class="forum-title"><%= forum.title %></a>
                                 
                                 <% 
+                                    const now = new Date();
+                                    const lastPost = new Date(forum.lastPostDate);
+
                                     const isNew = forum.lastPostDate && (new Date() - new Date(forum.lastPostDate) < 24 * 60 * 60 * 1000);
-                                    const isHot = forum.postCount >= 25; 
+                                    const isRecent = forum.lastPostDate && (new Date() - new Date(forum.lastPostDate) < 3 * 24 * 60 * 60 * 1000);
+                                    const isHot = forum.postCount > 25;
+                                    const isTrending = forum.postCount > 100;
+                                    const isQuiet = !forum.lastPostDate || (now - lastPost > 7 * 24 * 60 * 60 * 1000);
                                 %>
 
-                                <% if (isHot) { %> <span class="badge badge-hot">🔥 HOT</span> <% } %>
                                 <% if (isNew) { %> <span class="badge badge-new">✨ NEW</span> <% } %>
+                                <% if (isHot) { %> <span class="badge badge-hot">🔥 HOT</span> <% } %>
+                                <% if (isRecent) { %> <span class="badge badge-recent">🕒 RECENT</span> <% } %>
+                                <% if (isQuiet) { %> <span class="badge badge-quiet">💤 QUIET</span> <% } %>
+                                <% if (isTrending) { %> <span class="badge badge-trending">📈 TRENDING</span> <% } %>
+                                
                             </div>
                             <span class="forum-desc"><%= forum.bio %></span>
                         </div>
@@ -466,6 +494,8 @@
             </div>
         <% }) %>
 
+
+
         <div class="sidebar-leaderboard">
             <div class="sidebar-header">
                 <i class="fas fa-trophy" style="color: gold; margin-right: 8px;"></i>
@@ -488,6 +518,7 @@
     </div>
 
 
+    <div id="backToTop">↑</div>
 <script>
     const searchInput = document.getElementById('searchInput');
     const forumRows = document.querySelectorAll('.forum-row');

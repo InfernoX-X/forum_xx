@@ -47,7 +47,7 @@ router.get('/:id', async (req, res) => {
         const forumTitle = forumRows.length > 0 ? forumRows[0]['title'] : "Forum";
 
         // 3. NEW: Fetch ALL forums so the edit dropdown has a list of categories
-        const [allForums] = await db.execute(`SELECT id, title FROM forums`);
+        const [allForums] = await db.execute(`SELECT id, title FROM forums ORDER BY title DESC`);
 
         res.render('pages/forum', { 
             posts: posts,
