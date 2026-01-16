@@ -127,6 +127,16 @@
                 <% if (user && user.id === post.user_id) { %>
                     <div id="edit-mode-<%= post.id %>" style="display: none;">
                         <form action="/forum/posts/edit/<%= post.id %>" method="POST" enctype="multipart/form-data" class="post-composer" style="margin-bottom: 0; padding: 0; border: none; background: none;">
+                            
+                            <label>Category</label>
+                            <select name="forum_id" style="width: 100%; background: #000; border: 1px solid var(--border); color: #fff; padding: 12px; margin-bottom: 12px; border-radius: 4px; font-family: inherit;">
+                                <% allForums.forEach(f => { %>
+                                    <option value="<%= f.id %>" <%= f.id === post.forum_id ? 'selected' : '' %>>
+                                        <%= f.title %>
+                                    </option>
+                                <% }) %>
+                            </select>
+
                             <label>Title</label>
                             <input type="text" name="title" value="<%= post.title %>" required>
                             

@@ -32,22 +32,53 @@ function timeAgo(date) {
 }
 
 // Forum route
-router.get('/:id', async (req, res) => {
-  try {
-    const [posts] = await db.execute(`SELECT p.id, p.user_id, p.forum_id, p.title, p.content, p.url, p.image, p.created_at, p.deleted, u.username FROM posts p JOIN users u ON p.user_id = u.id WHERE p.forum_id = ? AND p.deleted = ? ORDER BY p.created_at DESC`, [req.params.id, 0]);
-    let [forumTitle] = await db.execute(`SELECT title FROM forums WHERE id = ?`, [req.params.id]);
-    forumTitle = forumTitle[0]['title']
+// router.get('/:id', async (req, res) => {
+//   try {
+//     const [posts] = await db.execute(`SELECT p.id, p.user_id, p.forum_id, p.title, p.content, p.url, p.image, p.created_at, p.deleted, u.username FROM posts p JOIN users u ON p.user_id = u.id WHERE p.forum_id = ? AND p.deleted = ? ORDER BY p.created_at DESC`, [req.params.id, 0]);
+//     let [forumTitle] = await db.execute(`SELECT title FROM forums WHERE id = ?`, [req.params.id]);
+//     forumTitle = forumTitle[0]['title']
     
-    res.render('pages/forum', { 
-        posts: posts,
-        user: res.userInfo,
-        timeAgo: timeAgo,
-        forum_id: req.params.id,
-        forumTitle
-    });
+//     res.render('pages/forum', { 
+//         posts: posts,
+//         user: res.userInfo,
+//         timeAgo: timeAgo,
+//         forum_id: req.params.id,
+//         forumTitle
+//     });
+//     } catch (err) {
+//         console.error('Database Error on fetch forum data:', err);
+//         // res.status(500).send('Could not fetch forum data.');
+//         res.redirect("/");
+//     }
+// });
+
+router.get('/:id', async (req, res) => {
+    try {
+        // 1. Fetch posts for this forum
+        const [posts] = await db.execute(`
+            SELECT p.id, p.user_id, p.forum_id, p.title, p.content, p.url, p.image, p.created_at, p.deleted, u.username 
+            FROM posts p 
+            JOIN users u ON p.user_id = u.id 
+            WHERE p.forum_id = ? AND p.deleted = ? 
+            ORDER BY p.created_at DESC`, [req.params.id, 0]);
+
+        // 2. Fetch the current forum title
+        let [forumRows] = await db.execute(`SELECT title FROM forums WHERE id = ?`, [req.params.id]);
+        const forumTitle = forumRows.length > 0 ? forumRows[0]['title'] : "Forum";
+
+        // 3. NEW: Fetch ALL forums so the edit dropdown has a list of categories
+        const [allForums] = await db.execute(`SELECT id, title FROM forums`);
+
+        res.render('pages/forum', { 
+            posts: posts,
+            allForums: allForums, // Pass this to the frontend
+            user: res.userInfo,
+            timeAgo: timeAgo,
+            forum_id: req.params.id,
+            forumTitle
+        });
     } catch (err) {
         console.error('Database Error on fetch forum data:', err);
-        // res.status(500).send('Could not fetch forum data.');
         res.redirect("/");
     }
 });
@@ -98,15 +129,62 @@ router.post('/posts/create', upload.single('image'), async (req, res) => {
 });
 
 
+// router.post('/posts/edit/:id', upload.single('image'), async (req, res) => {
+//     const postId = req.params.id;
+//     const { title, content, url } = req.body;
+    
+//     try {
+//         let newImgLink = null;
+//         let newPubId = null;
+
+//         // 1. Handle Image Upload (Only if user selected a new file)
+//         if (req.file) {
+//             const uploadToCloudinary = () => {
+//                 return new Promise((resolve, reject) => {
+//                     const stream = cloudinary.uploader.upload_stream(
+//                         { resource_type: 'auto' },
+//                         (error, result) => { result ? resolve(result) : reject(error); }
+//                     );
+//                     stream.end(req.file.buffer);
+//                 });
+//             };
+//             const result = await uploadToCloudinary();
+//             newImgLink = result.secure_url;
+//             newPubId = result.public_id;
+//         }
+
+//         // 2. The "Keep Old Data" SQL
+//         const sql = `
+//             UPDATE posts 
+//             SET title = COALESCE(NULLIF(?, ''), title), 
+//                 content = COALESCE(NULLIF(?, ''), content), 
+//                 url = COALESCE(NULLIF(?, ''), url),
+//                 image = COALESCE(?, image),
+//                 img_public_id = COALESCE(?, img_public_id)
+//             WHERE id = ?`;
+
+//         // 3. Execute with form data
+//         // We pass newImgLink and newPubId. If they are null, COALESCE keeps the old ones.
+//         await db.execute(sql, [title, content, url, newImgLink, newPubId, postId]);
+
+//         res.redirect('back');
+        
+//     } catch (err) {
+//         console.error('Update Error:', err);
+//         res.status(500).send('Failed to update post');
+//     }
+// });
+
+
 router.post('/posts/edit/:id', upload.single('image'), async (req, res) => {
     const postId = req.params.id;
-    const { title, content, url } = req.body;
+    // Added forum_id here (this comes from the <select name="forum_id">)
+    const { title, content, url, forum_id } = req.body; 
     
     try {
         let newImgLink = null;
         let newPubId = null;
 
-        // 1. Handle Image Upload (Only if user selected a new file)
         if (req.file) {
             const uploadToCloudinary = () => {
                 return new Promise((resolve, reject) => {
@@ -122,19 +200,19 @@ router.post('/posts/edit/:id', upload.single('image'), async (req, res) => {
             newPubId = result.public_id;
         }
 
-        // 2. The "Keep Old Data" SQL
+        // Updated SQL to include forum_id
         const sql = `
             UPDATE posts 
             SET title = COALESCE(NULLIF(?, ''), title), 
                 content = COALESCE(NULLIF(?, ''), content), 
                 url = COALESCE(NULLIF(?, ''), url),
+                forum_id = COALESCE(NULLIF(?, ''), forum_id),
                 image = COALESCE(?, image),
                 img_public_id = COALESCE(?, img_public_id)
             WHERE id = ?`;
 
-        // 3. Execute with form data
-        // We pass newImgLink and newPubId. If they are null, COALESCE keeps the old ones.
-        await db.execute(sql, [title, content, url, newImgLink, newPubId, postId]);
+        // Added forum_id to the parameters array
+        await db.execute(sql, [title, content, url, forum_id, newImgLink, newPubId, postId]);
 
         res.redirect('back');
         

@@ -49,6 +49,7 @@ router.get('/',verifyToken, async (req, res) => {
             ) latest_post_id ON f.id = latest_post_id.forum_id
             LEFT JOIN posts lp ON latest_post_id.max_id = lp.id
             LEFT JOIN users u ON lp.user_id = u.id
+            WHERE p.deleted = 0
             GROUP BY f.id
             ORDER BY f.created_at DESC`;
 
