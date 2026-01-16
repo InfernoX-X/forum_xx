@@ -36,7 +36,8 @@ router.get('/',verifyToken, async (req, res) => {
         const query = `
             SELECT 
                 f.id, f.title, f.bio, f.category, 
-                COUNT(p.id) AS postCount,
+                -- Only count posts where deleted is 0
+                COUNT(CASE WHEN p.deleted = 0 THEN p.id END) AS postCount,
                 lp.title AS lastPostTitle,
                 lp.created_at AS lastPostDate,
                 u.username AS lastPostUser
@@ -45,12 +46,12 @@ router.get('/',verifyToken, async (req, res) => {
             LEFT JOIN (
                 SELECT forum_id, MAX(id) as max_id
                 FROM posts
+                WHERE deleted = 0  -- Ensure the 'last post' isn't a deleted one
                 GROUP BY forum_id
             ) latest_post_id ON f.id = latest_post_id.forum_id
             LEFT JOIN posts lp ON latest_post_id.max_id = lp.id
             LEFT JOIN users u ON lp.user_id = u.id
-            WHERE p.deleted = 0
-            GROUP BY f.id
+            GROUP BY f.id, lp.title, lp.created_at, u.username
             ORDER BY f.created_at DESC`;
 
         // Query to get the top 10 contributors based on post count
