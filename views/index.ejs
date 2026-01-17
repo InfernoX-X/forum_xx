@@ -408,11 +408,6 @@
 <%- include("./partials/navBar") %>
 
 
-<style>
-
-
-</style>
-
 <body>
 
     <div class="container">
@@ -449,7 +444,7 @@
         <% forums.forEach(category => { %>
             <div class="category-section" id="cat-<%= category.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase() %>">
                 <h2 class="category-label" style="--cat-color: <%= category.color || '#F93742' %>; border-bottom: 2px solid var(--cat-color); width:100%;">
-                    <span id="span-<%= category.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase() %>" onclick="toggleView('<%= category.name %>')" style="font-size: 1.5rem; color: white; background-color: var(--cat-color); padding: 0 10px; border-radius: 5px;">-</span>
+                    <span id="span-<%= category.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase() %>" onclick="toggleView('<%= category.name %>')" style="font-size: 1.5rem; color: white; background-color: var(--cat-color); padding: 0 10px; border-radius: 5px; cursor: pointer;">-</span>
                     <i class="fas <%= category.icon %>" style="color: var(--cat-color); margin-right: 10px;"></i>
                     <%= category.name %>
                 </h2>
@@ -464,10 +459,10 @@
                                     const now = new Date();
                                     const lastPost = new Date(forum.lastPostDate);
 
-                                    const isNew = forum.lastPostDate && (new Date() - new Date(forum.lastPostDate) < 24 * 60 * 60 * 1000);
-                                    const isRecent = forum.lastPostDate && (new Date() - new Date(forum.lastPostDate) < 3 * 24 * 60 * 60 * 1000);
-                                    const isHot = forum.postCount > 25;
+                                    const isHot = forum.postCount > 15;
                                     const isTrending = forum.postCount > 100;
+                                    const isNew = forum.lastPostDate && (new Date() - new Date(forum.lastPostDate) < 2 * 24 * 60 * 60 * 1000);
+                                    const isRecent = forum.lastPostDate && (new Date() - new Date(forum.lastPostDate) < 5 * 24 * 60 * 60 * 1000);
                                     const isQuiet = !forum.lastPostDate || (now - lastPost > 7 * 24 * 60 * 60 * 1000);
                                 %>
 
