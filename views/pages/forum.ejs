@@ -63,6 +63,36 @@
 
     .file-input-wrapper { display: inline-block; margin-bottom: 10px; }
     .file-label { background: #222; padding: 8px 15px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; border: 1px solid var(--border); }
+
+
+    /* Truncation Styles */
+    .content-wrapper {
+        position: relative;
+        overflow: hidden;
+        max-height: 4.5em; /* Approximately 3 lines of text */
+        transition: max-height 0.3s ease-out;
+    }
+
+    .content-wrapper.expanded {
+        max-height: 2000px; /* Large enough to fit any post */
+    }
+
+    .read-more-btn {
+        display: block;
+        color: var(--accent);
+        background: none;
+        border: none;
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+        margin-top: 5px;
+        padding: 0;
+        text-transform: uppercase;
+    }
+
+    .read-more-btn:hover {
+        text-decoration: underline;
+    }
 </style>
 
 <body>
@@ -115,10 +145,21 @@
 
                 <div id="view-mode-<%= post.id %>">
                     <h2 class="post-display-title"><%= post.title %></h2>
-                    <p class="post-display-text"><%= post.content %></p>
+                    <div class="post-display-text">
+                        <div id="content-<%= post.id %>" class="content-wrapper">
+                            <%= post.content %>
+                        </div>
+                        <% if (post.content && post.content.length > 150) { %>
+                            <button id="btn-<%= post.id %>" class="read-more-btn" onclick="toggleReadMore('<%= post.id %>')">
+                                Read More
+                            </button>
+                        <% } %>
+                    </div>
+
                     <% if (post.url) { %>
                         <a href="<%= post.url %>" class="post-display-link" target="_blank">🔗 <%= post.url %></a>
                     <% } %>
+
                     <div class="popUpClass">
                         <img src="<%= post.image %>" class="post-display-image" alt="Post Image">
                     </div>
@@ -165,6 +206,20 @@
 <%- include("../partials/imageViewer") %>
 
 <script>
+
+    function toggleReadMore(postId) {
+        const contentDiv = document.getElementById(`content-${postId}`);
+        const btn = document.getElementById(`btn-${postId}`);
+
+        if (contentDiv.classList.contains('expanded')) {
+            contentDiv.classList.remove('expanded');
+            btn.innerText = "Read More";
+        } else {
+            contentDiv.classList.add('expanded');
+            btn.innerText = "Read Less";
+        }
+    }
+
     function toggleEdit(postId) {
         const viewDiv = document.getElementById(`view-mode-${postId}`);
         const editDiv = document.getElementById(`edit-mode-${postId}`);
