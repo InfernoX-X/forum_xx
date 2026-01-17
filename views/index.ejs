@@ -407,6 +407,12 @@
 </style>
 <%- include("./partials/navBar") %>
 
+
+<style>
+
+
+</style>
+
 <body>
 
     <div class="container">
@@ -443,12 +449,13 @@
         <% forums.forEach(category => { %>
             <div class="category-section" id="cat-<%= category.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase() %>">
                 <h2 class="category-label" style="--cat-color: <%= category.color || '#F93742' %>; border-bottom: 2px solid var(--cat-color); width:100%;">
+                    <span id="span-<%= category.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase() %>" onclick="toggleView('<%= category.name %>')" style="font-size: 1.5rem; color: white; background-color: var(--cat-color); padding: 0 10px; border-radius: 5px;">-</span>
                     <i class="fas <%= category.icon %>" style="color: var(--cat-color); margin-right: 10px;"></i>
                     <%= category.name %>
                 </h2>
                 
                 <% category.data.forEach(forum => { %>
-                    <div class="forum-row">
+                    <div class="forum-row list-<%= category.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase() %>">
                         <div class="forum-info">
                             <div style="display: flex; align-items: center;">
                                 <a href="/forum/<%= forum.id %>" class="forum-title"><%= forum.title %></a>
@@ -519,6 +526,31 @@
 
 
     <div id="backToTop">↑</div>
+
+<script>
+    const toggleView = (name) => {
+        const n = name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase()
+        const list_ = document.getElementsByClassName(`list-${n}`);
+        let currentValue = document.getElementById(`span-${n}`).innerText;
+
+        if(currentValue == "-"){
+            for (let i = 0; i < list_.length; i++) {
+                const list = list_[i];
+                list.style.display = "none";
+                document.getElementById(`span-${n}`).innerText = "+";
+            }
+            
+        }else{
+            for (let i = 0; i < list_.length; i++) {
+                const list = list_[i];
+                list.style.display = "";
+                document.getElementById(`span-${n}`).innerText = "-";
+            }
+        }
+
+    };
+
+</script>
 <script>
     const searchInput = document.getElementById('searchInput');
     const forumRows = document.querySelectorAll('.forum-row');
