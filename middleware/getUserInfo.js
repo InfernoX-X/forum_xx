@@ -9,7 +9,6 @@ const getUserInfo = async (req, res, next) => {
     if (users.length === 0) {
       return next(new Error('User not found'));
     }
-    
     const user = users[0];
     
     res.userInfo = user;
