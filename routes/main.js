@@ -61,7 +61,7 @@ router.get('/', verifyToken, async (req, res) => {
             SELECT u.username, COUNT(p.id) AS post_count 
             FROM users u
             JOIN posts p ON u.id = p.user_id
-            WHERE p.deleted = 0
+            WHERE p.deleted = 0 AND u.id != 1
             GROUP BY u.id
             ORDER BY post_count DESC 
             LIMIT 10`;
