@@ -93,6 +93,45 @@
     .read-more-btn:hover {
         text-decoration: underline;
     }
+
+    /* Categories selection */
+    .forum-selection-container {
+        margin-bottom: 20px;
+        background: #080808;
+        padding: 15px;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+    }
+    .forum-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
+        margin-top: 10px;
+    }
+    .forum-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        padding: 5px;
+        border-radius: 4px;
+        transition: background 0.2s;
+    }
+    .forum-item:hover { background: #1a1a1a; }
+    .forum-item input[type="checkbox"] { width: auto; margin: 0; accent-color: var(--accent); }
+
+    /* Badge styles for displaying multiple forums on a post */
+    .forum-badge-container { display: flex; gap: 5px; margin-bottom: 10px; flex-wrap: wrap; }
+    .forum-badge { 
+        background: #222; 
+        color: var(--accent); 
+        font-size: 0.7rem; 
+        padding: 2px 8px; 
+        border-radius: 10px; 
+        border: 1px solid var(--accent);
+        font-weight: 600;
+    }
 </style>
 
 <body>
@@ -105,9 +144,21 @@
         <form action="/forum/posts/create" method="post" enctype="multipart/form-data">
             <h3>CREATE A NEW POST</h3>
             <input type="text" name="title" placeholder="POST TITLE (REQUIRED)" required>
+
+            <label>Select Forums/Categories (Pick one or more)</label>
+            <div class="forum-selection-container">
+                <div class="forum-grid">
+                    <% allForums.forEach(f => { %>
+                        <label class="forum-item">
+                            <input type="checkbox" name="forumIds" value="<%= f.id %>" <%= f.id == forum_id ? 'checked' : '' %>>
+                            <%= f.title %>
+                        </label>
+                    <% }) %>
+                </div>
+            </div>
+
             <input type="text" name="content" placeholder="SUMMARY/BODY">
             <input type="text" name="url" placeholder="VIDEO URL">
-            <input type="text" name="forumId" hidden value="<%= forum_id %>">
             
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div class="file-input-wrapper">
@@ -144,6 +195,13 @@
                 </div>
 
                 <div id="view-mode-<%= post.id %>">
+                    <div class="forum-badge-container">
+                        <% if (post.categories) { %>
+                            <% post.categories.split(',').forEach(cat => { %>
+                                <span class="forum-badge"><%= cat %></span>
+                            <% }) %>
+                        <% } %>
+                    </div>
                     <h2 class="post-display-title"><%= post.title %></h2>
                     <div class="post-display-text">
                         <div id="content-<%= post.id %>" class="content-wrapper">
@@ -169,14 +227,18 @@
                     <div id="edit-mode-<%= post.id %>" style="display: none;">
                         <form action="/forum/posts/edit/<%= post.id %>" method="POST" enctype="multipart/form-data" class="post-composer" style="margin-bottom: 0; padding: 0; border: none; background: none;">
                             
-                            <label>Category</label>
-                            <select name="forum_id" style="width: 100%; background: #000; border: 1px solid var(--border); color: #fff; padding: 12px; margin-bottom: 12px; border-radius: 4px; font-family: inherit;">
-                                <% allForums.forEach(f => { %>
-                                    <option value="<%= f.id %>" <%= f.id === post.forum_id ? 'selected' : '' %>>
-                                        <%= f.title %>
-                                    </option>
-                                <% }) %>
-                            </select>
+                            <label>Update Forums/Categories</label>
+                            <div class="forum-selection-container">
+                                <div class="forum-grid">
+                                    <% allForums.forEach(f => { %>
+                                        <label class="forum-item">
+                                            <input type="checkbox" name="forumIds" value="<%= f.id %>" 
+                                            <%= post.forum_ids && post.forum_ids.split(',').includes(f.id.toString()) ? 'checked' : '' %>>
+                                            <%= f.title %>
+                                        </label>
+                                    <% }) %>
+                                </div>
+                            </div>
 
                             <label>Title</label>
                             <input type="text" name="title" value="<%= post.title %>" required>
@@ -206,7 +268,7 @@
 <%- include("../partials/imageViewer") %>
 
 <script>
-
+    
     function toggleReadMore(postId) {
         const contentDiv = document.getElementById(`content-${postId}`);
         const btn = document.getElementById(`btn-${postId}`);

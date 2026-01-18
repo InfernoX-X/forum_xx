@@ -31,44 +31,44 @@ function timeAgo(date) {
     return Math.floor(seconds) + " seconds ago";
 }
 
-router.get('/',verifyToken, async (req, res) => {
+router.get('/', verifyToken, async (req, res) => {
     try {
         const query = `
             SELECT 
                 f.id, f.title, f.bio, f.header, 
-                -- Only count posts where deleted is 0
-                COUNT(CASE WHEN p.deleted = 0 THEN p.id END) AS postCount,
+                -- Count occurrences in the join table for this forum
+                (SELECT COUNT(*) FROM post_categories pc 
+                 JOIN posts p ON pc.post_id = p.id 
+                 WHERE pc.forum_id = f.id AND p.deleted = 0) AS postCount,
                 lp.title AS lastPostTitle,
                 lp.created_at AS lastPostDate,
                 u.username AS lastPostUser
             FROM forums f
-            LEFT JOIN posts p ON f.id = p.forum_id
             LEFT JOIN (
-                SELECT forum_id, MAX(id) as max_id
-                FROM posts
-                WHERE deleted = 0  -- Ensure the 'last post' isn't a deleted one
-                GROUP BY forum_id
+                -- Find the latest post ID linked to each forum
+                SELECT pc.forum_id, MAX(pc.post_id) as max_id
+                FROM post_categories pc
+                JOIN posts p ON pc.post_id = p.id
+                WHERE p.deleted = 0
+                GROUP BY pc.forum_id
             ) latest_post_id ON f.id = latest_post_id.forum_id
             LEFT JOIN posts lp ON latest_post_id.max_id = lp.id
             LEFT JOIN users u ON lp.user_id = u.id
-            GROUP BY f.id, lp.title, lp.created_at, u.username
             ORDER BY f.created_at DESC`;
 
-        // Query to get the top 10 contributors based on post count
+        // Keep your contributors query as is (user total posts)
         const contributorsQuery = `
             SELECT u.username, COUNT(p.id) AS post_count 
             FROM users u
             JOIN posts p ON u.id = p.user_id
+            WHERE p.deleted = 0
             GROUP BY u.id
             ORDER BY post_count DESC 
-            LIMIT 10`
-        ;
+            LIMIT 10`;
 
         const [topContributors] = await db.execute(contributorsQuery);
+        const [rawForums] = await db.execute(query);         
 
-        const [rawForums] = await db.execute(query);        
-
-        // 1. Group the raw database results
         const grouped = rawForums.reduce((acc, forum) => {
             const key = forum.header;
             if (!acc[key]) acc[key] = [];
@@ -76,7 +76,6 @@ router.get('/',verifyToken, async (req, res) => {
             return acc;
         }, {});
 
-        // 2. Build final ordered list with icons
         const finalForums = headerConfig.map(config => {
             return {
                 name: config.id,
@@ -84,44 +83,51 @@ router.get('/',verifyToken, async (req, res) => {
                 color: config.color,
                 data: grouped[config.id] || [] 
             };
-        }).filter(header => header.data.length > 0); // Hide categories that have 0 forums
+        }).filter(header => header.data.length > 0);
 
         res.render('index', { 
-            forums: finalForums, // Now an array of objects
+            forums: finalForums,
             user: res.userInfo,
             topContributors: topContributors,
             timeAgo
         });
 
     } catch (err) {
-        console.error('Database Error on main page load:', err);
-        res.status(500).send('Could not load characters.');
+        console.error('Database Error:', err);
+        res.status(500).send('Internal Server Error');
     }
 });
 
-router.get('/search-results',verifyToken, async (req, res) => {
-  try {
-
-    // Updated SQL query with JOIN and GROUP BY
+router.get('/search-results', verifyToken, async (req, res) => {
+    try {
         const query = `
             SELECT 
-                p.id, p.title, p.content, p.url, p.image, p.created_at, u.username
-            FROM posts p JOIN users u ON p.user_id = u.id
-            WHERE p.title LIKE ? OR p.content LIKE ?  AND p.deleted = 0 
+                p.id, p.user_id, p.title, p.content, p.url, p.image, p.created_at, 
+                u.username,
+                GROUP_CONCAT(f.title) as categories,
+                GROUP_CONCAT(f.id) as forum_ids  -- Added this line
+            FROM posts p 
+            JOIN users u ON p.user_id = u.id
+            LEFT JOIN post_categories pc ON p.id = pc.post_id
+            LEFT JOIN forums f ON pc.forum_id = f.id
+            WHERE (p.title LIKE ? OR p.content LIKE ?) AND p.deleted = 0 
+            GROUP BY p.id
             ORDER BY p.created_at DESC
         `;
 
-    const [posts] = await db.execute(query, [`%${req.query.q}%`,`%${req.query.q}%`]);
+        // Note: I also added p.user_id above so the "Delete" button check (user.id === post.user_id) works.
 
-    res.render('pages/search', { 
-        posts,
-        user: res.userInfo,
-        timeAgo: timeAgo,
-        searchKey: req.query.q
-    });
+        const [posts] = await db.execute(query, [`%${req.query.q}%`, `%${req.query.q}%`]);
+
+        res.render('pages/search', { 
+            posts,
+            user: res.userInfo,
+            timeAgo: timeAgo,
+            searchKey: req.query.q
+        });
     } catch (err) {
-        console.error('Database Error on main page load:', err);
-        res.status(500).send('Could not load characters.');
+        console.error("Search Error:", err);
+        res.status(500).send('Search Error');
     }
 });
 

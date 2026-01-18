@@ -34,77 +34,70 @@ function timeAgo(date) {
 // Fetch posts
 router.get('/:id', async (req, res) => {
     try {
-        // 1. Fetch posts for this forum
+        // Updated query to fetch multiple categories per post
         const [posts] = await db.execute(`
-            SELECT p.id, p.user_id, p.forum_id, p.title, p.content, p.url, p.image, p.created_at, p.deleted, u.username 
+            SELECT p.*, u.username, 
+                   GROUP_CONCAT(f.title) as categories,
+                   GROUP_CONCAT(f.id) as forum_ids
             FROM posts p 
             JOIN users u ON p.user_id = u.id 
-            WHERE p.forum_id = ? AND p.deleted = ? 
-            ORDER BY p.created_at DESC`, [req.params.id, 0]);
+            LEFT JOIN post_categories pc ON p.id = pc.post_id
+            LEFT JOIN forums f ON pc.forum_id = f.id
+            WHERE p.deleted = 0
+            GROUP BY p.id
+            HAVING FIND_IN_SET(?, forum_ids)
+            ORDER BY p.created_at DESC`, [req.params.id]);
 
-        // 2. Fetch the current forum title
         let [forumRows] = await db.execute(`SELECT title FROM forums WHERE id = ?`, [req.params.id]);
         const forumTitle = forumRows.length > 0 ? forumRows[0]['title'] : "Forum";
-
-        // 3. NEW: Fetch ALL forums so the edit dropdown has a list of categories
-        const [allForums] = await db.execute(`SELECT id, title FROM forums ORDER BY title DESC`);
+        const [allForums] = await db.execute(`SELECT id, title FROM forums ORDER BY title ASC`);
 
         res.render('pages/forum', { 
             posts: posts,
-            allForums: allForums, // Pass this to the frontend
+            allForums: allForums,
             user: res.userInfo,
             timeAgo: timeAgo,
             forum_id: req.params.id,
             forumTitle
         });
     } catch (err) {
-        console.error('Database Error on fetch forum data:', err);
+        console.error('Database Error:', err);
         res.redirect("/");
     }
 });
 
-// Create New Post
 router.post('/posts/create', upload.single('image'), async (req, res) => {
     try {
-        const { title, content, url, forumId } = req.body;
-        const userId = res.userInfo.id; // Assuming res.userInfo contains the logged-in user
-        let pub_id;
-        let imglink;
+        const { title, content, url, forumIds } = req.body; // forumIds will be an array
+        const userId = res.userInfo.id;
 
-        if (!req.file) {
-            return res.status(400).json({ error: 'No file uploaded' });
-        }
+        if (!req.file) return res.status(400).send('Image required');
+
         cloudinary.uploader.upload_stream({ resource_type: 'auto' }, async (error, result) => {
-            if (error) {
-            console.log(error);
-            return res.status(500).json({ error: 'Error uploading to Cloudinary' });
-            }
-            pub_id = result.public_id;
-            imglink = result.secure_url;
+            if (error) return res.status(500).send('Cloudinary Error');
 
-            // Basic validation
-            if (!title || !forumId) {
-                return res.status(400).send('Title and Forum ID are required.');
-            }
-    
-            await db.execute(
-                `INSERT INTO posts (title, content, url, image,img_public_id, forum_id, user_id) 
-                 VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                [title, content || null, url || null, imglink, pub_id, forumId, userId]
+            // 1. Insert into main posts table
+            const [postResult] = await db.execute(
+                `INSERT INTO posts (title, content, url, image, img_public_id, user_id) VALUES (?, ?, ?, ?, ?, ?)`,
+                [title, content || null, url || null, result.secure_url, result.public_id, userId]
             );
-    
-            // Redirect back to the forum page
-            res.redirect(`/forum/${forumId}`);
 
+            const newPostId = postResult.insertId;
+
+            // 2. Insert into post_categories bridge table
+            if (forumIds) {
+                const ids = Array.isArray(forumIds) ? forumIds : [forumIds];
+                for (const fId of ids) {
+                    await db.execute(`INSERT INTO post_categories (post_id, forum_id) VALUES (?, ?)`, [newPostId, fId]);
+                }
+            }
+
+            // Redirect to the first selected category or 'back'
+            res.redirect(`back`);
         }).end(req.file.buffer);
 
     } catch (err) {
-        console.error('Error creating post:', err);
-
-        if(err.code == "ER_DATA_TOO_LONG"){
-            res.status(500).send('Text Too Long...');
-        }
-        
+        console.error(err);
         res.status(500).send('Internal Server Error');
     }
 });
@@ -112,49 +105,49 @@ router.post('/posts/create', upload.single('image'), async (req, res) => {
 // Edit Post
 router.post('/posts/edit/:id', upload.single('image'), async (req, res) => {
     const postId = req.params.id;
-    // Added forum_id here (this comes from the <select name="forum_id">)
-    const { title, content, url, forum_id } = req.body; 
+    const { title, content, url, forumIds } = req.body; 
     
     try {
         let newImgLink = null;
         let newPubId = null;
 
         if (req.file) {
-            const uploadToCloudinary = () => {
-                return new Promise((resolve, reject) => {
-                    const stream = cloudinary.uploader.upload_stream(
-                        { resource_type: 'auto' },
-                        (error, result) => { result ? resolve(result) : reject(error); }
-                    );
-                    stream.end(req.file.buffer);
-                });
-            };
+            // ... keep your existing Cloudinary Promise logic here ...
             const result = await uploadToCloudinary();
             newImgLink = result.secure_url;
             newPubId = result.public_id;
         }
 
-        // Updated SQL to include forum_id
+        // 1. Update Post Text/Image
         const sql = `
             UPDATE posts 
             SET title = COALESCE(NULLIF(?, ''), title), 
-                content = COALESCE(NULLIF(?, ''), content), 
-                url = COALESCE(NULLIF(?, ''), url),
-                forum_id = COALESCE(NULLIF(?, ''), forum_id),
+                content = ?, 
+                url = ?,
                 image = COALESCE(?, image),
                 img_public_id = COALESCE(?, img_public_id)
             WHERE id = ?`;
+        await db.execute(sql, [title, content, url, newImgLink, newPubId, postId]);
 
-        // Added forum_id to the parameters array
-        await db.execute(sql, [title, content, url, forum_id, newImgLink, newPubId, postId]);
+        // 2. Update Categories (Bridge Table)
+        if (forumIds) {
+            // Remove old links
+            await db.execute(`DELETE FROM post_categories WHERE post_id = ?`, [postId]);
+            
+            // Add new links
+            const ids = Array.isArray(forumIds) ? forumIds : [forumIds];
+            for (const fId of ids) {
+                await db.execute(`INSERT INTO post_categories (post_id, forum_id) VALUES (?, ?)`, [postId, fId]);
+            }
+        }
 
         res.redirect('back');
-        
     } catch (err) {
-        console.error('Update Error:', err);
-        res.status(500).send('Failed to update post');
+        console.error(err);
+        res.status(500).send('Update failed');
     }
 });
+
 
 // Delete Post
 router.post('/posts/delete/:postId', async (req, res) => {
