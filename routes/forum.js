@@ -69,36 +69,49 @@ router.get('/:id', async (req, res) => {
 
 router.post('/posts/create', upload.single('image'), async (req, res) => {
     try {
-        const { title, content, url, forumIds } = req.body; // forumIds will be an array
+        const { title, content, url, forumIds } = req.body;
         const userId = res.userInfo.id;
 
-        if (!req.file) return res.status(400).send('Image required');
+        let imageUrl = null;
+        let imagePublicId = null;
 
-        cloudinary.uploader.upload_stream({ resource_type: 'auto' }, async (error, result) => {
-            if (error) return res.status(500).send('Cloudinary Error');
+        // 1. Check if a file exists. If so, upload to Cloudinary
+        if (req.file) {
+            const uploadResult = await new Promise((resolve, reject) => {
+                const stream = cloudinary.uploader.upload_stream(
+                    { resource_type: 'auto' },
+                    (error, result) => {
+                        if (error) reject(error);
+                        else resolve(result);
+                    }
+                );
+                stream.end(req.file.buffer);
+            });
+            
+            imageUrl = uploadResult.secure_url;
+            imagePublicId = uploadResult.public_id;
+        }
 
-            // 1. Insert into main posts table
-            const [postResult] = await db.execute(
-                `INSERT INTO posts (title, content, url, image, img_public_id, user_id) VALUES (?, ?, ?, ?, ?, ?)`,
-                [title, content || null, url || null, result.secure_url, result.public_id, userId]
-            );
+        // 2. Insert into main posts table (image fields will be null if no file)
+        const [postResult] = await db.execute(
+            `INSERT INTO posts (title, content, url, image, img_public_id, user_id) VALUES (?, ?, ?, ?, ?, ?)`,
+            [title, content || null, url || null, imageUrl, imagePublicId, userId]
+        );
 
-            const newPostId = postResult.insertId;
+        const newPostId = postResult.insertId;
 
-            // 2. Insert into post_categories bridge table
-            if (forumIds) {
-                const ids = Array.isArray(forumIds) ? forumIds : [forumIds];
-                for (const fId of ids) {
-                    await db.execute(`INSERT INTO post_categories (post_id, forum_id) VALUES (?, ?)`, [newPostId, fId]);
-                }
+        // 3. Insert into post_categories bridge table
+        if (forumIds) {
+            const ids = Array.isArray(forumIds) ? forumIds : [forumIds];
+            for (const fId of ids) {
+                await db.execute(`INSERT INTO post_categories (post_id, forum_id) VALUES (?, ?)`, [newPostId, fId]);
             }
+        }
 
-            // Redirect to the first selected category or 'back'
-            res.redirect(`back`);
-        }).end(req.file.buffer);
+        res.redirect(`back`);
 
     } catch (err) {
-        console.error(err);
+        console.error("Error creating post:", err);
         res.status(500).send('Internal Server Error');
     }
 });

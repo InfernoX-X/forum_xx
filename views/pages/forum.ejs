@@ -281,10 +281,12 @@
                     <% if (post.url) { %>
                         <a href="<%= post.url %>" class="post-display-link" target="_blank">🔗 <%= post.url %></a>
                     <% } %>
-
-                    <div class="popUpClass">
-                        <img src="<%= post.image %>" class="post-display-image" alt="Post Image">
-                    </div>
+                    
+                    <% if (post.image) { %>
+                        <div class="popUpClass">
+                            <img src="<%= post.image %>" class="post-display-image" alt="Post Image">
+                        </div>
+                    <% } %>
                 </div>
 
                 <% if (user && user.id === post.user_id) { %>
