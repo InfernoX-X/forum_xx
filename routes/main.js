@@ -58,13 +58,21 @@ router.get('/', verifyToken, async (req, res) => {
 
         // Keep your contributors query as is (user total posts)
         const contributorsQuery = `
-            SELECT u.username, COUNT(p.id) AS post_count 
+            SELECT 
+                u.username, 
+                COUNT(p.id) AS post_count 
             FROM users u
             JOIN posts p ON u.id = p.user_id
-            WHERE p.deleted = 0 AND u.id != 1
-            GROUP BY u.id
+            -- Join the bridge table first
+            JOIN post_categories pc ON p.id = pc.post_id 
+            -- Then join the forums table using the bridge
+            JOIN forums f ON f.id = pc.forum_id 
+            WHERE p.deleted = 0 
+            AND u.id != 1 
+            AND f.header != 'General'
+            GROUP BY u.id, u.username
             ORDER BY post_count DESC 
-            LIMIT 10`;
+            LIMIT 10;`;
 
         const [topContributors] = await db.execute(contributorsQuery);
         const [rawForums] = await db.execute(query);         
