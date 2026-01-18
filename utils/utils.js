@@ -19,21 +19,10 @@ const noPic_base64Image = convertToBase64(fs.readFileSync(path.join(__dirname, '
 const getUserProfile = async (connection, userId) => {
   // Function to fetch user profile details
   return new Promise((resolve, reject) => {
-    const query = "SELECT id, username, email, bio, bg_pic, profile_pic FROM users WHERE id = ?";
+    const query = "SELECT id, username, email FROM users WHERE id = ?";
     connection.query(query, [userId], (err, results) => {
       if (err) return reject(err);
       resolve(results[0]);
-    });
-  });
-};
-
-const getUserBalance = async (connection,userId) => {
-  // Function to fetch user balance
-  return new Promise((resolve, reject) => {
-    const query = "SELECT balance FROM currency WHERE user_id = ?";
-    connection.query(query, [userId], (err, results) => {
-      if (err) return reject(err);
-      resolve(results[0].balance);
     });
   });
 };

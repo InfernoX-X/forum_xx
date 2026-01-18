@@ -3,7 +3,7 @@ const router = express.Router();
 const db = require('../db');
 const {verifyToken} = require('../utils/verify');
 
-const categoryConfig = [
+const headerConfig = [
     { id: "General", icon: "fa-skull-crossbones", color: "#fc6c2a" },
     { id: "The Seduction Series (Willing & Talked Into)", icon: "fa-heart", color: "#F93742" },
     { id: "The Reluctant Series", icon: "fa-hand-paper", color: "#ff3300" },
@@ -35,7 +35,7 @@ router.get('/',verifyToken, async (req, res) => {
     try {
         const query = `
             SELECT 
-                f.id, f.title, f.bio, f.category, 
+                f.id, f.title, f.bio, f.header, 
                 -- Only count posts where deleted is 0
                 COUNT(CASE WHEN p.deleted = 0 THEN p.id END) AS postCount,
                 lp.title AS lastPostTitle,
@@ -70,21 +70,21 @@ router.get('/',verifyToken, async (req, res) => {
 
         // 1. Group the raw database results
         const grouped = rawForums.reduce((acc, forum) => {
-            const key = forum.category;
+            const key = forum.header;
             if (!acc[key]) acc[key] = [];
             acc[key].push(forum);
             return acc;
         }, {});
 
         // 2. Build final ordered list with icons
-        const finalForums = categoryConfig.map(config => {
+        const finalForums = headerConfig.map(config => {
             return {
                 name: config.id,
                 icon: config.icon,
                 color: config.color,
-                data: grouped[config.id] || [] // Empty array if no forums exist in this category yet
+                data: grouped[config.id] || [] 
             };
-        }).filter(category => category.data.length > 0); // Hide categories that have 0 forums
+        }).filter(header => header.data.length > 0); // Hide categories that have 0 forums
 
         res.render('index', { 
             forums: finalForums, // Now an array of objects
@@ -127,18 +127,18 @@ router.get('/search-results',verifyToken, async (req, res) => {
 
 router.post('/forum/create', async (req, res) => {
   const userId = req.user.userId;
-  const { title, category, bio } = req.body;
+  const { title, header, bio } = req.body;
 
-  if (!title || !category) {
+  if (!title || !header) {
     return res.status(400).json({ message: 'All fields are required' });
   }
 
   const query = `
-    INSERT INTO forums (user_id,title,category,bio) VALUES (?, ?, ?, ?)
+    INSERT INTO forums (user_id,title,header,bio) VALUES (?, ?, ?, ?)
   `;
 
   try {
-    const [result] = await db.execute(query, [userId,title,category,bio]);
+    const [result] = await db.execute(query, [userId,title,header,bio]);
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: 'Error at creating forum' });

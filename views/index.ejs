@@ -421,9 +421,9 @@
             <form action="/forum/create" method="post" class="composer-grid">
                 <input type="text" name="title" placeholder="Thread Title" required>
                 <input type="text" name="bio" placeholder="Intro" required>
-                <select name="category">
-                    <% forums.forEach(category => { %>
-                        <option value="<%= category.name %>"><%= category.name %></option>
+                <select name="header">
+                    <% forums.forEach(header => { %>
+                        <option value="<%= header.name %>"><%= header.name %></option>
                     <% }) %>
                 </select>
                 <button type="submit" class="btn-search">CREATE</button>
@@ -433,24 +433,24 @@
         <div class="quick-jump-container">
             <span class="jump-label">Jump to:</span>
             <div class="jump-links">
-                <% forums.forEach(category => { %>
-                    <a href="#cat-<%= category.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase() %>" class="jump-btn">
-                        <i class="fas <%= category.icon %>"></i> <%= category.name.split('(')[0] %>
+                <% forums.forEach(header => { %>
+                    <a href="#cat-<%= header.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase() %>" class="jump-btn">
+                        <i class="fas <%= header.icon %>"></i> <%= header.name.split('(')[0] %>
                     </a>
                 <% }) %>
             </div>
         </div>
 
-        <% forums.forEach(category => { %>
-            <div class="category-section" id="cat-<%= category.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase() %>">
-                <h2 class="category-label" style="--cat-color: <%= category.color || '#F93742' %>; border-bottom: 2px solid var(--cat-color); width:100%;">
-                    <span id="span-<%= category.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase() %>" onclick="toggleView('<%= category.name %>')" style="font-size: 1.5rem; color: white; background-color: var(--cat-color); padding: 0 10px; border-radius: 5px; cursor: pointer;">-</span>
-                    <i class="fas <%= category.icon %>" style="color: var(--cat-color); margin-right: 10px;"></i>
-                    <%= category.name %>
+        <% forums.forEach(header => { %>
+            <div class="category-section" id="cat-<%= header.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase() %>">
+                <h2 class="category-label" style="--cat-color: <%= header.color || '#F93742' %>; border-bottom: 2px solid var(--cat-color); width:100%;">
+                    <span id="span-<%= header.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase() %>" onclick="toggleView('<%= header.name %>')" style="font-size: 1.5rem; color: white; background-color: var(--cat-color); padding: 0 10px; border-radius: 5px; cursor: pointer;">-</span>
+                    <i class="fas <%= header.icon %>" style="color: var(--cat-color); margin-right: 10px;"></i>
+                    <%= header.name %>
                 </h2>
                 
-                <% category.data.forEach(forum => { %>
-                    <div class="forum-row list-<%= category.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase() %>">
+                <% header.data.forEach(forum => { %>
+                    <div class="forum-row list-<%= header.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase() %>">
                         <div class="forum-info">
                             <div style="display: flex; align-items: center;">
                                 <a href="/forum/<%= forum.id %>" class="forum-title"><%= forum.title %></a>
