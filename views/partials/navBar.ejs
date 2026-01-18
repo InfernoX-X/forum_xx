@@ -3,6 +3,7 @@
     :root {
         --nav-bg: rgb(22, 22, 22);
         --accent: #F93742;
+        --dropdown-bg: #1e1e1e;
     }
 
     .main-navbar {
@@ -49,12 +50,12 @@
         font-weight: 600;
         cursor: pointer;
         transition: 0.2s;
-        border-color: rgb(43, 236, 43);
+        border-color: var(--accent);
     }
 
     .image-toggle-btn:hover {
         background: #282828;
-        border-color: var(--accent);
+        border-color: var(--accent)
     }
     
     /* Logic for hiding images in the feed */
@@ -63,52 +64,152 @@
     }
     
     body.hide-images .image-toggle-btn {
-        border-color: var(--accent);
         color: #888;
     }
+
+    /* Dropdown Container */
+    .dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    /* The Main Button */
+    .dropbtn {
+        background: #222;
+        color: #fff;
+        border: 1px solid var(--accent);
+        padding: 8px 15px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    /* Dropdown Content (Hidden by Default) */
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        right: 0;
+        background-color: var(--dropdown-bg);
+        min-width: 200px;
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5);
+        z-index: 1;
+        border-radius: 6px;
+        border: 1px solid #333;
+        margin-top: 5px;
+        overflow: hidden;
+    }
+    
+    /* Links/Buttons inside the dropdown */
+    .dropdown-content button {
+        color: #ccc;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+        width: 100%;
+        border: none;
+        background: none;
+        text-align: left;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: 0.2s;
+        font-family: Arial, Helvetica, sans-serif;
+        font-weight: bold;
+        letter-spacing: 1px;
+    }
+
+    .dropdown-content button:hover {
+        background-color: #282828;
+        color: var(--accent);
+    }
+
+    /* Show the dropdown menu on hover */
+    .dropdown:hover .dropdown-content {
+        display: block;
+    }
+
+    .dropdown:hover .dropbtn {
+        opacity: 0.8;
+    }
+
+    body.hide-leaderboard .sidebar-leaderboard {
+        display: none !important;
+    }
+
+    /* Optional: change the look of the toggle when off */
+    body.hide-leaderboard #leaderboardToggle {
+        color: #888;
+    }
+    
 </style>
 
 <nav class="main-navbar">
     <div class="nav-container">
-        <a href="/" class="logo">
-            <h3>Forum<span>X</span></h3>
-        </a>
+        <a href="/" class="logo"><h3>Forum<span>X</span></h3></a>
 
         <div class="nav-controls">
-            <button class="image-toggle-btn btn-link">
-                🖼️ Images: ON
-            </button>
+            <div class="dropdown">
+                <button class="dropbtn">⚙️ Settings</button>
+                <div class="dropdown-content">
+                    <button>👤 <%= user.username %></button>
+                    <button id="imageToggle">🖼️ Images: ON</button>
+                    <button id="leaderboardToggle">🏆 Leaderboard: ON</button>
+                    <hr style="border-top: 1px solid #333; margin: 10px 0;">
+                    <button id="logoutBtn" onclick="confirm('Do you want to logout?') ? window.location.href='/logout' : '' ">⏻ Logout</button>
+                </div>
+            </div>
         </div>
     </div>
 </nav>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const toggleBtn = document.querySelector('.image-toggle-btn');
     const body = document.body;
+    const imageBtn = document.getElementById('imageToggle');
+    const leaderboardBtn = document.getElementById('leaderboardToggle');
 
-    // Function to apply visibility
+    // Image Toggle
     const setImageState = (isHidden) => {
         if (isHidden) {
             body.classList.add('hide-images');
-            toggleBtn.innerHTML = '🖼️ Images: OFF';
+            imageBtn.innerHTML = '🖼️ Images: OFF';
         } else {
             body.classList.remove('hide-images');
-            toggleBtn.innerHTML = '🖼️ Images: ON';
+            imageBtn.innerHTML = '🖼️ Images: ON';
         }
     };
 
-    // Load initial state from browser memory
     const isHidden = localStorage.getItem('hideForumImages') === 'true';
     setImageState(isHidden);
 
-    // Toggle click event
-    toggleBtn.addEventListener('click', () => {
+    imageBtn.addEventListener('click', () => {
         const currentlyHidden = body.classList.contains('hide-images');
         const newState = !currentlyHidden;
-        
         localStorage.setItem('hideForumImages', newState);
         setImageState(newState);
+    });
+
+
+    // Leaderboard Toggle
+    const setLeaderboardState = (isHidden) => {
+        if (isHidden) {
+            body.classList.add('hide-leaderboard');
+            leaderboardBtn.innerHTML = '🏆 Leaderboard: OFF';
+        } else {
+            body.classList.remove('hide-leaderboard');
+            leaderboardBtn.innerHTML = '🏆 Leaderboard: ON';
+        }
+    };
+
+    const isLeaderboardHidden = localStorage.getItem('hideLeaderboard') === 'true';
+    setLeaderboardState(isLeaderboardHidden);
+
+    leaderboardBtn.addEventListener('click', () => {
+        const currentlyHidden = body.classList.contains('hide-leaderboard');
+        const newState = !currentlyHidden;
+        localStorage.setItem('hideLeaderboard', newState);
+        setLeaderboardState(newState);
     });
 });
 </script>

@@ -91,7 +91,7 @@
 
     .composer-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr auto;
+        /* grid-template-columns: 1fr 1fr auto; */
         gap: 12px;
     }
 
@@ -300,51 +300,53 @@
         color: var(--accent);
     }
     
+    /* --- RESPONSIVE LEADERBOARD --- */
     .sidebar-leaderboard {
-        position: fixed;
-        top: 150px;
-        right: calc(50% - 880px); /* Positions it to the right of your 1100px container */
-        width: 220px;
         background: var(--surface);
         border: 1px solid var(--border);
         border-radius: 8px;
         overflow: hidden;
         box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        margin-bottom: 40px; /* Space for mobile */
     }
 
     .sidebar-header {
         background: #1a1a1a;
         padding: 12px;
-        font-size: 0.7rem;
+        font-size: 0.75rem;
         font-weight: 800;
         letter-spacing: 1px;
         color: var(--text-main);
         border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
     }
 
     .leaderboard-content {
         padding: 10px;
+        display: grid; /* Allow for multi-column on mobile if desired */
+        grid-template-columns: 1fr;
     }
 
     .contributor-item {
         display: flex;
         align-items: center;
-        padding: 8px 5px;
+        padding: 10px 8px;
         border-bottom: 1px solid rgba(255,255,255,0.03);
     }
 
     .contributor-item:last-child { border-bottom: none; }
 
     .rank {
-        font-size: 0.7rem;
+        font-size: 0.75rem;
         font-weight: 700;
         color: var(--text-muted);
-        width: 20px;
+        width: 25px;
     }
 
     .name {
         flex: 1;
-        font-size: 0.85rem;
+        font-size: 0.9rem;
         font-weight: 600;
         color: var(--text-main);
         white-space: nowrap;
@@ -357,53 +359,47 @@
         font-weight: 700;
         color: var(--accent);
         background: rgba(249, 55, 66, 0.1);
-        padding: 2px 6px;
+        padding: 2px 8px;
         border-radius: 4px;
     }
 
-    /* Hide leaderboard if screen is too narrow to avoid overlapping content */
-    @media (max-width: 1550px) {
+    /* DESKTOP: Pin to the right */
+    @media (min-width: 1350px) {
         .sidebar-leaderboard {
-            display: none;
+            position: fixed;
+            top: 150px;
+            right: calc(50% - 840px); /* Adjusted for better clearance */
+            width: 240px;
         }
     }
 
-
-    /* Mobile Optimization: Hide non-essential info */
-    @media (max-width: 768px) {
-        /* Change the 3-column grid to 1 column for the title only */
-        .forum-row {
-            grid-template-columns: 1fr; 
-            padding: 15px 10px;
-        }
-
-        /* Hide the stats and the last post info */
-        .forum-stats, 
-        .forum-last-post {
-            display: none !important;
-        }
-
-        /* Make the title slightly larger for easier tapping */
-        .forum-title {
-            font-size: 1.2rem;
-            margin-bottom: 8px;
-        }
-
-        /* Adjust the search bar and composer for mobile spacing */
-        .composer-grid {
-            grid-template-columns: 1fr;
+    /* TABLET/MOBILE: Move it to the top or bottom of the main content */
+    @media (max-width: 1349px) {
+        .sidebar-leaderboard {
+            position: static; 
+            width: 100%;
+            margin-top: 20px;
         }
         
-        .search-bar {
-            margin-bottom: 25px;
-        }
-
-        /* Make badges smaller so they don't wrap to a new line */
-        .badge {
-            padding: 1px 6px;
-            font-size: 9px;
+        .leaderboard-content {
+            grid-template-columns: 1fr 1fr; /* Two columns on tablets */
         }
     }
+
+    @media (max-width: 600px) {
+        .leaderboard-content {
+            grid-template-columns: 1fr; /* Back to one column on small phones */
+        }
+
+        .forum-last-post{
+            display: none;
+        }
+
+        .forum-row{
+            grid-template-columns: 1fr 100px;
+        }
+    }
+    
 </style>
 <%- include("./partials/navBar") %>
 
@@ -428,6 +424,26 @@
                 </select>
                 <button type="submit" class="btn-search">CREATE</button>
             </form>
+        </div>
+
+        <div class="sidebar-leaderboard">
+            <div class="sidebar-header">
+                <i class="fas fa-trophy" style="color: gold; margin-right: 8px;"></i>
+                TOP CONTRIBUTORS
+            </div>
+            <div class="leaderboard-content">
+                <% if (topContributors.length > 0) { %>
+                    <% topContributors.forEach((contributor, index) => { %>
+                        <div class="contributor-item">
+                            <span class="rank">#<%= index + 1 %></span>
+                            <span class="name"><%= contributor.username %></span>
+                            <span class="count"><%= contributor.post_count %> pts</span>
+                        </div>
+                    <% }) %>
+                <% } else { %>
+                    <div style="font-size: 0.7rem; color: var(--text-muted); padding: 10px;">No activity yet</div>
+                <% } %>
+            </div>
         </div>
 
         <div class="quick-jump-container">
@@ -496,27 +512,7 @@
             </div>
         <% }) %>
 
-
-
-        <div class="sidebar-leaderboard">
-            <div class="sidebar-header">
-                <i class="fas fa-trophy" style="color: gold; margin-right: 8px;"></i>
-                TOP CONTRIBUTORS
-            </div>
-            <div class="leaderboard-content">
-                <% if (topContributors.length > 0) { %>
-                    <% topContributors.forEach((contributor, index) => { %>
-                        <div class="contributor-item">
-                            <span class="rank"><%= index + 1 %></span>
-                            <span class="name"><%= contributor.username %></span>
-                            <span class="count"><%= contributor.post_count %></span>
-                        </div>
-                    <% }) %>
-                <% } else { %>
-                    <div style="font-size: 0.7rem; color: var(--text-muted); padding: 10px;">No posts yet</div>
-                <% } %>
-            </div>
-        </div>
+        
     </div>
 
 
