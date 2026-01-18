@@ -50,8 +50,9 @@ router.get('/:id', async (req, res) => {
 
         let [forumRows] = await db.execute(`SELECT title FROM forums WHERE id = ?`, [req.params.id]);
         const forumTitle = forumRows.length > 0 ? forumRows[0]['title'] : "Forum";
-        const [allForums] = await db.execute(`SELECT id, title FROM forums ORDER BY title ASC`);
-
+        // const [allForums] = await db.execute(`SELECT id, title FROM forums ORDER BY title ASC`);
+        const [allForums] = await db.execute(`SELECT id, title, header FROM forums ORDER BY header DESC, title ASC`);
+        
         res.render('pages/forum', { 
             posts: posts,
             allForums: allForums,

@@ -132,6 +132,62 @@
         border: 1px solid var(--accent);
         font-weight: 600;
     }
+
+    /* Container holds everything */
+    .forum-selection-container {
+        max-height: 400px; /* Optional: adds scroll if list is too long */
+        overflow-y: auto;
+        background: #080808;
+        padding: 15px;
+        border: 1px solid var(--border);
+    }
+
+    /* The Section Titles from forums.header */
+    .category-group-header {
+        background: #1a1a1a;
+        color: var(--accent);
+        font-size: 0.75rem;
+        font-weight: 800;
+        padding: 6px 12px;
+        margin: 15px 0 10px 0;
+        border-left: 3px solid var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        width: 100%;
+    }
+
+    /* grid layout for the items under the header */
+    .forum-item {
+        display: inline-flex; /* Use inline-flex so they wrap naturally */
+        align-items: center;
+        width: calc(33.33% - 10px); /* 3 columns on desktop */
+        min-width: 200px;
+        gap: 8px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        padding: 6px;
+        border-radius: 4px;
+        transition: 0.2s;
+        color: #ccc;
+    }
+
+    .forum-item:hover {
+        background: #151515;
+        color: #fff;
+    }
+
+    .forum-item input[type="checkbox"] {
+        accent-color: var(--accent);
+        width: 16px;
+        height: 16px;
+    }
+
+    /* Scrollbar styling for the container */
+    .forum-selection-container::-webkit-scrollbar { width: 6px; }
+    .forum-selection-container::-webkit-scrollbar-track { background: #000; }
+    .forum-selection-container::-webkit-scrollbar-thumb { background: #222; border-radius: 10px; }
+
+    
 </style>
 
 <body>
@@ -147,14 +203,22 @@
 
             <label>Select Forums/Categories (Pick one or more)</label>
             <div class="forum-selection-container">
-                <div class="forum-grid">
-                    <% allForums.forEach(f => { %>
-                        <label class="forum-item">
-                            <input type="checkbox" name="forumIds" value="<%= f.id %>" <%= f.id == forum_id ? 'checked' : '' %>>
-                            <%= f.title %>
-                        </label>
-                    <% }) %>
-                </div>
+                <% 
+                    let currentHeader = ""; 
+                    allForums.forEach(f => { 
+                        if (f.header !== currentHeader) { 
+                            currentHeader = f.header; 
+                %>
+                    <div class="category-group-header"><%= currentHeader %></div>
+                <% } %>
+                    
+                <label class="forum-item">
+                    <input type="checkbox" name="forumIds" value="<%= f.id %>" 
+                        <%= (typeof post !== 'undefined' && post.forum_ids && post.forum_ids.split(',').includes(f.id.toString())) || (typeof forum_id !== 'undefined' && f.id == forum_id) ? 'checked' : '' %>>
+                    <%= f.title %>
+                </label>
+                <% }) %>
+                
             </div>
 
             <input type="text" name="content" placeholder="SUMMARY/BODY">
@@ -229,15 +293,20 @@
                             
                             <label>Update Forums/Categories</label>
                             <div class="forum-selection-container">
-                                <div class="forum-grid">
-                                    <% allForums.forEach(f => { %>
-                                        <label class="forum-item">
-                                            <input type="checkbox" name="forumIds" value="<%= f.id %>" 
+                                <% 
+                                    let editCurrentHeader = ""; 
+                                    allForums.forEach(f => { 
+                                        if (f.header !== editCurrentHeader) { 
+                                            editCurrentHeader = f.header; 
+                                %>
+                                    <div class="category-group-header"><%= editCurrentHeader %></div>
+                                <% } %>
+                                    <label class="forum-item">
+                                        <input type="checkbox" name="forumIds" value="<%= f.id %>" 
                                             <%= post.forum_ids && post.forum_ids.split(',').includes(f.id.toString()) ? 'checked' : '' %>>
-                                            <%= f.title %>
-                                        </label>
-                                    <% }) %>
-                                </div>
+                                        <%= f.title %>
+                                    </label>
+                                <% }) %>
                             </div>
 
                             <label>Title</label>
