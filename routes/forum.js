@@ -31,7 +31,7 @@ function timeAgo(date) {
     return Math.floor(seconds) + " seconds ago";
 }
 
-
+// Fetch posts
 router.get('/:id', async (req, res) => {
     try {
         // 1. Fetch posts for this forum
@@ -63,6 +63,7 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+// Create New Post
 router.post('/posts/create', upload.single('image'), async (req, res) => {
     try {
         const { title, content, url, forumId } = req.body;
@@ -108,9 +109,7 @@ router.post('/posts/create', upload.single('image'), async (req, res) => {
     }
 });
 
-
-
-
+// Edit Post
 router.post('/posts/edit/:id', upload.single('image'), async (req, res) => {
     const postId = req.params.id;
     // Added forum_id here (this comes from the <select name="forum_id">)
@@ -157,6 +156,7 @@ router.post('/posts/edit/:id', upload.single('image'), async (req, res) => {
     }
 });
 
+// Delete Post
 router.post('/posts/delete/:postId', async (req, res) => {
     try {
         const postId = req.params.postId;

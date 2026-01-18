@@ -6,9 +6,7 @@ const cookieParser = require('cookie-parser');
 
 // Custom
 const {verifyToken} = require('./utils/verify');
-const {parseContent} = require("./utils/parseContent")
 const getUserInfo = require('./middleware/getUserInfo');
-const publish_content = require('./routes/publish_content');
 const app = express();
 
 
@@ -29,9 +27,6 @@ const setupMiddleware = (app) => {
 
   app.set('view engine', 'ejs');
   app.set('views', path.join(__dirname, 'views'));
-
-  // Images
-  // app.use('/uploads/images', parseContent(path.join(__dirname, '/public/uploads/images')), publish_content);
 
   app.use('/', express.static(path.join(__dirname, 'public'), 
     {

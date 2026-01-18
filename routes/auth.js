@@ -1,11 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
-const { generateJwtToken, redirectIfAuthenticated } = require('../utils/verify');
+const { verifyToken, generateJwtToken, redirectIfAuthenticated } = require('../utils/verify');
 const bcrypt = require("bcrypt");
-const { verifyToken } = require('../utils/verify');
-// ------------------- Server Side -------------------
 
+// ------------------- Server Side -------------------
 // Register
 router.post('/register', async (req, res) => {
   const { username, email, password } = req.body;
@@ -18,13 +17,8 @@ router.post('/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const [userResult] = await db.execute(
-      'INSERT INTO users (username, email, password, code) VALUES (?, ?, ?, ?)',
-      [username, email, hashedPassword, password]
-    );
-
-    const [currencyResult] = await db.execute(
-      'INSERT INTO currency (user_id) VALUES (?)',
-      [userResult.insertId]
+      'INSERT INTO users (username, email, password) VALUES (?, ?, ?)',
+      [username, email, hashedPassword]
     );
 
     const [users] = await db.execute(
@@ -107,11 +101,6 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Logout
-router.get('/logout', verifyToken, async (req, res) => {
-  res.clearCookie('token'); // This removes the cookie
-  res.redirect('/login');   // Redirect to login page
-});
 
 // ------------------- Client Side -------------------
 // Login
@@ -123,5 +112,12 @@ router.get('/login', redirectIfAuthenticated, (req, res) => {
 router.get('/register', redirectIfAuthenticated, (req, res) => {
   res.render('auth/register');
 });
+
+// Logout
+router.get('/logout', verifyToken, async (req, res) => {
+  res.clearCookie('token'); // This removes the cookie
+  res.redirect('/login');   // Redirect to login page
+});
+
 
 module.exports = router;
