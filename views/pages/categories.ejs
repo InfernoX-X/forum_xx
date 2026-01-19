@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title><%= siteTitle %></title>
+    <link rel="icon" href="<%= favIcon %>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<style>
+    :root {
+        --accent: #F93742;
+        --bg: #000000;
+        --surface: #111111;
+        --border: #222222;
+        --text-main: #FFFFFF;
+        --text-muted: #888888;
+    }
+    /* Ensure smooth scrolling when clicking links */
+    html {
+        scroll-behavior: smooth;
+        scroll-padding-top: 100px; /* Adjust based on your navbar height */
+    }
+    ::-webkit-scrollbar {
+        min-width: 7px;
+        max-width: 0.5vw;
+        height: 0;
+        background-color: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb{
+        background-color: var(--accent);
+        border-radius: 20px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        background-color: var(--bg);
+        color: var(--text-main);
+        font-family: 'Inter', sans-serif;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+        max-width: 1100px;
+        margin: 80px auto;
+        padding: 0 20px;
+    }
+
+    /* --- FAST SEARCH BAR --- */
+    .search-bar {
+        display: flex;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 4px;
+        margin-bottom: 40px;
+    }
+
+    .search-bar input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: white;
+        padding: 12px 16px;
+        font-size: 1rem;
+        outline: none;
+    }
+
+    .btn-search {
+        background: var(--accent);
+        color: white;
+        border: none;
+        padding: 0 20px;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        height: 40px;
+    }
+
+    /* --- COMPOSER (Collapsed for Speed) --- */
+    .composer {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 50px;
+    }
+
+    .composer h3 { font-size: 0.9rem; text-transform: uppercase; color: var(--accent); margin-bottom: 15px; letter-spacing: 1px; }
+
+    .composer-grid {
+        display: grid;
+        /* grid-template-columns: 1fr 1fr auto; */
+        gap: 12px;
+    }
+
+    .composer input, .composer select {
+        background: #000;
+        border: 1px solid var(--border);
+        color: white;
+        padding: 12px;
+        border-radius: 6px;
+        font-size: 0.9rem;
+    }
+
+    /* --- FORUM LIST (Table Style for Speed) --- */
+    .category-section { margin-bottom: 40px; }
+
+    .category-label {
+        font-weight: 700;
+        font-size: 1.1rem;
+        padding-bottom: 12px;
+        border-bottom: 2px solid var(--accent);
+        margin-bottom: 10px;
+        display: inline-block;
+    }
+
+    .forum-row {
+        display: grid;
+        grid-template-columns: 1fr 100px 250px;
+        padding: 16px;
+        border-bottom: 1px solid var(--border);
+        transition: background 0.2s;
+        align-items: center;
+    }
+
+    .forum-row:hover {
+        background: #0a0a0a;
+    }
+
+    .forum-title {
+        color: var(--text-main);
+        text-decoration: none;
+        font-size: 1.1rem;
+        font-weight: 600;
+        display: block;
+        margin-bottom: 4px;
+    }
+
+    .forum-title:hover { color: var(--accent); }
+
+    .forum-desc { color: var(--text-muted); font-size: 0.85rem; }
+
+    .forum-stats {
+        text-align: center;
+        font-weight: 600;
+        color: var(--accent);
+        font-size: 0.95rem;
+    }
+
+    .forum-stats span {
+        display: block;
+        color: var(--text-muted);
+        font-size: 0.7rem;
+        text-transform: uppercase;
+    }
+
+    .forum-last-post {
+        border-left: 1px solid var(--border);
+        padding-left: 20px;
+    }
+
+    .lp-title {
+        color: var(--text-main);
+        font-size: 0.85rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+    }
+
+    .lp-meta {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        margin-top: 4px;
+    }
+
+    .lp-meta b { color: var(--text-main); }
+
+    /* Badges Styling */
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        vertical-align: middle;
+        letter-spacing: 0.5px;
+        margin-left: 10px;
+        margin-bottom: 4px;
+    }
+
+    .badge-hot {
+        background: rgba(249, 55, 66, 0.15);
+        color: var(--accent);
+        border: 1px solid var(--accent);
+        box-shadow: 0 0 10px rgba(249, 55, 66, 0.2);
+    }
+
+    .badge-new {
+        background: rgba(55, 249, 168, 0.15); /* A fresh green color */
+        color: #37f9a8;
+        border: 1px solid #37f9a8;
+    }
+
+    .badge-quiet {
+        background: rgba(55, 123, 249, 0.15); /* A fresh blue color */
+        color: #3774f9;
+        border: 1px solid #3774f9;
+    }
+
+    .badge-trending {
+        background: rgba(ffa502, 0.15);
+        color: #ffa502;
+        border: 1px solid #ffa502;
+    }
+
+    .badge-recent {
+        background: rgba(162, 155, 254, 0.15);
+        color: #a29bfe;
+        border: 1px solid #a29bfe;
+    }
+
+    /* Tooltip on hover for stats */
+    .forum-row:hover .forum-stats {
+        transform: scale(1.1);
+        transition: transform 0.2s ease;
+    }
+    /* This highlights the text when searching */
+    .highlight {
+        background: rgba(249, 55, 66, 0.3);
+        color: white;
+        padding: 0 2px;
+        border-radius: 2px;
+    }
+    .quick-jump-container {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 25px;
+        padding: 10px 0;
+        overflow-x: auto; /* For mobile scroll */
+        border-bottom: 1px solid var(--border);
+        white-space: nowrap;
+    }
+
+    .jump-label {
+        font-size: 0.75rem;
+        font-weight: 800;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .jump-links {
+        display: flex;
+        gap: 8px;
+    }
+
+    .jump-btn {
+        text-decoration: none;
+        background: var(--surface);
+        color: var(--text-muted);
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border: 1px solid var(--border);
+        transition: all 0.2s ease;
+    }
+
+    .jump-btn:hover {
+        color: #fff;
+        border-color: var(--accent);
+        background: rgba(249, 55, 66, 0.05);
+    }
+
+    #backToTop {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 99;
+        border: none;
+        outline: none;
+        background-color: var(--accent);
+        color: white;
+        cursor: pointer;
+        padding: 12px 16px;
+        border-radius: 4px;
+        font-weight: bold;
+        display: none; /* Hidden by default */
+        box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    #backToTop:hover {
+        background-color: #fff;
+        color: var(--accent);
+    }
+    
+    /* --- RESPONSIVE LEADERBOARD --- */
+    .sidebar-leaderboard {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        margin-bottom: 40px; /* Space for mobile */
+    }
+
+    .sidebar-header {
+        background: #1a1a1a;
+        padding: 12px;
+        font-size: 0.75rem;
+        font-weight: 800;
+        letter-spacing: 1px;
+        color: var(--text-main);
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+    }
+
+    .leaderboard-content {
+        padding: 10px;
+        display: grid; /* Allow for multi-column on mobile if desired */
+        grid-template-columns: 1fr;
+    }
+
+    .contributor-item {
+        display: flex;
+        align-items: center;
+        padding: 10px 8px;
+        border-bottom: 1px solid rgba(255,255,255,0.03);
+    }
+
+    .contributor-item:last-child { border-bottom: none; }
+
+    .rank {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        width: 25px;
+    }
+
+    .name {
+        flex: 1;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-main);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .count {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--accent);
+        background: rgba(249, 55, 66, 0.1);
+        padding: 2px 8px;
+        border-radius: 4px;
+    }
+
+    /* DESKTOP: Pin to the right */
+    @media (min-width: 1350px) {
+        .sidebar-leaderboard {
+            position: fixed;
+            top: 150px;
+            right: calc(50% - 840px); /* Adjusted for better clearance */
+            width: 240px;
+        }
+    }
+
+    /* TABLET/MOBILE: Move it to the top or bottom of the main content */
+    @media (max-width: 1349px) {
+        .sidebar-leaderboard {
+            position: static; 
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .leaderboard-content {
+            grid-template-columns: 1fr 1fr; /* Two columns on tablets */
+        }
+    }
+
+    @media (max-width: 600px) {
+        .leaderboard-content {
+            grid-template-columns: 1fr; /* Back to one column on small phones */
+        }
+
+        .forum-last-post{
+            display: none;
+        }
+
+        .forum-row{
+            grid-template-columns: 1fr 100px;
+        }
+    }
+    
+</style>
+<%- include("../partials/navBar") %>
+
+
+<body>
+
+    <div class="container">
+        <div class="sidebar-leaderboard">
+            <div class="sidebar-header">
+                <i class="fas fa-trophy" style="color: gold; margin-right: 8px;"></i>
+                TOP CONTRIBUTORS
+            </div>
+            <div class="leaderboard-content">
+                <% if (topContributors.length > 0) { %>
+                    <% topContributors.forEach((contributor, index) => { %>
+                        <div class="contributor-item">
+                            <span class="rank">#<%= index + 1 %></span>
+                            <span class="name"><%= contributor.username %></span>
+                            <span class="count"><%= contributor.post_count %> pts</span>
+                        </div>
+                    <% }) %>
+                <% } else { %>
+                    <div style="font-size: 0.7rem; color: var(--text-muted); padding: 10px;">No activity yet</div>
+                <% } %>
+            </div>
+        </div>
+
+        <div class="quick-jump-container">
+            <span class="jump-label">Jump to:</span>
+            <div class="jump-links">
+                <% forums.forEach(header => { %>
+                    <a href="#cat-<%= header.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase() %>" class="jump-btn">
+                        <i class="fas <%= header.icon %>"></i> <%= header.name.split('(')[0] %>
+                    </a>
+                <% }) %>
+            </div>
+        </div>
+
+        <% forums.forEach(header => { %>
+            <div class="category-section" id="cat-<%= header.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase() %>">
+                <h2 class="category-label" style="--cat-color: <%= header.color || '#F93742' %>; border-bottom: 2px solid var(--cat-color); width:100%;">
+                    <span id="span-<%= header.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase() %>" onclick="toggleView('<%= header.name %>')" style="font-size: 1.5rem; color: white; background-color: var(--cat-color); padding: 0 10px; border-radius: 5px; cursor: pointer;">-</span>
+                    <i class="fas <%= header.icon %>" style="color: var(--cat-color); margin-right: 10px;"></i>
+                    <%= header.name %>
+                </h2>
+                
+                <% header.data.forEach(forum => { %>
+                    <div class="forum-row list-<%= header.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase() %>">
+                        <div class="forum-info">
+                            <div style="display: flex; align-items: center;">
+                                <a href="/search?q=&forums=<%= forum.id %>" class="forum-title"><%= forum.title %></a>
+                                
+                                <% 
+                                    const now = new Date();
+                                    const lastPost = new Date(forum.lastPostDate);
+
+                                    const isHot = forum.postCount > 15;
+                                    const isTrending = forum.postCount > 100;
+                                    const isNew = forum.lastPostDate && (new Date() - new Date(forum.lastPostDate) < 2 * 24 * 60 * 60 * 1000);
+                                    const isRecent = forum.lastPostDate && (new Date() - new Date(forum.lastPostDate) < 5 * 24 * 60 * 60 * 1000);
+                                    const isQuiet = !forum.lastPostDate || (now - lastPost > 7 * 24 * 60 * 60 * 1000);
+                                %>
+
+                                <% if (isNew) { %> <span class="badge badge-new">✨ NEW</span> <% } %>
+                                <% if (isHot) { %> <span class="badge badge-hot">🔥 HOT</span> <% } %>
+                                <% if (isRecent) { %> <span class="badge badge-recent">🕒 RECENT</span> <% } %>
+                                <% if (isQuiet) { %> <span class="badge badge-quiet">💤 QUIET</span> <% } %>
+                                <% if (isTrending) { %> <span class="badge badge-trending">📈 TRENDING</span> <% } %>
+                                
+                            </div>
+                            <span class="forum-desc"><%= forum.bio %></span>
+                        </div>
+                        
+                        <div class="forum-stats">
+                            <%= forum.postCount %>
+                            <span>Posts</span>
+                        </div>
+
+                        <div class="forum-last-post">
+                            <% if (forum.lastPostDate) { %>
+                                <span class="lp-title"><%= forum.lastPostTitle %></span>
+                                <div class="lp-meta">
+                                    by <b><%= forum.lastPostUser %></b> • <%= timeAgo(forum.lastPostDate) %>
+                                </div>
+                            <% } else { %>
+                                <span class="lp-meta">No activity yet</span>
+                            <% } %>
+                        </div>
+                    </div>
+                <% }); %>
+            </div>
+        <% }) %>
+
+        
+    </div>
+
+
+    <div id="backToTop">↑</div>
+
+<script>
+    const toggleView = (name) => {
+        const n = name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase()
+        const list_ = document.getElementsByClassName(`list-${n}`);
+        let currentValue = document.getElementById(`span-${n}`).innerText;
+
+        if(currentValue == "-"){
+            for (let i = 0; i < list_.length; i++) {
+                const list = list_[i];
+                list.style.display = "none";
+                document.getElementById(`span-${n}`).innerText = "+";
+            }
+            
+        }else{
+            for (let i = 0; i < list_.length; i++) {
+                const list = list_[i];
+                list.style.display = "";
+                document.getElementById(`span-${n}`).innerText = "-";
+            }
+        }
+
+    };
+
+    const searchInput = document.getElementById('searchInput');
+    const forumRows = document.querySelectorAll('.forum-row');
+    const categories = document.querySelectorAll('.category-section');
+    const noResults = document.getElementById('noResults');
+
+    searchInput.addEventListener('input', function(e) {
+        const query = e.target.value.toLowerCase();
+        let anyVisible = false;
+
+        // Loop through every forum row
+        forumRows.forEach(row => {
+            const title = row.querySelector('.forum-title').innerText.toLowerCase();
+            const desc = row.querySelector('.forum-desc').innerText.toLowerCase();
+            
+            if (title.includes(query) || desc.includes(query)) {
+                row.style.display = 'grid'; // Matches your CSS display type
+                anyVisible = true;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // Hide categories that have no visible rows
+        categories.forEach(cat => {
+            const visibleInCat = cat.querySelectorAll('.forum-row[style="display: grid;"]');
+            cat.style.display = visibleInCat.length > 0 ? 'block' : 'none';
+        });
+
+        // Show/Hide "No Results" message
+        noResults.style.display = anyVisible ? 'none' : 'block';
+    });
+
+    // Keep your original button functionality for "Hard Search" (database search)
+    document.getElementById("inputSubBtn").addEventListener("click", () => {
+        const q = searchInput.value;
+        if(q) window.location.href = "/search-results?q=" + encodeURIComponent(q);
+    });
+
+    // Show button when user scrolls down 400px
+    window.onscroll = function() {
+        if (document.body.scrollTop > 400 || document.documentElement.scrollTop > 400) {
+            document.getElementById("backToTop").style.display = "block";
+        } else {
+            document.getElementById("backToTop").style.display = "none";
+        }
+    };
+
+    document.getElementById("backToTop").onclick = function() {
+        window.scrollTo({top: 0, behavior: 'smooth'});
+    };
+
+
+</script>
+
+</body>
+</html>

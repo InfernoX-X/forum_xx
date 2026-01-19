@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
-const {verifyToken} = require('../utils/verify');
 
 
 function timeAgo(date) {
@@ -67,7 +66,6 @@ router.get('/', async (req, res) => {
         res.redirect("/");
     }
 });
-
 
 
 router.get('/search', async (req, res) => {
@@ -159,7 +157,6 @@ router.get('/search', async (req, res) => {
 });
 
 
-
 router.get('/contribute', async (req, res) => {
     try {
         // 1. Fetch ALL forums for the "Post" checkboxes
@@ -188,6 +185,91 @@ router.get('/contribute', async (req, res) => {
     }
 });
 
+
+router.get('/categories', async (req, res) => {
+    try {
+        const [headerRows] = await db.execute('SELECT DISTINCT header FROM forums WHERE header IS NOT NULL');
+
+        const query = `
+            SELECT 
+                f.id, f.title, f.bio, f.header, 
+                -- Count occurrences in the join table for this forum
+                (SELECT COUNT(*) FROM post_categories pc 
+                 JOIN posts p ON pc.post_id = p.id 
+                 WHERE pc.forum_id = f.id AND p.deleted = 0) AS postCount,
+                lp.title AS lastPostTitle,
+                lp.created_at AS lastPostDate,
+                u.username AS lastPostUser
+            FROM forums f
+            LEFT JOIN (
+                -- Find the latest post ID linked to each forum
+                SELECT pc.forum_id, MAX(pc.post_id) as max_id
+                FROM post_categories pc
+                JOIN posts p ON pc.post_id = p.id
+                WHERE p.deleted = 0
+                GROUP BY pc.forum_id
+            ) latest_post_id ON f.id = latest_post_id.forum_id
+            LEFT JOIN posts lp ON latest_post_id.max_id = lp.id
+            LEFT JOIN users u ON lp.user_id = u.id
+            ORDER BY f.created_at DESC`;
+
+        // Keep your contributors query as is (user total posts)
+        const contributorsQuery = `
+            SELECT 
+                u.username, 
+                COUNT(DISTINCT p.id) AS post_count 
+            FROM users u
+            JOIN posts p ON u.id = p.user_id
+            -- Join the bridge table first
+            JOIN post_categories pc ON p.id = pc.post_id 
+            -- Then join the forums table using the bridge
+            JOIN forums f ON f.id = pc.forum_id 
+            WHERE p.deleted = 0 
+            AND u.id != 1 
+            AND f.header != 'General'
+            GROUP BY u.id, u.username
+            ORDER BY post_count DESC 
+            LIMIT 10;`;
+
+        const [topContributors] = await db.execute(contributorsQuery);
+        const [rawForums] = await db.execute(query);         
+
+        const grouped = rawForums.reduce((acc, forum) => {
+            const key = forum.header;
+            if (!acc[key]) acc[key] = [];
+            acc[key].push(forum);
+            return acc;
+        }, {});
+        // 2. Helper function to generate a random hex color
+        const getRandomColor = () => {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        };
+        const finalForums = Object.keys(grouped).map(headerName => {
+            return {
+                name: headerName,
+                icon: 'fa-folder', // Generic icon as requested
+                color: getRandomColor(), // Random color for each section
+                data: grouped[headerName]
+            };
+        });
+
+        res.render('pages/categories', { 
+            forums: finalForums,
+            user: res.userInfo,
+            topContributors: topContributors,
+            timeAgo
+        });
+
+    } catch (err) {
+        console.error('Database Error:', err);
+        res.status(500).send('Internal Server Error');
+    }
+});
 
 // Create New Tag
 router.post('/forum/create', async (req, res) => {
