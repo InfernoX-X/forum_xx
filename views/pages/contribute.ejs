@@ -75,6 +75,19 @@
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg); }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+
+        .hidden-item {
+            display: none !important;
+        }
+
+        /* Optional: Make the search input stand out slightly */
+        #tagSearchInput {
+            border-color: #333;
+            background: #000;
+        }
+        #tagSearchInput:focus {
+            border-color: var(--accent);
+        }
     </style>
 </head>
 <body>
@@ -96,6 +109,10 @@
                 <input type="text" name="title" placeholder="Original Title with (Female Performer's name)" required>
 
                 <label>Target Categories</label>
+                <div class="tag-search-wrapper" style="margin-bottom: 10px;">
+                    <input type="text" id="tagSearchInput" placeholder="Quick find category..." 
+                        style="font-size: 0.8rem; padding: 8px; margin-bottom: 0;">
+                </div>
                 <div class="forum-selection-container">
                     <% let currentHeader = ""; %>
                     <% allForums.forEach(f => { %>
@@ -103,7 +120,7 @@
                             currentHeader = f.header; %>
                             <div class="category-group-header"><%= currentHeader %></div>
                         <% } %>
-                        <label class="forum-item">
+                        <label class="forum-item" data-name="<%= f.title.toLowerCase() %>">
                             <input type="checkbox" name="forumIds" value="<%= f.id %>">
                             <%= f.title %>
                         </label>
@@ -149,6 +166,46 @@
 
     </div>
 </div>
+
+<script>
+    document.getElementById('tagSearchInput').addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase().trim();
+        const container = document.querySelector('.forum-selection-container');
+        const items = container.querySelectorAll('.forum-item');
+        const headers = container.querySelectorAll('.category-group-header');
+
+        // 1. Filter the individual forum items
+        items.forEach(item => {
+            const tagName = item.getAttribute('data-name') || "";
+            if (tagName.includes(searchTerm)) {
+                item.classList.remove('hidden-item');
+            } else {
+                item.classList.add('hidden-item');
+            }
+        });
+
+        // 2. Hide headers that no longer have visible items following them
+        headers.forEach(header => {
+            let nextEl = header.nextElementSibling;
+            let hasVisibleChild = false;
+
+            // Check all siblings until the next header or end of container
+            while (nextEl && !nextEl.classList.contains('category-group-header')) {
+                if (nextEl.classList.contains('forum-item') && !nextEl.classList.contains('hidden-item')) {
+                    hasVisibleChild = true;
+                    break;
+                }
+                nextEl = nextEl.nextElementSibling;
+            }
+
+            if (hasVisibleChild) {
+                header.classList.remove('hidden-item');
+            } else {
+                header.classList.add('hidden-item');
+            }
+        });
+    });
+</script>
 
 </body>
 </html>

@@ -68,59 +68,97 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.get('/search', verifyToken, async (req, res) => {
+
+
+router.get('/search', async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
-        const limit = 15; // Number of posts per page
+        const limit = 15;
         const offset = (page - 1) * limit;
         const searchTerm = req.query.q || '';
+        
+        // Handle categories: could be a single ID or an array of IDs
+        let forumIds = req.query.forums || [];
+        if (!Array.isArray(forumIds) && forumIds !== '') {
+            forumIds = [forumIds];
+        }
 
-        // 1. Get total post count for pagination math
-        const [countResult] = await db.execute('SELECT COUNT(*) as total FROM posts p WHERE (p.title LIKE ? OR p.content LIKE ?) AND deleted = 0',
-            [
-                `%${searchTerm}%`, 
-                `%${searchTerm}%`
-            ]
+        let whereClause = 'p.deleted = 0 AND (p.title LIKE ? OR p.content LIKE ?)';
+        let queryParams = [`%${searchTerm}%`, `%${searchTerm}%`];
+
+        // If specific forums are selected, we filter the results
+        if (forumIds.length > 0) {
+            // Using placeholder (?,?,?) for the IN clause
+            const placeholders = forumIds.map(() => '?').join(',');
+            whereClause += ` AND p.id IN (
+                SELECT post_id FROM post_categories WHERE forum_id IN (${placeholders})
+            )`;
+            queryParams = [...queryParams, ...forumIds];
+        }
+
+        // 1. Get total count for pagination
+        const [countResult] = await db.execute(
+            `SELECT COUNT(DISTINCT p.id) as total FROM posts p WHERE ${whereClause}`,
+            queryParams
         );
         const totalPosts = countResult[0].total;
         const totalPages = Math.ceil(totalPosts / limit);
 
+        // 2. Fetch the posts
         const query = `
             SELECT 
-                p.*, 
-                u.username,
+                p.*, u.username,
                 GROUP_CONCAT(f.title) as categories,
                 GROUP_CONCAT(f.id) as forum_ids
             FROM posts p 
             JOIN users u ON p.user_id = u.id
             LEFT JOIN post_categories pc ON p.id = pc.post_id
             LEFT JOIN forums f ON pc.forum_id = f.id
-            WHERE (p.title LIKE ? OR p.content LIKE ?) AND p.deleted = 0 
+            WHERE ${whereClause}
             GROUP BY p.id
             ORDER BY p.created_at DESC
             LIMIT ? OFFSET ?
         `;
 
         const [posts] = await db.execute(query, [
-            `%${searchTerm}%`, 
-            `%${searchTerm}%`, 
+            ...queryParams, 
             limit.toString(), 
             offset.toString()
         ]);
 
+        // 3. Fetch all forums so the user can see/change filters on the results page
+        const [allForumsRaw] = await db.execute(
+            'SELECT id, title, header FROM forums ORDER BY header ASC, title ASC'
+        );
+
+        // Group forums by header
+        const groupedForums = allForumsRaw.reduce((groups, forum) => {
+            const header = forum.header || 'Other'; // Fallback for forums without a header
+            if (!groups[header]) {
+                groups[header] = [];
+            }
+            groups[header].push(forum);
+            return groups;
+        }, {});
+        
         res.render('pages/search', { 
             posts,
+            groupedForums: groupedForums,
+            selectedForums: forumIds,
             user: res.userInfo,
             timeAgo: timeAgo,
             currentPage: page,
             totalPages: totalPages,
-            searchKey: searchTerm
+            searchKey: searchTerm,
+            siteTitle: "Search Results"
         });
     } catch (err) {
         console.error("Search Error:", err);
         res.status(500).send('Search Error');
     }
 });
+
+
 
 router.get('/contribute', async (req, res) => {
     try {

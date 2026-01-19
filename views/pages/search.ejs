@@ -249,14 +249,137 @@
             pointer-events: none;
         }
     </style>
+
+    <style>
+        .advanced-search-container {
+            background: var(--surface-elevated);
+            padding: 25px;
+            border-radius: var(--radius);
+            margin-bottom: 30px;
+            border: 1px solid var(--border);
+        }
+        .search-bar-wrap { display: flex; gap: 10px; align-items: flex-start; }
+        
+        .headers-container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            max-height: 500px; /* Allow scrolling if you have many headers */
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .header-group {
+            border-bottom: 1px solid #222;
+            padding-bottom: 15px;
+        }
+
+        .group-title {
+            font-size: 0.9rem;
+            color: var(--accent);
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            border-left: 3px solid var(--accent);
+            padding-left: 10px;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .checkbox-label:hover {
+            color: white;
+        }
+
+        .checkbox-label input {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--accent);
+        }
+        .tag-search-wrapper {
+            margin-bottom: 15px;
+        }
+        
+        .tag-search-field {
+            width: 100%;
+            background: #000;
+            border: 1px solid var(--border);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .tag-search-field:focus {
+            border-color: var(--accent);
+        }
+
+        /* Used for the JavaScript filtering */
+        .hidden-tag {
+            display: none !important;
+        }
+        
+    </style>
+
 </head>
 
 <body>
 <%- include("../partials/navBar") %>
 
 <div class="container">
+    
+    <h1 style="margin: 10px 0; font-family: Arial, Helvetica, sans-serif; letter-spacing: 1px; color: #e0e0e0;">ADVANCED SEARCH!</h1>
+    <div class="advanced-search-container">
+        <form action="/search" method="GET" id="searchForm">
+            <div class="search-bar-wrap">
+                <input type="text" name="q" value="<%= searchKey %>" placeholder="Search keywords..." class="edit-field">
+                <button type="submit" class="btn-mini btn-info" style="width: 120px; height: 45px;">SEARCH</button>
+            </div>
+
+            <div class="filter-section">
+                <label style="margin-bottom: 15px; display: block;">Filter by Category Groups</label>
+                
+                <div class="tag-search-wrapper">
+                    <input type="text" id="tagSearchInput" placeholder="Filter categories..." class="tag-search-field">
+                </div>
+
+                <div class="headers-container">
+                    <% for (const header in groupedForums) { %>
+                        <div class="header-group">
+                            <h3 class="group-title"><%= header %></h3>
+                            <div class="category-grid">
+                                <% groupedForums[header].forEach(forum => { %>
+                                    <label class="checkbox-label" data-name="<%= forum.title.toLowerCase() %>">
+                                        <input type="checkbox" name="forums" value="<%= forum.id %>" 
+                                            <%= selectedForums.includes(forum.id.toString()) ? 'checked' : '' %>>
+                                        <span><%= forum.title %></span>
+                                    </label>
+                                <% }) %>
+                            </div>
+                        </div>
+                    <% } %>
+                </div>
+
+            </div>
+        </form>
+    </div>
+
     <div class="search-header">
-        <h1>SEARCH RESULTS FOR: <span><%= searchKey %></span></h1>
+        <h1 style="color: #e0e0e0;">SEARCH RESULTS FOR: <span><%= searchKey %></span></h1>
     </div>
 
     <div id="posts-feed">
@@ -324,11 +447,21 @@
     <% if (totalPages > 1) { %>
         <div class="pagination">
             <% 
-                // Create a helper for the URL query string
-                const searchParam = (typeof searchKey !== 'undefined' && searchKey) ? `q=${encodeURIComponent(searchKey)}&` : '';
+                // 1. Define the helper function once at the top of the block
+                const buildQuery = (pageNum) => {
+                    let params = new URLSearchParams();
+                    params.append('q', searchKey || '');
+                    params.append('page', pageNum);
+                    
+                    // Ensure selectedForums is handled as an array
+                    const forums = Array.isArray(selectedForums) ? selectedForums : [selectedForums].filter(Boolean);
+                    forums.forEach(id => params.append('forums', id));
+                    
+                    return params.toString();
+                };
             %>
 
-            <a href="?<%= searchParam %>page=<%= currentPage - 1 %>" 
+            <a href="?<%= buildQuery(currentPage - 1) %>" 
             class="page-link <%= currentPage === 1 ? 'disabled' : '' %>"
             <%= currentPage === 1 ? 'onclick="return false;"' : '' %>>
             &laquo; Previous
@@ -341,19 +474,20 @@
             %>
 
             <% for(let i = startPage; i <= endPage; i++) { %>
-                <a href="?<%= searchParam %>page=<%= i %>" 
+                <a href="?<%= buildQuery(i) %>" 
                 class="page-link <%= currentPage === i ? 'active' : '' %>">
                 <%= i %>
                 </a>
             <% } %>
 
-            <a href="?<%= searchParam %>page=<%= currentPage + 1 %>" 
+            <a href="?<%= buildQuery(currentPage + 1) %>" 
             class="page-link <%= currentPage === totalPages ? 'disabled' : '' %>"
             <%= currentPage === totalPages ? 'onclick="return false;"' : '' %>>
             Next &raquo;
             </a>
         </div>
     <% } %>
+
 
 </div>
 
@@ -385,6 +519,36 @@
     if (typeof initializeImageGallery === "function") {
         initializeImageGallery("popUpClass");
     }
+
+    document.getElementById('tagSearchInput').addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase().trim();
+        const groups = document.querySelectorAll('.header-group');
+
+        groups.forEach(group => {
+            const labels = group.querySelectorAll('.checkbox-label');
+            let hasVisibleTags = false;
+
+            labels.forEach(label => {
+                // This now matches the attribute we added in the HTML
+                const tagName = label.getAttribute('data-name') || "";
+                
+                if (tagName.includes(searchTerm)) {
+                    label.classList.remove('hidden-tag');
+                    hasVisibleTags = true;
+                } else {
+                    label.classList.add('hidden-tag');
+                }
+            });
+
+            // Hide or show the whole section (Header + Grid)
+            if (hasVisibleTags) {
+                group.style.display = 'block';
+            } else {
+                group.style.display = 'none';
+            }
+        });
+    });
+
 </script>
 
 </body>
