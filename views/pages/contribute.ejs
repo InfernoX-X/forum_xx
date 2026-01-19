@@ -128,13 +128,13 @@
                 </div>
 
                 <label>Body Content</label>
-                <textarea name="content" rows="4" placeholder="Detailed description..."></textarea>
+                <textarea name="content" rows="4" placeholder="Detailed description..." required></textarea>
 
                 <label>Full Video Link (Any Site)</label>
-                <input type="text" name="url" placeholder="Full Video Link">
+                <input type="text" name="url" placeholder="Full Video Link" required>
                 
                 <label for="post-image" class="file-label" id="main-file-label">📎 ATTACH IMAGE</label>
-                <input type="file" id="post-image" name="image" accept="image/*" style="display:none" 
+                <input type="file" id="post-image" name="image" accept="image/*" style="display:none" required
                        onchange="document.getElementById('main-file-label').innerText = '📂 ' + this.files[0].name">
 
                 <button type="submit" class="btn-accent">PUBLISH!</button>
@@ -154,7 +154,7 @@
                 <input type="text" name="bio" placeholder="Small intro for tag" required>
                 
                 <label>Parent Header</label>
-                <select name="header">
+                <select name="header" required>
                     <% forums.forEach(header => { %>
                         <option value="<%= header.name %>"><%= header.name %></option>
                     <% }) %>
