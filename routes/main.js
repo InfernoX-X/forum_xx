@@ -76,12 +76,14 @@ router.get('/search', verifyToken, async (req, res) => {
         const searchTerm = req.query.q || '';
 
         // 1. Get total post count for pagination math
-        const [countResult] = await db.execute(
-            'SELECT COUNT(*) as total FROM posts WHERE deleted = 0'
+        const [countResult] = await db.execute('SELECT COUNT(*) as total FROM posts p WHERE (p.title LIKE ? OR p.content LIKE ?) AND deleted = 0',
+            [
+                `%${searchTerm}%`, 
+                `%${searchTerm}%`
+            ]
         );
         const totalPosts = countResult[0].total;
         const totalPages = Math.ceil(totalPosts / limit);
-
 
         const query = `
             SELECT 
