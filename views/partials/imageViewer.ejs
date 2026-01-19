@@ -184,14 +184,14 @@
 <!-- Popup Image Viewer (JS) -->
 <script>
     const initializeImageGallery = (
-    selector="imageLinks",
-    popupViewerId="popup-viewer",
-    popupImgId="popup-img",
-    closeBtnId="close-btn",
-    hideDivId="popup-image-hide",
-    prevBtnId="prev-btn",
-    nextBtnId="next-btn",
-    zoomStatusId="zoom-status"
+    selector = "popUpClass",
+    popupViewerId = "popup-viewer",
+    popupImgId = "popup-img",
+    closeBtnId = "close-btn",
+    hideDivId = "popup-image-hide",
+    prevBtnId = "prev-btn",
+    nextBtnId = "next-btn",
+    zoomStatusId = "zoom-status"
 ) => {
     const popupViewer = document.getElementById(popupViewerId);
     const popupImg = document.getElementById(popupImgId);
@@ -200,188 +200,151 @@
     const prevBtn = document.getElementById(prevBtnId);
     const nextBtn = document.getElementById(nextBtnId);
     const zoomStatus = document.getElementById(zoomStatusId);
-    const imageLinks = document.querySelectorAll("." + selector);
+    const feedContainer = document.getElementById('posts-feed');
 
-    if (!popupViewer || !popupImg || !imageLinks.length) {
-        console.error("Image Gallery initialization failed: One or more required elements not found.");
-        return;
-    }
+    if (!popupViewer || !popupImg || !feedContainer) return;
 
     let allImages = [];
     let currentIndex = -1;
-    let scale = 1;
-    let translateX = 0;
-    let translateY = 0;
-    let isDragging = false;
-    let startX = 0;
-    let startY = 0;
-    let dragMove = 0; // Tracks total accumulated movement
-    const dragThreshold = 5; // Pixels of movement required to be considered a drag
+    let scale = 1, translateX = 0, translateY = 0;
+    let isDragging = false, startX = 0, startY = 0, dragMove = 0;
     const maxScale = 3;
 
+    const updateImageList = () => {
+        const images = feedContainer.querySelectorAll(`.${selector} img`);
+        allImages = Array.from(images).map(img => img.src);
+    };
+
     const applyTransform = () => {
-        popupImg.style.transform = `translate(-50%, -50%) translate(${translateX}px, ${translateY}px) scale(${scale})`;
-        zoomStatus.textContent = `Click to Zoom (Current: ${scale}x)`;
-        zoomStatus.classList.remove('opacity-0');
-        if (scale === 1) {
-            setTimeout(() => zoomStatus.classList.add('opacity-0'), 1000);
+        // translate(-50%, -50%) keeps it centered
+        // translateX/Y handles the user panning
+        popupImg.style.transform = `translate(calc(-50% + ${translateX}px), calc(-50% + ${translateY}px)) scale(${scale})`;
+        
+        if (zoomStatus) {
+            zoomStatus.textContent = `Click to Zoom (Current: ${scale}x)`;
+            zoomStatus.style.opacity = scale > 1 ? "1" : "0";
         }
     };
 
-    imageLinks.forEach(link => {
-        const imgSrc = link.querySelector('img').src;
-        allImages.push(imgSrc);
-    });
-
     const resetZoom = () => {
-        scale = 1;
-        translateX = 0;
-        translateY = 0;
+        scale = 1; translateX = 0; translateY = 0;
         isDragging = false;
+        dragMove = 0;
         popupImg.classList.remove('zoomed', 'dragging');
         popupImg.style.cursor = 'zoom-in';
         applyTransform();
     };
 
     const showImage = (index) => {
-        if (index < 0 || index >= allImages.length) {
-            return; // Out of bounds
-        }
+        if (index < 0 || index >= allImages.length) return;
         currentIndex = index;
         popupViewer.style.display = 'block';
         popupImg.src = allImages[currentIndex];
-        resetZoom(); // Always reset when switching images
+        document.body.style.overflow = 'hidden';
+        resetZoom();
 
         prevBtn.style.visibility = (currentIndex === 0) ? 'hidden' : 'visible';
         nextBtn.style.visibility = (currentIndex === allImages.length - 1) ? 'hidden' : 'visible';
     };
 
-    imageLinks.forEach((link, index) => {
-        link.addEventListener('click', (e) => {
+    // --- EVENT DELEGATION ---
+    feedContainer.addEventListener('click', (e) => {
+        const targetThumbnail = e.target.closest(`.${selector}`);
+        if (targetThumbnail) {
             e.preventDefault();
-            showImage(index);
-        });
+            updateImageList();
+            const clickedImg = targetThumbnail.querySelector('img');
+            if (clickedImg) {
+                const index = allImages.indexOf(clickedImg.src);
+                showImage(index);
+            }
+        }
     });
 
     const closePopup = () => {
         popupViewer.style.display = 'none';
+        document.body.style.overflow = 'auto';
         resetZoom();
     };
 
     closeBtn.addEventListener('click', closePopup);
-    hideDiv.addEventListener('click', (e) => {
-        if (e.target.id === hideDivId) {
-            closePopup();
-        }
-    });
+    hideDiv.addEventListener('click', closePopup);
 
-    prevBtn.addEventListener('click', () => {
-        if (currentIndex > 0) {
-            showImage(currentIndex - 1);
-        }
-    });
+    // Navigation
+    prevBtn.addEventListener('click', (e) => { e.stopPropagation(); if (currentIndex > 0) showImage(currentIndex - 1); });
+    nextBtn.addEventListener('click', (e) => { e.stopPropagation(); if (currentIndex < allImages.length - 1) showImage(currentIndex + 1); });
 
-    nextBtn.addEventListener('click', () => {
-        if (currentIndex < allImages.length - 1) {
-            showImage(currentIndex + 1);
-        }
-    });
-
-    popupImg.addEventListener('click', () => {
-        if (scale === 1) {
-            // Zoom In
-            scale = maxScale;
-            popupImg.classList.add('zoomed');
-            popupImg.style.cursor = 'grab';
-            applyTransform();
-        } else {
-            // Zoom Out
-            resetZoom();
-        }
-    });
-
-    const getClientCoords = (e) => e.touches ? e.touches[0] : e;
-
+    // --- PANNING LOGIC ---
     const startDrag = (e) => {
         if (scale > 1) {
-            e.preventDefault(); 
+            // Ensure it's left click (button 0) or a touch event
+            if (e.type === 'mousedown' && e.button !== 0) return;
+            
             isDragging = true;
-            dragMove = 0; // Reset movement counter
+            dragMove = 0; // Crucial: Reset movement on every new press
             popupImg.classList.add('dragging');
 
-            const coords = getClientCoords(e);
+            const coords = e.touches ? e.touches[0] : e;
             startX = coords.clientX - translateX;
             startY = coords.clientY - translateY;
+            
+            // Prevent text selection while dragging
+            e.preventDefault();
         }
     };
-    popupImg.addEventListener('mousedown', startDrag);
-    popupImg.addEventListener('touchstart', startDrag);
 
-    // 3. Move/Pan (Mouse & Touch)
     const doDrag = (e) => {
         if (!isDragging) return;
-        e.preventDefault();
 
-        const coords = getClientCoords(e);
-        const currentX = coords.clientX;
-        const currentY = coords.clientY;
-
-        const newTranslateX = currentX - startX;
-        const newTranslateY = currentY - startY;
+        const coords = e.touches ? e.touches[0] : e;
+        translateX = coords.clientX - startX;
+        translateY = coords.clientY - startY;
         
-        const dx = newTranslateX - translateX;
-        const dy = newTranslateY - translateY;
-        dragMove += Math.sqrt(dx * dx + dy * dy); 
-
-        const rect = popupImg.getBoundingClientRect();
-        const viewportWidth = window.innerWidth;
-        const viewportHeight = window.innerHeight;
-
-        const actualScaledWidth = rect.width;
-        const actualScaledHeight = rect.height;
-
-        const limitX = Math.max(0, (actualScaledWidth - viewportWidth) / 2);
-        const limitY = Math.max(0, (actualScaledHeight - viewportHeight) / 2);
-
-        translateX = Math.max(-limitX, Math.min(limitX, newTranslateX));
-        translateY = Math.max(-limitY, Math.min(limitY, newTranslateY));
-
+        dragMove++; // Increment movement counter
         applyTransform();
     };
-    document.addEventListener('mousemove', doDrag);
-    document.addEventListener('touchmove', doDrag, { passive: false });
 
     const stopDrag = () => {
-        if (!isDragging) return;
-        
         isDragging = false;
         popupImg.classList.remove('dragging');
     };
-    document.addEventListener('mouseup', stopDrag);
-    document.addEventListener('touchend', stopDrag);
-    document.addEventListener('mouseleave', stopDrag);
 
+    // Listeners for Panning
+    popupImg.addEventListener('mousedown', startDrag);
+    popupImg.addEventListener('touchstart', startDrag, { passive: false });
 
+    // Use window so panning continues even if mouse leaves the image
+    window.addEventListener('mousemove', doDrag);
+    window.addEventListener('touchmove', doDrag, { passive: false });
+    window.addEventListener('mouseup', stopDrag);
+    window.addEventListener('touchend', stopDrag);
+    window.addEventListener('blur', stopDrag);
+
+    // --- ZOOM TOGGLE ---
     popupImg.addEventListener('click', (e) => {
-        if (dragMove > dragThreshold && scale > 1) {
-            e.stopPropagation(); 
-            e.preventDefault(); 
-            dragMove = 0; 
-        } else {
-             dragMove = 0;
+        // If dragMove is high, the user was panning, not clicking to zoom
+        if (dragMove > 5) {
+            dragMove = 0;
+            return;
         }
-    }, true);
 
-    // Optional: Keyboard navigation
+        if (scale === 1) {
+            scale = maxScale;
+            popupImg.classList.add('zoomed');
+            popupImg.style.cursor = 'grab';
+        } else {
+            resetZoom();
+        }
+        applyTransform();
+        dragMove = 0;
+    });
+
+    // Keyboard
     document.addEventListener('keydown', (e) => {
         if (popupViewer.style.display === 'block') {
-            if (e.key === 'Escape') {
-                closePopup();
-            } else if (e.key === 'ArrowLeft') {
-                prevBtn.click();
-            } else if (e.key === 'ArrowRight') {
-                nextBtn.click();
-            }
+            if (e.key === 'Escape') closePopup();
+            if (e.key === 'ArrowLeft' && currentIndex > 0) showImage(currentIndex - 1);
+            if (e.key === 'ArrowRight' && currentIndex < allImages.length - 1) showImage(currentIndex + 1);
         }
     });
 };

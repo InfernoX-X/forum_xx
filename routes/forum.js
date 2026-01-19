@@ -15,58 +15,8 @@ cloudinary.config({
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-function timeAgo(date) {
-    const seconds = Math.floor((new Date() - new Date(date)) / 1000);
-    let interval = Math.floor(seconds / 31536000);
 
-    if (interval >= 1) return interval + " years ago";
-    interval = Math.floor(seconds / 2592000);
-    if (interval >= 1) return interval + " months ago";
-    interval = Math.floor(seconds / 86400);
-    if (interval >= 1) return interval + " days ago";
-    interval = Math.floor(seconds / 3600);
-    if (interval >= 1) return interval + " hours ago";
-    interval = Math.floor(seconds / 60);
-    if (interval >= 1) return interval + " minutes ago";
-    return Math.floor(seconds) + " seconds ago";
-}
-
-// Fetch posts
-router.get('/:id', async (req, res) => {
-    try {
-        // Updated query to fetch multiple categories per post
-        const [posts] = await db.execute(`
-            SELECT p.*, u.username, 
-                   GROUP_CONCAT(f.title) as categories,
-                   GROUP_CONCAT(f.id) as forum_ids
-            FROM posts p 
-            JOIN users u ON p.user_id = u.id 
-            LEFT JOIN post_categories pc ON p.id = pc.post_id
-            LEFT JOIN forums f ON pc.forum_id = f.id
-            WHERE p.deleted = 0
-            GROUP BY p.id
-            HAVING FIND_IN_SET(?, forum_ids)
-            ORDER BY p.created_at DESC`, [req.params.id]);
-
-        let [forumRows] = await db.execute(`SELECT title FROM forums WHERE id = ?`, [req.params.id]);
-        const forumTitle = forumRows.length > 0 ? forumRows[0]['title'] : "Forum";
-        // const [allForums] = await db.execute(`SELECT id, title FROM forums ORDER BY title ASC`);
-        const [allForums] = await db.execute(`SELECT id, title, header FROM forums ORDER BY header DESC, title ASC`);
-        
-        res.render('pages/forum', { 
-            posts: posts,
-            allForums: allForums,
-            user: res.userInfo,
-            timeAgo: timeAgo,
-            forum_id: req.params.id,
-            forumTitle
-        });
-    } catch (err) {
-        console.error('Database Error:', err);
-        res.redirect("/");
-    }
-});
-
+// New Video
 router.post('/posts/create', upload.single('image'), async (req, res) => {
     try {
         const { title, content, url, forumIds } = req.body;
@@ -116,7 +66,7 @@ router.post('/posts/create', upload.single('image'), async (req, res) => {
     }
 });
 
-// Edit Post
+// Edit Video
 router.post('/posts/edit/:id', upload.single('image'), async (req, res) => {
     const postId = req.params.id;
     const { title, content, url, forumIds } = req.body; 
@@ -126,8 +76,17 @@ router.post('/posts/edit/:id', upload.single('image'), async (req, res) => {
         let newPubId = null;
 
         if (req.file) {
-            // ... keep your existing Cloudinary Promise logic here ...
-            const result = await uploadToCloudinary();
+            const result = await new Promise((resolve, reject) => {
+                const stream = cloudinary.uploader.upload_stream(
+                    { resource_type: 'auto' },
+                    (error, result) => {
+                        if (error) reject(error);
+                        else resolve(result);
+                    }
+                );
+                stream.end(req.file.buffer);
+            });
+
             newImgLink = result.secure_url;
             newPubId = result.public_id;
         }
@@ -162,32 +121,31 @@ router.post('/posts/edit/:id', upload.single('image'), async (req, res) => {
     }
 });
 
+// Delete Video
+// router.post('/posts/delete/:postId', async (req, res) => {
+//     try {
+//         const postId = req.params.postId;
+//         const userId = res.userInfo.id; // Get ID of the logged-in user
+//         const forumId = req.body.forum_id; // Pass this from the hidden input to redirect back
 
-// Delete Post
-router.post('/posts/delete/:postId', async (req, res) => {
-    try {
-        const postId = req.params.postId;
-        const userId = res.userInfo.id; // Get ID of the logged-in user
-        const forumId = req.body.forum_id; // Pass this from the hidden input to redirect back
+//         // We check BOTH the post id and the user_id for security
+//         const [result] = await db.execute(
+//             `UPDATE posts SET deleted = ? WHERE id = ? AND user_id = ?`,
+//             [1, postId, userId]
+//         );
 
-        // We check BOTH the post id and the user_id for security
-        const [result] = await db.execute(
-            `UPDATE posts SET deleted = ? WHERE id = ? AND user_id = ?`,
-            [1, postId, userId]
-        );
+//         if (result.affectedRows === 0) {
+//             return res.status(403).send("You don't have permission to delete this or the post doesn't exist.");
+//         }
 
-        if (result.affectedRows === 0) {
-            return res.status(403).send("You don't have permission to delete this or the post doesn't exist.");
-        }
+//         // Redirect back to the forum they were just on
+//         res.redirect(`/forum/${forumId}`);
 
-        // Redirect back to the forum they were just on
-        res.redirect(`/forum/${forumId}`);
-
-    } catch (err) {
-        console.error('Error deleting post:', err);
-        res.status(500).send('Could not delete post.');
-    }
-});
+//     } catch (err) {
+//         console.error('Error deleting post:', err);
+//         res.status(500).send('Could not delete post.');
+//     }
+// });
 
 
 module.exports = router;

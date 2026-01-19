@@ -4,6 +4,9 @@
         --nav-bg: rgb(22, 22, 22);
         --accent: #F93742;
         --dropdown-bg: #1e1e1e;
+        --text-dim: #888;
+        --border-color: #333;
+        --input-bg: #2a2a2a;
     }
 
     .main-navbar {
@@ -18,145 +21,209 @@
         z-index: 1000;
         display: flex;
         align-items: center;
+        font-family: 'Inter', system-ui, sans-serif;
     }
 
     .nav-container {
         width: 100%;
-        padding: 0 40px;
-        display: flex;
-        justify-content: space-between;
+        padding: 0 20px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr 2fr 1fr; /* Equal parts for perfect centering */
         align-items: center;
     }
 
     .logo {
         text-decoration: none;
         color: #fff;
-        font-family: 'Inter', sans-serif;
         font-size: 1.5rem;
+        font-weight: 800;
+        white-space: nowrap;
     }
 
-    .logo span {
-        color: var(--accent);
+    .logo span { color: var(--accent); }
+
+    /* Search Bar Container */
+    .search-container {
+        display: flex;
+        justify-content: center;
+        padding: 0 15px;
     }
 
-    /* Image Toggle Button Styling */
-    .image-toggle-btn {
-        background: #222;
-        color: #fff;
-        border: 1px solid #333;
-        padding: 8px 15px;
-        border-radius: 6px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: 0.2s;
-        border-color: var(--accent);
-    }
-
-    .image-toggle-btn:hover {
-        background: #282828;
-        border-color: var(--accent)
-    }
-    
-    /* Logic for hiding images in the feed */
-    body.hide-images .popUpClass {
-        display: none !important;
-    }
-    
-    body.hide-images .image-toggle-btn {
-        color: #888;
-    }
-
-    /* Dropdown Container */
-    .dropdown {
+    .search-wrapper {
         position: relative;
-        display: inline-block;
+        width: 100%;
+        max-width: 500px;
     }
 
-    /* The Main Button */
+    .search-wrapper input {
+        width: 100%;
+        background: var(--input-bg);
+        border: 1px solid var(--border-color);
+        padding: 10px 15px 10px 40px;
+        border-radius: 14px;
+        color: #fff;
+        outline: none;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+    }
+
+    .search-wrapper input:focus {
+        border-color: var(--accent);
+        background: #333;
+        box-shadow: 0 0 0 4px rgba(249, 55, 66, 0.1);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-dim);
+        pointer-events: none;
+    }
+
+    /* Navigation Controls */
+    .nav-controls {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .dropdown { position: relative; }
+
     .dropbtn {
         background: #222;
         color: #fff;
         border: 1px solid var(--accent);
         padding: 8px 15px;
-        border-radius: 6px;
+        border-radius: 8px;
         font-size: 0.85rem;
         font-weight: 600;
         cursor: pointer;
-        transition: 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
 
-    /* Dropdown Content (Hidden by Default) */
     .dropdown-content {
-        display: none;
+        display: none; 
         position: absolute;
         right: 0;
+        top: calc(100% + 15px);
         background-color: var(--dropdown-bg);
-        min-width: 200px;
-        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5);
-        z-index: 1;
-        border-radius: 6px;
-        border: 1px solid #333;
-        margin-top: 5px;
+        min-width: 240px;
+        box-shadow: 0px 12px 24px rgba(0,0,0,0.6);
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
         overflow: hidden;
     }
-    
-    /* Links/Buttons inside the dropdown */
+
+    .dropdown-content.active { display: block; animation: fadeIn 0.2s ease-out; }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
     .dropdown-content button {
         color: #ccc;
-        padding: 12px 16px;
-        text-decoration: none;
-        display: block;
+        padding: 14px 16px;
+        display: flex;
+        justify-content: space-between;
         width: 100%;
         border: none;
         background: none;
-        text-align: left;
-        font-size: 0.85rem;
         cursor: pointer;
-        transition: 0.2s;
-        font-family: Arial, Helvetica, sans-serif;
-        font-weight: bold;
-        letter-spacing: 1px;
     }
 
-    .dropdown-content button:hover {
-        background-color: #282828;
-        color: var(--accent);
+    .dropdown-content button:hover { background-color: #282828; color: var(--accent); }
+
+    .dropdown-content button a {
+        color: #ccc;
+        cursor: pointer;
+        text-decoration: none;
     }
 
-    /* Show the dropdown menu on hover */
-    .dropdown:hover .dropdown-content {
-        display: block;
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .nav-container {
+            grid-template-columns: auto 1fr auto;
+        }
+        .search-wrapper input {
+            padding: 10px;
+            padding-left: 35px;
+        }
+        .dropbtn span { display: none; } /* Icon only on mobile */
     }
 
-    .dropdown:hover .dropbtn {
-        opacity: 0.8;
+    @media (max-width: 480px) {
+        .search-container { padding: 0 5px; }
+        .logo { font-size: 1.1rem; }
     }
-
-    body.hide-leaderboard .sidebar-leaderboard {
+    
+    body.hide-images img, 
+    body.hide-images .popUpClass, 
+    body.hide-images .post-content img {
         display: none !important;
     }
 
-    /* Optional: change the look of the toggle when off */
-    body.hide-leaderboard #leaderboardToggle {
-        color: #888;
+    /* Optional: Keep the logo visible while hiding other images */
+    body.hide-images .logo img {
+        display: block !important;
+    }
+
+    .hide-editBtn {
+        transition: opacity 0.3s ease;
+    }
+
+    body.hide-edit-active .hide-editBtn {
+        display: none !important;
     }
     
 </style>
 
 <nav class="main-navbar">
     <div class="nav-container">
-        <a href="/" class="logo"><h3>Forum<span>X</span></h3></a>
+        <a href="/" class="logo">Forum<span>X</span></a>
+
+        <div class="search-container">
+            <form action="/search" method="GET" class="search-wrapper">
+                <span class="search-icon">🔍</span>
+                <input type="text" name="q" placeholder="Search discussions..." autocomplete="off">
+            </form>
+        </div>
 
         <div class="nav-controls">
             <div class="dropdown">
-                <button class="dropbtn">⚙️ Settings</button>
-                <div class="dropdown-content">
-                    <button>👤 <%= user.username %></button>
-                    <button id="imageToggle">🖼️ Images: ON</button>
-                    <button id="leaderboardToggle">🏆 Leaderboard: ON</button>
-                    <hr style="border-top: 1px solid #333; margin: 10px 0;">
-                    <button id="logoutBtn" onclick="confirm('Do you want to logout?') ? window.location.href='/logout' : '' ">⏻ Logout</button>
+                <button class="dropbtn" id="settingsBtn">
+                    ⚙️ <span>Settings</span>
+                </button>
+                
+                <div class="dropdown-content" id="settingsDropdown">
+                    <div style="padding: 15px; border-bottom: 1px solid #333;">
+                        <small style="color: var(--text-dim);">USER</small><br>
+                        <strong style="color: #fff;"><%= user.username %></strong>
+                    </div>
+
+                    <button>
+                        <a href="/contribute">🆕 New Content</a>
+                    </button>
+
+                    <button id="imageToggle">
+                        <span>🖼️ Images</span>
+                        <small id="imageStatus">ON</small>
+                    </button>
+                    
+                    <button id="editModeToggle">
+                        <span>🏆 Edit Mode</span>
+                        <small id="editModeStatus">ON</small>
+                    </button>
+                    
+                    <hr style="border: 0; border-top: 1px solid #333; margin: 0;">
+                    
+                    <button onclick="confirm('Logout?') ? window.location.href='/logout' : ''" style="color: var(--accent);">
+                        <span>⏻ Logout</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -165,51 +232,70 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    const settingsBtn = document.getElementById('settingsBtn');
+    const settingsDropdown = document.getElementById('settingsDropdown');
     const body = document.body;
+
+    // Toggle Dropdown
+    settingsBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        settingsDropdown.classList.toggle('active');
+    });
+
+    // Close on Outside Click
+    document.addEventListener('click', (e) => {
+        if (!settingsDropdown.contains(e.target) && e.target !== settingsBtn) {
+            settingsDropdown.classList.remove('active');
+        }
+    });
+
+    // Toggle Logic (Images)
     const imageBtn = document.getElementById('imageToggle');
-    const leaderboardBtn = document.getElementById('leaderboardToggle');
-
-    // Image Toggle
-    const setImageState = (isHidden) => {
-        if (isHidden) {
-            body.classList.add('hide-images');
-            imageBtn.innerHTML = '🖼️ Images: OFF';
-        } else {
-            body.classList.remove('hide-images');
-            imageBtn.innerHTML = '🖼️ Images: ON';
-        }
+    const updateImages = (hide) => {
+        body.classList.toggle('hide-images', hide);
+        document.getElementById('imageStatus').innerText = hide ? 'OFF' : 'ON';
+        document.getElementById('imageStatus').style.color = hide ? '#888' : 'var(--accent)';
     };
 
-    const isHidden = localStorage.getItem('hideForumImages') === 'true';
-    setImageState(isHidden);
-
-    imageBtn.addEventListener('click', () => {
-        const currentlyHidden = body.classList.contains('hide-images');
-        const newState = !currentlyHidden;
-        localStorage.setItem('hideForumImages', newState);
-        setImageState(newState);
+    imageBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const hide = !body.classList.contains('hide-images');
+        localStorage.setItem('hideForumImages', hide);
+        updateImages(hide);
     });
 
 
-    // Leaderboard Toggle
-    const setLeaderboardState = (isHidden) => {
-        if (isHidden) {
-            body.classList.add('hide-leaderboard');
-            leaderboardBtn.innerHTML = '🏆 Leaderboard: OFF';
-        } else {
-            body.classList.remove('hide-leaderboard');
-            leaderboardBtn.innerHTML = '🏆 Leaderboard: ON';
+
+    // Toggle Logic (editMode)
+    const editModeBtn = document.getElementById('editModeToggle');
+
+    const updateEditMode = (hide) => {
+        // Correctly toggle the state class on body
+        body.classList.toggle('hide-edit-active', hide);
+        
+        const statusLabel = document.getElementById('editModeStatus');
+        if (statusLabel) {
+            statusLabel.innerText = hide ? 'OFF' : 'ON';
+            statusLabel.style.color = hide ? '#888' : 'var(--accent)';
         }
     };
 
-    const isLeaderboardHidden = localStorage.getItem('hideLeaderboard') === 'true';
-    setLeaderboardState(isLeaderboardHidden);
-
-    leaderboardBtn.addEventListener('click', () => {
-        const currentlyHidden = body.classList.contains('hide-leaderboard');
-        const newState = !currentlyHidden;
-        localStorage.setItem('hideLeaderboard', newState);
-        setLeaderboardState(newState);
+    editModeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Correctly check the state of the body
+        const isNowHidden = body.classList.contains('hide-edit-active');
+        const nextState = !isNowHidden;
+        
+        localStorage.setItem('hideEditBtn', nextState);
+        updateEditMode(nextState);
     });
+
+    const savedEditState = localStorage.getItem('hideEditBtn') === 'true';
+    
+    
+    
+    // Init
+    updateImages(localStorage.getItem('hideForumImages') === 'true');
+    updateEditMode(savedEditState);
 });
 </script>

@@ -3,17 +3,6 @@ const router = express.Router();
 const db = require('../db');
 const {verifyToken} = require('../utils/verify');
 
-const headerConfig = [
-    { id: "General", icon: "fa-skull-crossbones", color: "#fc6c2a" },
-    { id: "The Seduction Series (Willing & Talked Into)", icon: "fa-heart", color: "#F93742" },
-    { id: "The Reluctant Series", icon: "fa-hand-paper", color: "#ff3300" },
-    { id: "The Corruption", icon: "fa-biohazard", color: "#cc33ff" },
-    { id: "The Gangbang Hub", icon: "fa-users", color: "#00ccff" },
-    { id: "Spouse Sharing & Cuckoldry", icon: "fa-eye", color: "#33cc33" },
-    { id: "The Exchange (Deals & Leverage)", icon: "fa-hand-holding-dollar", color: "#ffd700" },
-    { id: "The Hardcore & Extreme Section", icon: "fa-skull-crossbones", color: "#888888" }
-];
-
 
 function timeAgo(date) {
     const seconds = Math.floor((new Date() - new Date(date)) / 1000);
@@ -31,89 +20,75 @@ function timeAgo(date) {
     return Math.floor(seconds) + " seconds ago";
 }
 
-router.get('/', verifyToken, async (req, res) => {
+
+router.get('/', async (req, res) => {
     try {
-        const query = `
-            SELECT 
-                f.id, f.title, f.bio, f.header, 
-                -- Count occurrences in the join table for this forum
-                (SELECT COUNT(*) FROM post_categories pc 
-                 JOIN posts p ON pc.post_id = p.id 
-                 WHERE pc.forum_id = f.id AND p.deleted = 0) AS postCount,
-                lp.title AS lastPostTitle,
-                lp.created_at AS lastPostDate,
-                u.username AS lastPostUser
-            FROM forums f
-            LEFT JOIN (
-                -- Find the latest post ID linked to each forum
-                SELECT pc.forum_id, MAX(pc.post_id) as max_id
-                FROM post_categories pc
-                JOIN posts p ON pc.post_id = p.id
-                WHERE p.deleted = 0
-                GROUP BY pc.forum_id
-            ) latest_post_id ON f.id = latest_post_id.forum_id
-            LEFT JOIN posts lp ON latest_post_id.max_id = lp.id
-            LEFT JOIN users u ON lp.user_id = u.id
-            ORDER BY f.created_at DESC`;
+        const page = parseInt(req.query.page) || 1;
+        const limit = 15; // Number of posts per page
+        const offset = (page - 1) * limit;
 
-        // Keep your contributors query as is (user total posts)
-        const contributorsQuery = `
-            SELECT 
-                u.username, 
-                COUNT(p.id) AS post_count 
-            FROM users u
-            JOIN posts p ON u.id = p.user_id
-            -- Join the bridge table first
-            JOIN post_categories pc ON p.id = pc.post_id 
-            -- Then join the forums table using the bridge
-            JOIN forums f ON f.id = pc.forum_id 
-            WHERE p.deleted = 0 
-            AND u.id != 1 
-            AND f.header != 'General'
-            GROUP BY u.id, u.username
-            ORDER BY post_count DESC 
-            LIMIT 10;`;
+        // 1. Get total post count for pagination math
+        const [countResult] = await db.execute(
+            'SELECT COUNT(*) as total FROM posts WHERE deleted = 0'
+        );
+        const totalPosts = countResult[0].total;
+        const totalPages = Math.ceil(totalPosts / limit);
 
-        const [topContributors] = await db.execute(contributorsQuery);
-        const [rawForums] = await db.execute(query);         
+        // 2. Fetch the specific slice of posts (Latest first)
+        const [posts] = await db.execute(`
+            SELECT p.*, u.username, 
+                   GROUP_CONCAT(f.title) as categories,
+                   GROUP_CONCAT(f.id) as forum_ids
+            FROM posts p 
+            JOIN users u ON p.user_id = u.id 
+            LEFT JOIN post_categories pc ON p.id = pc.post_id
+            LEFT JOIN forums f ON pc.forum_id = f.id
+            WHERE p.deleted = 0
+            GROUP BY p.id
+            ORDER BY p.created_at DESC
+            LIMIT ? OFFSET ?`, [limit.toString(), offset.toString()]);
 
-        const grouped = rawForums.reduce((acc, forum) => {
-            const key = forum.header;
-            if (!acc[key]) acc[key] = [];
-            acc[key].push(forum);
-            return acc;
-        }, {});
-
-        const finalForums = headerConfig.map(config => {
-            return {
-                name: config.id,
-                icon: config.icon,
-                color: config.color,
-                data: grouped[config.id] || [] 
-            };
-        }).filter(header => header.data.length > 0);
+        const [allForums] = await db.execute(
+            `SELECT id, title, header FROM forums ORDER BY header DESC, title ASC`
+        );
 
         res.render('index', { 
-            forums: finalForums,
+            posts: posts,
+            allForums: allForums,
             user: res.userInfo,
-            topContributors: topContributors,
-            timeAgo
+            timeAgo: timeAgo,
+            currentPage: page,
+            totalPages: totalPages,
+            forumTitle: "Home",
+            siteTitle: "ForumX" // Ensure this is passed for your <title> tag
         });
-
     } catch (err) {
         console.error('Database Error:', err);
-        res.status(500).send('Internal Server Error');
+        res.redirect("/");
     }
 });
 
-router.get('/search-results', verifyToken, async (req, res) => {
+router.get('/search', verifyToken, async (req, res) => {
     try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = 15; // Number of posts per page
+        const offset = (page - 1) * limit;
+        const searchTerm = req.query.q || '';
+
+        // 1. Get total post count for pagination math
+        const [countResult] = await db.execute(
+            'SELECT COUNT(*) as total FROM posts WHERE deleted = 0'
+        );
+        const totalPosts = countResult[0].total;
+        const totalPages = Math.ceil(totalPosts / limit);
+
+
         const query = `
             SELECT 
-                p.id, p.user_id, p.title, p.content, p.url, p.image, p.created_at, 
+                p.*, 
                 u.username,
                 GROUP_CONCAT(f.title) as categories,
-                GROUP_CONCAT(f.id) as forum_ids  -- Added this line
+                GROUP_CONCAT(f.id) as forum_ids
             FROM posts p 
             JOIN users u ON p.user_id = u.id
             LEFT JOIN post_categories pc ON p.id = pc.post_id
@@ -121,17 +96,23 @@ router.get('/search-results', verifyToken, async (req, res) => {
             WHERE (p.title LIKE ? OR p.content LIKE ?) AND p.deleted = 0 
             GROUP BY p.id
             ORDER BY p.created_at DESC
+            LIMIT ? OFFSET ?
         `;
 
-        // Note: I also added p.user_id above so the "Delete" button check (user.id === post.user_id) works.
-
-        const [posts] = await db.execute(query, [`%${req.query.q}%`, `%${req.query.q}%`]);
+        const [posts] = await db.execute(query, [
+            `%${searchTerm}%`, 
+            `%${searchTerm}%`, 
+            limit.toString(), 
+            offset.toString()
+        ]);
 
         res.render('pages/search', { 
             posts,
             user: res.userInfo,
             timeAgo: timeAgo,
-            searchKey: req.query.q
+            currentPage: page,
+            totalPages: totalPages,
+            searchKey: searchTerm
         });
     } catch (err) {
         console.error("Search Error:", err);
@@ -139,6 +120,36 @@ router.get('/search-results', verifyToken, async (req, res) => {
     }
 });
 
+router.get('/contribute', async (req, res) => {
+    try {
+        // 1. Fetch ALL forums for the "Post" checkboxes
+        // Sorted by header so they group nicely in the view
+        const [allForums] = await db.execute(`
+            SELECT id, title, header 
+            FROM forums 
+            ORDER BY header DESC, title ASC
+        `);
+
+        const [headers] = await db.execute(`
+            SELECT DISTINCT header as name 
+            FROM forums 
+            WHERE header IS NOT NULL AND header != ''
+            ORDER BY header DESC
+        `);
+
+        res.render('pages/contribute', { 
+            allForums: allForums,
+            forums: headers,
+            user: res.userInfo,
+        });
+    } catch (err) {
+        console.error('Database Error:', err);
+        res.status(500).send("Internal Server Error");
+    }
+});
+
+
+// Create New Tag
 router.post('/forum/create', async (req, res) => {
   const userId = req.user.userId;
   const { title, header, bio } = req.body;
@@ -158,13 +169,14 @@ router.post('/forum/create', async (req, res) => {
       return res.status(404).json({ message: 'Error at creating forum' });
     }
 
-    res.redirect('/');
+    res.redirect('/contribute');
   } catch (err) {
     console.error('Error at creating forum:', err);
     res.status(500).json({ message: 'Error creating forum' });
   }
 
 });
+
 
 module.exports = router;
 
