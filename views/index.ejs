@@ -323,12 +323,19 @@
                             <h2 style="color:var(--accent); margin-bottom:25px;">Edit Post Settings</h2>
                             
                             <form action="/forum/posts/edit/<%= post.id %>" method="POST" enctype="multipart/form-data">
+                                
                                 <label>Categories</label>
-                                <div style="max-height:150px; overflow-y:auto; background:#111; padding:15px; border-radius:8px; border:1px solid #222; margin-bottom:20px;">
+                                <input type="text" 
+                                    placeholder="Filter tags..." 
+                                    class="edit-field tag-filter-input" 
+                                    style="font-size: 0.8rem; padding: 8px; margin-bottom: 5px;"
+                                    oninput="filterEditTags(this, '<%= post.id %>')">
+
+                                <div id="edit-list-<%= post.id %>" style="max-height:150px; overflow-y:auto; background:#111; padding:15px; border-radius:8px; border:1px solid #222; margin-bottom:20px;">
                                     <% let editHeader = ""; allForums.forEach(f => { if (f.header !== editHeader) { editHeader = f.header; %>
-                                        <div style="color:#555; font-size:0.65rem; font-weight:800; margin:10px 0 5px 0;"><%= editHeader %></div>
+                                        <div class="edit-group-header" style="color:#555; font-size:0.65rem; font-weight:800; margin:10px 0 5px 0;"><%= editHeader %></div>
                                     <% } %>
-                                        <label style="display:inline-flex; align-items:center; gap:8px; width:45%; text-transform:none; color:#aaa; font-weight:400; cursor:pointer;">
+                                        <label class="edit-tag-label" data-name="<%= f.title.toLowerCase() %>" style="display:inline-flex; align-items:center; gap:8px; width:45%; text-transform:none; color:#aaa; font-weight:400; cursor:pointer;">
                                             <input type="checkbox" name="forumIds" value="<%= f.id %>" <%= post.forum_ids && post.forum_ids.split(',').includes(f.id.toString()) ? 'checked' : '' %>>
                                             <%= f.title %>
                                         </label>
@@ -392,6 +399,39 @@
 <%- include("partials/imageViewer") %>
 
 <script>
+    function filterEditTags(inputElement, postId) {
+        const searchTerm = inputElement.value.toLowerCase().trim();
+        const modalContainer = document.getElementById(`edit-list-${postId}`);
+        const labels = modalContainer.querySelectorAll('.edit-tag-label');
+        const headers = modalContainer.querySelectorAll('.edit-group-header');
+
+        // Filter individual labels
+        labels.forEach(label => {
+            const tagName = label.getAttribute('data-name') || "";
+            if (tagName.includes(searchTerm)) {
+                label.style.display = 'inline-flex';
+            } else {
+                label.style.display = 'none';
+            }
+        });
+
+        // Handle Group Headers (hide if all tags under them are hidden)
+        headers.forEach(header => {
+            let nextEl = header.nextElementSibling;
+            let hasVisibleChild = false;
+
+            while (nextEl && !nextEl.classList.contains('edit-group-header')) {
+                if (nextEl.classList.contains('edit-tag-label') && nextEl.style.display !== 'none') {
+                    hasVisibleChild = true;
+                    break;
+                }
+                nextEl = nextEl.nextElementSibling;
+            }
+
+            header.style.display = hasVisibleChild ? 'block' : 'none';
+        });
+    }
+
     function openEditModal(postId) {
         document.getElementById(`edit-modal-${postId}`).style.display = 'flex';
         document.body.style.overflow = 'hidden';
