@@ -19,7 +19,7 @@ function timeAgo(date) {
     return Math.floor(seconds) + " seconds ago";
 }
 
-
+// Main Page
 router.get('/', async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
@@ -67,7 +67,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-
+// Search
 router.get('/search', async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
@@ -156,7 +156,7 @@ router.get('/search', async (req, res) => {
     }
 });
 
-
+// Contribute Page
 router.get('/contribute', async (req, res) => {
     try {
         // 1. Fetch ALL forums for the "Post" checkboxes
@@ -185,7 +185,7 @@ router.get('/contribute', async (req, res) => {
     }
 });
 
-
+// Categorues 
 router.get('/categories', async (req, res) => {
     try {
         const [headerRows] = await db.execute('SELECT DISTINCT header FROM forums WHERE header IS NOT NULL');

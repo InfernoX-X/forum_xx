@@ -441,13 +441,13 @@
         <% forums.forEach(header => { %>
             <div class="category-section" id="cat-<%= header.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase() %>">
                 <h2 class="category-label" style="--cat-color: <%= header.color || '#F93742' %>; border-bottom: 2px solid var(--cat-color); width:100%;">
-                    <span id="span-<%= header.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase() %>" onclick="toggleView('<%= header.name %>')" style="font-size: 1.5rem; color: white; background-color: var(--cat-color); padding: 0 10px; border-radius: 5px; cursor: pointer;">-</span>
+                    <span id="span-<%= header.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase() %>" onclick="toggleView('<%= header.name %>')" style="font-size: 1.5rem; color: white; background-color: var(--cat-color); padding: 0 10px; border-radius: 5px; cursor: pointer;">+</span>
                     <i class="fas <%= header.icon %>" style="color: var(--cat-color); margin-right: 10px;"></i>
                     <%= header.name %>
                 </h2>
                 
                 <% header.data.forEach(forum => { %>
-                    <div class="forum-row list-<%= header.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase() %>">
+                    <div style="display: none;" class="forum-row list-<%= header.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase() %>">
                         <div class="forum-info">
                             <div style="display: flex; align-items: center;">
                                 <a href="/search?q=&forums=<%= forum.id %>" class="forum-title"><%= forum.title %></a>
