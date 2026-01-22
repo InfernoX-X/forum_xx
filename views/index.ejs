@@ -300,6 +300,33 @@
         .thumbnail-share-btn:hover {
             background: var(--accent);
         }
+
+        .new-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: #0479ff;
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            z-index: 5;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            pointer-events: none; /* Allows clicks to pass through to thumbnail */
+        }
+        .new-indicator {
+            background: #0479ff;
+            color: white;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            margin-left: 8px;
+            display: none; /* Hidden by default, shown via JS */
+        }
     
         /* Toast Notification Styles */
         #share-toast {
@@ -388,6 +415,15 @@
             <div class="post-card" id="post-<%= post.id %>">
                 
                 <div class="thumbnail-container">
+                    <% 
+                        const postDate = new Date(post.created_at);
+                        const now = new Date();
+                        const diffInHours = (now - postDate) / (1000 * 60 * 60);
+                        if (diffInHours < 24) { 
+                    %>
+                        <div class="new-badge">New</div>
+                    <% } %>
+
                     <button class="thumbnail-share-btn" 
                             title="Copy Link"
                             onclick="event.stopPropagation(); sharePost('<%= post.id %>')">
