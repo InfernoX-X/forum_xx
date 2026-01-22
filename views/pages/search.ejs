@@ -248,9 +248,7 @@
             cursor: not-allowed;
             pointer-events: none;
         }
-    </style>
-
-    <style>
+    
         .advanced-search-container {
             background: var(--surface-elevated);
             padding: 25px;
@@ -388,7 +386,7 @@
                 
                 <div class="thumbnail-container popUpClass">
                     <% if (post.image) { %>
-                        <img src="<%= post.image %>" class="post-display-image" alt="Post Image">
+                        <img src="<%= post.image %>" class="post-display-image" loading="lazy" alt="Post Image">
                     <% } else { %>
                         <div style="height:100%; display:flex; align-items:center; justify-content:center; color:#444; font-size:0.8rem;">NO PREVIEW</div>
                     <% } %>
@@ -427,7 +425,7 @@
                     <div class="modal-content">
                         <span class="close-modal" onclick="closeModal('view-modal-<%= post.id %>')">&times;</span>
                         <h1 style="margin-bottom:20px;"><%= post.title %></h1>
-                        <% if(post.image) { %> <img src="<%= post.image %>" style="width:100%; border-radius:8px; margin-bottom:20px;"> <% } %>
+                        <% if(post.image) { %> <img src="<%= post.image %>" style="width:100%; border-radius:8px; margin-bottom:20px;" loading="lazy"> <% } %>
                         <div style="margin-bottom:20px;">
                             <% if (post.categories) { post.categories.split(',').forEach(cat => { %>
                                 <span class="forum-badge" style="background:var(--accent); color:white; padding:4px 10px; margin-right:5px;"><%= cat %></span>

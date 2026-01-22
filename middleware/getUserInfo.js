@@ -6,11 +6,13 @@ const getUserInfo = async (req, res, next) => {
   try {
     const [users] = await db.execute('SELECT id, username, email FROM users WHERE id = ?', [userId]);
     
+    const [rows] = await db.execute('SELECT COUNT(*) as total FROM posts WHERE deleted = 0 AND user_id = ?', [userId]);
+
     if (users.length === 0) {
       return next(new Error('User not found'));
     }
     const user = users[0];
-    
+    user.postCount = rows[0].total || 0;
     res.userInfo = user;
     
     next();

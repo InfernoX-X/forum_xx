@@ -66,6 +66,7 @@
         outline: none;
         transition: all 0.3s ease;
         font-size: 0.9rem;
+        margin-left: 5px;
     }
 
     .search-wrapper input:focus {
@@ -126,18 +127,126 @@
     }
 
     .dropdown-content button {
-        color: #ccc;
-        padding: 14px 16px;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        color: #eee;
+        padding: 12px 16px;
         display: flex;
         justify-content: space-between;
+        align-items: center;
         width: 100%;
         border: none;
         background: none;
         cursor: pointer;
+        transition: background 0.2s ease;
+        font-size: 0.85rem;
+        font-weight: 500;
     }
 
-    .dropdown-content button:hover { background-color: #282828; color: var(--accent); }
+    .dropdown-content button:hover {
+        background-color: rgba(255, 255, 255, 0.04);
+    }
 
+    .btn-label {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .btn-label span:first-child {
+        font-size: 1.1rem; /* Icons slightly larger */
+        width: 20px;
+        text-align: center;
+    }
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 34px;
+        height: 18px;
+        background-color: #333;
+        border-radius: 20px;
+        transition: all 0.3s;
+    }
+
+    /* The slider circle */
+    .switch::after {
+        content: "";
+        position: absolute;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background-color: #888;
+        top: 2px;
+        left: 2px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Active State Styles */
+    .status-on .switch {
+        background-color: rgba(249, 55, 66, 0.2);
+    }
+
+    .status-on .switch::after {
+        background-color: var(--accent);
+        transform: translateX(16px);
+    }
+
+    /* Specific fix for the Categories link */
+    .nav-link-btn {
+        text-decoration: none;
+        color: inherit;
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        align-items: center;
+    }
+
+    .chevron {
+        color: #444;
+        font-weight: 800;
+        font-size: 1rem;
+    }
+
+    .dropdown-content button a.action-link {
+        width: 100%;
+        display: flex;
+        justify-content: flex-start;
+        gap: 10px;
+        color: inherit;
+        font-weight: inherit;
+    }
+    
+    /* Modernizing the Status Labels (ON/OFF) */
+    .dropdown-content button small {
+        font-weight: 800;
+        font-size: 0.65rem;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: rgba(0, 0, 0, 0.3);
+        text-transform: uppercase;
+    }
+
+    /* Logout Specific styling for a cleaner look */
+    .logout-btn {
+        margin-top: 4px;
+        padding: 14px 16px !important;
+        color: var(--accent) !important;
+        font-weight: 700 !important;
+        opacity: 0.9;
+    }
+
+    .logout-btn:hover {
+        background-color: rgba(249, 55, 66, 0.1) !important;
+        opacity: 1;
+    }
+
+    /* Ensure icons have consistent width so text stays aligned */
+    .dropdown-content button span:first-child {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
     .dropdown-content button a {
         color: #ccc;
         cursor: pointer;
@@ -180,26 +289,12 @@
         display: none !important;
     }
 
-    /* New Action Group */
     .nav-actions {
         display: flex;
         align-items: center;
         gap: 12px;
         margin-right: 15px;
     }
-
-    .action-link {
-        color: var(--text-dim);
-        text-decoration: none;
-        font-size: 0.85rem;
-        font-weight: 500;
-        transition: color 0.2s;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-    }
-
-    .action-link:hover { color: #fff; }
 
     .action-btn {
         background: var(--accent);
@@ -232,7 +327,7 @@
     }
 
     /* Dropdown specific cleanup */
-    .user-info { padding: 12px 16px; border-bottom: 1px solid var(--border-color); }
+    .user-info { position: relative; padding: 12px 16px; border-bottom: 1px solid var(--border-color); }
     .user-info small { color: var(--text-dim); display: block; font-size: 0.65rem; }
 
     .dropdown-section-title {
@@ -252,6 +347,270 @@
         .nav-actions { gap: 15px; }
     }
     
+    .badge {
+        font-size: 0.65rem;
+        padding: 3px 8px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        margin-left: 4px;
+    }
+
+    .badge-noob { background: #2a2a2a; color: #888; border: 1px solid #444; }
+
+    .badge-contributor { background: #1e3a2f; color: #4ade80; border: 1px solid #14532d; } 
+
+    .badge-regular { background: #1e293b; color: #38bdf8; border: 1px solid #1e40af; } 
+
+    .badge-elder {
+        background: #4a2d0f;
+        color: #fb923c;
+        border: 1px solid #7c2d12;
+        box-shadow: 0 0 5px rgba(124, 45, 18, 0.3);
+    }
+
+    .badge-elite { 
+        background: linear-gradient(135deg, #f93742 0%, #991b1b 100%); 
+        color: white; 
+    }
+
+    .badge-expert { 
+        background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%); 
+        color: white;
+        box-shadow: 0 0 10px rgba(168, 85, 247, 0.4);
+    }
+
+    .badge-legend { 
+        background: linear-gradient(135deg, #f59e0b 0%, #78350f 100%); 
+        color: #fff;
+        border: 1px solid #fde047;
+        box-shadow: 0 0 15px rgba(245, 158, 11, 0.5);
+        animation: pulse 2s infinite;
+    }
+
+    .badge-god {
+        background: linear-gradient(135deg, #111 0%, #F93742 50%, #111 100%);
+        background-size: 200% auto;
+        color: #fff;
+        border: 1px solid #f93742;
+        box-shadow: 0 0 15px rgba(249, 55, 66, 0.6);
+        animation: godFlare 3s linear infinite;
+        text-shadow: 0 0 5px #000;
+    }
+
+    @keyframes godFlare {
+        0% { background-position: 0% center; }
+        50% { background-position: 100% center; }
+        100% { background-position: 0% center; }
+    }
+
+    /* Help Icon Styling */
+    .badge-help {
+        position: relative;
+        cursor: help;
+        display: inline-flex;
+    }
+
+    .help-icon {
+        font-size: 0.8rem;
+        color: var(--text-dim);
+        background: #333;
+        width: 16px;
+        height: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all 0.2s;
+    }
+
+    .badge-help:hover .help-icon {
+        color: white;
+    }
+
+    /* Tooltip Table Styling */
+    .badge-tooltip {
+        visibility: hidden;
+        opacity: 0;
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%) translateY(0);
+        top: 55px; 
+        background: #1a1a1a;
+        border: 1px solid var(--border-color);
+        padding: 12px;
+        border-radius: 10px;
+        width: 220px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.9);
+        z-index: 1100;
+        transition: all 0.2s ease-out;
+        pointer-events: none;
+    }
+
+    /* 3. The Trigger Logic: Hovering the icon shows the box */
+    .user-info:has(.badge-help:hover) .badge-tooltip {
+        visibility: visible;
+        opacity: 1;
+        transform: translateX(-50%) translateY(8px);
+    }
+    
+    .badge-help:hover .badge-tooltip {
+        visibility: visible;
+        opacity: 1;
+        transform: translateX(-65%) translateY(10px);
+    }
+
+    .badge-tooltip::after {
+        content: "";
+        position: absolute;
+        top: -6px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-bottom: 6px solid #1a1a1a;
+    }
+
+    .tooltip-title {
+        font-size: 0.7rem;
+        font-weight: 800;
+        color: var(--accent);
+        margin-bottom: 8px;
+        text-transform: uppercase;
+    }
+
+    .badge-tooltip table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .badge-tooltip td {
+        font-size: 0.75rem;
+        padding: 4px 0;
+        color: #eee;
+    }
+
+    .badge-tooltip td:last-child {
+        text-align: right;
+        color: var(--text-dim);
+        font-weight: 700;
+    }
+
+    .tooltip-footer {
+        border-top: 1px solid var(--border-color);
+        margin-top: 8px;
+        padding-top: 8px;
+        font-size: 0.6rem;
+        color: #555;
+        font-style: italic;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    .progress-bar-bg {
+        width: 100%;
+        height: 6px;
+        background: #333;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid #444;
+    }
+
+    .progress-bar-fill {
+        height: 100%;
+        width: var(--p, 0%); 
+        background: linear-gradient(90deg, var(--accent), #ff8e3c, #fde047);
+        background-size: 200% auto;
+        box-shadow: 0 0 12px rgba(249, 55, 66, 0.3);
+        transition: width 0.5s ease;
+        
+        /* background: linear-gradient(90deg, var(--accent), #ff8e3c);
+        box-shadow: 0 0 8px rgba(249, 55, 66, 0.5);
+        transition: width 0.5s ease-in-out; */
+    }
+
+    /* Ensure the tooltip doesn't get cut off on mobile */
+    @media (max-width: 480px) {
+        .badge-tooltip {
+            right: auto;
+            left: -50px; /* Offset to keep it on screen for small devices */
+            width: 160px;
+        }
+        .badge-tooltip::after {
+            right: auto;
+            left: 55px;
+        }
+    }
+
+    .pulse-indicator {
+        width: 8px;
+        height: 8px;
+        background: #4ade80; /* Success Green */
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 2px;
+        position: relative;
+    }
+
+    .pulse-indicator::before {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: inherit;
+        border-radius: inherit;
+        animation: pulse-ring 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+    }
+
+    @keyframes pulse-ring {
+        0% { transform: scale(.7); opacity: 0.8; }
+        80%, 100% { transform: scale(2.5); opacity: 0; }
+    }
+
+    .milestone-toast {
+        position: fixed;
+        bottom: -100px; /* Start hidden */
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1a1a1a;
+        border: 1px solid var(--accent);
+        padding: 16px 24px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        z-index: 2000;
+        transition: bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .milestone-toast.show {
+        bottom: 30px;
+    }
+
+    .milestone-icon {
+        font-size: 2rem;
+        filter: drop-shadow(0 0 5px var(--accent));
+    }
+
+    .milestone-text h4 {
+        margin: 0;
+        color: #fff;
+        font-size: 1rem;
+    }
+
+    .milestone-text p {
+        margin: 0;
+        color: var(--text-dim);
+        font-size: 0.8rem;
+    }
+
 </style>
 
 <nav class="main-navbar">
@@ -261,7 +620,7 @@
         <div class="search-container">
             <form action="/search" method="GET" class="search-wrapper">
                 <span class="search-icon">🔍</span>
-                <input type="text" name="q" placeholder="Search discussions..." autocomplete="off">
+                <input type="text" name="q" placeholder="Lookup..." autocomplete="off">
             </form>
         </div>
 
@@ -278,34 +637,132 @@
                 <div class="dropdown-content" id="settingsDropdown">
                     <div class="user-info">
                         <small>SIGNED IN AS</small>
-                        <strong><%= user.username %></strong>
+                        <div style="display: flex; align-items: center; gap: 8px; position: relative;">
+                            <div class="pulse-indicator" title="Live Session Active"></div>
+                            <strong><%= user.username %></strong>
+
+                            <% if (user.postCount >= 2000) { %><span class="badge badge-god">🐦‍🔥 God</span>
+                            <% } else if (user.postCount >= 1000) { %><span class="badge badge-legend">👑 Legend</span>
+                            <% } else if (user.postCount >= 500) { %><span class="badge badge-expert">💎 Expert</span>
+                            <% } else if (user.postCount >= 250) { %><span class="badge badge-elite">🔥 Elite</span>
+                            <% } else if (user.postCount >= 100) { %><span class="badge badge-elder">🔶 Elder</span>
+                            <% } else if (user.postCount >= 50) { %><span class="badge badge-regular">🛡️ Regular</span>
+                            <% } else if (user.postCount >= 10) { %><span class="badge badge-contributor">📜 Member</span>
+                            <% } else { %><span class="badge badge-noob">🌱 Novice</span><% } %>
+
+                            <div class="badge-help">
+                                <span class="help-icon">ⓘ</span>
+                            </div>
+                        </div>
+
+                        <div class="badge-tooltip">
+                            <div class="tooltip-title">Rank Requirements</div>
+                            <table>
+                                <tr><td>🌱 Novice</td><td>0+</td></tr>
+                                <tr><td>📜 Member</td><td>10+</td></tr>
+                                <tr><td>🛡️ Regular</td><td>50+</td></tr>
+                                <tr><td>🔶 Elder</td><td>100+</td></tr>
+                                <tr><td>🔥 Elite</td><td>250+</td></tr>
+                                <tr><td>💎 Expert</td><td>500+</td></tr>
+                                <tr><td>👑 Legend</td><td>1000+</td></tr>
+                                <tr><td>🐦‍🔥 God</td><td>2000+</td></tr>
+                            </table>
+                            
+                            <div class="tooltip-footer">
+                                <% 
+                                    let nextGoal = 0;
+                                    let label = "";
+                                    if (user.postCount < 10) { nextGoal = 10; label = "Member"; }
+                                    else if (user.postCount < 50) { nextGoal = 50; label = "Regular"; }
+                                    else if (user.postCount < 100) { nextGoal = 100; label = "Elder"; }
+                                    else if (user.postCount < 250) { nextGoal = 250; label = "Elite"; }
+                                    else if (user.postCount < 500) { nextGoal = 500; label = "Expert"; }
+                                    else if (user.postCount < 1000) { nextGoal = 1000; label = "Legend"; }
+                                    else if (user.postCount < 2000) { nextGoal = 2000; label = "God"; }
+                                %>
+                                
+                                <% if (nextGoal > 0) { %>
+                                    Next: <strong><%= label %></strong> in <%= nextGoal - user.postCount %> posts
+                                <% } else { %>
+                                    You are a <strong>God</strong>! 🐦‍🔥
+                                <% } %>
+                            </div>
+
+                        </div>
+
+                        <div class="user-progress-container" style="padding: 10px 0; margin-top: 6px;">
+                            <% 
+                                let thresholds = [10, 50, 100, 250, 500, 1000, 2000];
+                                let labels = ["Member", "Regular", "Elder", "Elite",  "Expert", "Legend", "God"];
+                                
+                                let nextThreshold = 2000; // Default to max
+                                let nextLabel = "God";
+
+                                // Find the first threshold that is GREATER than the user's current post count
+                                for(let i = 0; i < thresholds.length; i++) {
+                                    if(user.postCount < thresholds[i]) {
+                                        nextThreshold = thresholds[i];
+                                        nextLabel = labels[i];
+                                        break; 
+                                    }
+                                }
+
+                                // Calculate progress from 0 to the next milestone
+                                let progress = (user.postCount / nextThreshold) * 100;
+                                
+                                // Cap at 100% for Legends
+                                if (progress > 100) progress = 100;
+                            %>
+                            
+                            <div style="display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--text-dim); margin-bottom: 5px;">
+                                <span>Progress to <strong><%= nextLabel %></strong></span>
+                                <strong><%= Math.floor(progress) %>%</strong>
+                            </div>
+
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" style="--p: <%= progress %>%"></div>
+                            </div>
+
+                            <small style="display: block; font-size: 0.6rem; color: #555; margin-top: 4px; text-align: right;">
+                                <%= user.postCount %> / <%= nextThreshold %> posts
+                            </small>
+
+                        </div>
+
                     </div>
                     
                     <div class="dropdown-section-title">Navigation</div>
                     
-                    <button>
-                        <a href="/categories" class="action-link" title="Categories">
+                    <button onclick="window.location.href='/categories'">
+                        <div class="btn-label">
                             <span>📁</span>
-                            <span class="label">Categories</span>
-                        </a>
+                            <span>Categories</span>
+                        </div>
+                        <span class="chevron">›</span>
                     </button>
 
                     <div class="dropdown-section-title">Interface</div>
                     
-                    <button id="imageToggle">
-                        <span>🖼️ Images Visible</span>
-                        <small id="imageStatus">ON</small>
+                    <button id="imageToggle" class="status-on">
+                        <div class="btn-label">
+                            <span>🖼️</span>
+                            <span>Images Visible</span>
+                        </div>
+                        <div class="switch"></div>
                     </button>
                     
-                    <button id="editModeToggle">
-                        <span>🏆 Edit Mode</span>
-                        <small id="editModeStatus">ON</small>
+                    <button id="editModeToggle" class="status-on">
+                        <div class="btn-label">
+                            <span>✏️</span>
+                            <span>Edit Mode</span>
+                        </div>
+                        <div class="switch"></div>
                     </button>
                     
                     <hr class="dropdown-divider">
                     
                     <button onclick="confirm('Logout?') ? window.location.href='/logout' : ''" class="logout-btn">
-                        <span>⏻ Logout</span>
+                        <span>💨 Logout</span>
                     </button>
                 </div>
             </div>
@@ -313,72 +770,83 @@
     </div>
 </nav>  
 
+<div id="milestoneToast" class="milestone-toast">
+    <div class="milestone-icon" id="m-icon">🏆</div>
+    <div class="milestone-text">
+        <h4 id="m-title">Rank Up!</h4>
+        <p id="m-msg">You've unlocked a new badge.</p>
+    </div>
+</div>
+
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const settingsBtn = document.getElementById('settingsBtn');
-    const settingsDropdown = document.getElementById('settingsDropdown');
-    const body = document.body;
-
-    // Toggle Dropdown
-    settingsBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        settingsDropdown.classList.toggle('active');
-    });
-
-    // Close on Outside Click
-    document.addEventListener('click', (e) => {
-        if (!settingsDropdown.contains(e.target) && e.target !== settingsBtn) {
-            settingsDropdown.classList.remove('active');
-        }
-    });
-
-    // Toggle Logic (Images)
-    const imageBtn = document.getElementById('imageToggle');
-    const updateImages = (hide) => {
-        body.classList.toggle('hide-images', hide);
-        document.getElementById('imageStatus').innerText = hide ? 'OFF' : 'ON';
-        document.getElementById('imageStatus').style.color = hide ? '#888' : 'var(--accent)';
-    };
-
-    imageBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const hide = !body.classList.contains('hide-images');
-        localStorage.setItem('hideForumImages', hide);
-        updateImages(hide);
-    });
-
-
-
-    // Toggle Logic (editMode)
-    const editModeBtn = document.getElementById('editModeToggle');
-
-    const updateEditMode = (hide) => {
-        // Correctly toggle the state class on body
-        body.classList.toggle('hide-edit-active', hide);
+    function showMilestone(rankName, icon) {
+        const toast = document.getElementById('milestoneToast');
+        document.getElementById('m-icon').innerText = icon;
+        document.getElementById('m-title').innerText = `Promoted to ${rankName}!`;
         
-        const statusLabel = document.getElementById('editModeStatus');
-        if (statusLabel) {
-            statusLabel.innerText = hide ? 'OFF' : 'ON';
-            statusLabel.style.color = hide ? '#888' : 'var(--accent)';
-        }
-    };
-
-    editModeBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        // Correctly check the state of the body
-        const isNowHidden = body.classList.contains('hide-edit-active');
-        const nextState = !isNowHidden;
+        toast.classList.add('show');
         
-        localStorage.setItem('hideEditBtn', nextState);
-        updateEditMode(nextState);
-    });
+        // Hide after 5 seconds
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 5000);
+    }
 
-    const savedEditState = localStorage.getItem('hideEditBtn') === 'true';
-    
-    
-    
-    // Init
-    updateImages(localStorage.getItem('hideForumImages') === 'true');
-    updateEditMode(savedEditState);
-});
+    document.addEventListener('DOMContentLoaded', () => {
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsDropdown = document.getElementById('settingsDropdown');
+        const body = document.body;
+
+        // Toggle Dropdown
+        settingsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            settingsDropdown.classList.toggle('active');
+        });
+
+        // Close on Outside Click
+        document.addEventListener('click', (e) => {
+            if (!settingsDropdown.contains(e.target) && e.target !== settingsBtn) {
+                settingsDropdown.classList.remove('active');
+            }
+        });
+
+        // Toggle Logic (Images)
+        const imageBtn = document.getElementById('imageToggle');
+        const updateImages = (hide) => {
+            body.classList.toggle('hide-images', hide);
+            // Toggle the class that moves the switch slider
+            imageBtn.classList.toggle('status-on', !hide);
+        };
+
+        imageBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const hide = !body.classList.contains('hide-images');
+            localStorage.setItem('hideForumImages', hide);
+            updateImages(hide);
+        });
+
+        // Toggle Logic (editMode)
+        const editModeBtn = document.getElementById('editModeToggle');
+        const updateEditMode = (hide) => {
+            body.classList.toggle('hide-edit-active', hide);
+            // Toggle the class that moves the switch slider
+            editModeBtn.classList.toggle('status-on', !hide);
+        };
+
+        editModeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            // Correctly check the state of the body
+            const isNowHidden = body.classList.contains('hide-edit-active');
+            const nextState = !isNowHidden;
+            
+            localStorage.setItem('hideEditBtn', nextState);
+            updateEditMode(nextState);
+        });
+
+        const savedEditState = localStorage.getItem('hideEditBtn') === 'true';
+        
+        // Init
+        updateImages(localStorage.getItem('hideForumImages') === 'true');
+        updateEditMode(savedEditState);
+    });
 </script>

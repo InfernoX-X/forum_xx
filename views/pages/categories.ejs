@@ -456,8 +456,8 @@
                                     const now = new Date();
                                     const lastPost = new Date(forum.lastPostDate);
 
-                                    const isHot = forum.postCount > 15;
-                                    const isTrending = forum.postCount > 100;
+                                    const isHot = forum.postCount > 50;
+                                    const isTrending = forum.postCount > 200;
                                     const isNew = forum.lastPostDate && (new Date() - new Date(forum.lastPostDate) < 2 * 24 * 60 * 60 * 1000);
                                     const isRecent = forum.lastPostDate && (new Date() - new Date(forum.lastPostDate) < 5 * 24 * 60 * 60 * 1000);
                                     const isQuiet = !forum.lastPostDate || (now - lastPost > 7 * 24 * 60 * 60 * 1000);

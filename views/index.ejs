@@ -159,18 +159,20 @@
         .btn-info:hover { background: var(--accent-hover); }
         .btn-edit:hover { background: #007BFF; }
 
-        /* Forum Badges */
         .forum-badge { 
             display: inline-block;
-            background: rgba(255, 255, 255, 0.1); 
-            color: var(--text-muted); 
+            /* background: rgba(255, 255, 255, 0.1);  */
+            /* color: var(--text-muted);  */
+            background: rgba(249, 55, 66, 0.1);
+            color: var(--accent);
+            border: 1px solid rgba(249, 55, 66, 0.2);
             font-size: 0.7rem; 
             padding: 2px 8px; 
             border-radius: 4px; 
             font-weight: 600;
             margin-top: 4px;
         }
-
+        
         /* Modal Styles */
         .modal-overlay {
             display: none;
@@ -230,23 +232,34 @@
 
         .page-link {
             padding: 8px 16px;
-            background: #272727;
             color: white;
             text-decoration: none;
             border-radius: 8px;
             font-weight: 600;
             font-size: 0.9rem;
-            transition: background 0.2s;
-            border: 1px solid transparent;
+            min-width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #333;
+            background: transparent;
+            transition: all 0.2s;
+        }
+
+        .page-link.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+            box-shadow: 0 0 15px rgba(249, 55, 66, 0.3);
         }
 
         .page-link:hover {
             background: #3f3f3f;
         }
 
-        .page-link.active {
-            background: white;
-            color: black;
+        .page-link.active:hover{
+            background-color: var(--accent-hover);
         }
 
         .page-link.disabled {
@@ -254,9 +267,9 @@
             cursor: not-allowed;
             pointer-events: none;
         }
-    </style>
+    
 
-    <style>
+    
         /* Position the share icon on the thumbnail */
         .thumbnail-share-btn {
             position: absolute;
@@ -287,56 +300,84 @@
         .thumbnail-share-btn:hover {
             background: var(--accent);
         }
-    </style>
-
-    <style>
+    
         /* Toast Notification Styles */
-    #share-toast {
-        visibility: hidden;
-        min-width: 250px;
-        background-color: #333;
-        color: #fff;
-        text-align: center;
-        border-radius: 8px;
-        padding: 16px;
-        position: fixed;
-        z-index: 3000;
-        left: 50%;
-        bottom: 30px;
-        transform: translateX(-50%);
-        font-weight: 600;
-        font-size: 0.9rem;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-        border: 1px solid var(--border);
-    }
+        #share-toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            z-index: 3000;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            font-weight: 600;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            border: 1px solid var(--border);
+        }
 
-    #share-toast.show {
-        visibility: visible;
-        animation: fadein 0.5s, fadeout 0.5s 2.5s;
-    }
+        #share-toast.show {
+            visibility: visible;
+            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
 
-    @keyframes fadein {
-        from { bottom: 0; opacity: 0; }
-        to { bottom: 30px; opacity: 1; }
-    }
+        @keyframes fadein {
+            from { bottom: 0; opacity: 0; }
+            to { bottom: 30px; opacity: 1; }
+        }
 
-    @keyframes fadeout {
-        from { bottom: 30px; opacity: 1; }
-        to { bottom: 0; opacity: 0; }
-    }
+        @keyframes fadeout {
+            from { bottom: 30px; opacity: 1; }
+            to { bottom: 0; opacity: 0; }
+        }
 
-    .thumbnail-container .popUpClass {
-        cursor: pointer;
-        width: 100%;
-        height: 100%;
-    }
+        .thumbnail-container .popUpClass {
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
 
-    /* Ensure the image still fills the container properly */
-    .post-display-image {
-        pointer-events: none; /* This makes the click pass through to the popUpClass div */
-    }
+        /* Ensure the image still fills the container properly */
+        .post-display-image {
+            pointer-events: none; /* This makes the click pass through to the popUpClass div */
+        }
     </style>
 </head>
+
+<style>
+    /* The Shimmer Effect */
+@keyframes shimmer {
+    0% { background-position: -468px 0; }
+    100% { background-position: 468px 0; }
+}
+
+.skeleton {
+    background: #1a1a1a;
+    background-image: linear-gradient(
+        to right, 
+        #1a1a1a 0%, 
+        #262626 20%, 
+        #1a1a1a 40%, 
+        #1a1a1a 100%
+    );
+    background-repeat: no-repeat;
+    background-size: 800px 100%;
+    display: inline-block;
+    position: relative;
+    animation: shimmer 1.2s linear infinite forwards;
+}
+
+/* Skeleton Shapes */
+.skeleton-thumb { width: 100%; aspect-ratio: 16/9; border-radius: 12px; }
+.skeleton-avatar { width: 36px; height: 36px; border-radius: 50%; }
+.skeleton-title { width: 80%; height: 18px; border-radius: 4px; margin-bottom: 8px; }
+.skeleton-text { width: 50%; height: 14px; border-radius: 4px; }
+</style>
 
 <body>
 <%- include("partials/navBar") %>
@@ -359,7 +400,7 @@
 
                     <div class="popUpClass" style="width:100%; height:100%;">
                         <% if (post.image) { %>
-                            <img src="<%= post.image %>" class="post-display-image" alt="Post Image">
+                            <img src="<%= post.image %>" class="post-display-image" onload="this.style.opacity='1'" loading="lazy" alt="Post Image">
                         <% } else { %>
                             <div style="height:100%; display:flex; align-items:center; justify-content:center; color:#444; font-size:0.8rem;">NO PREVIEW</div>
                         <% } %>
@@ -467,11 +508,7 @@
     </div>
 
     <% if (totalPages > 1) { %>
-        <div class="pagination">
-            <!-- <a href="?page=<%= currentPage - 1 %>" 
-            class="page-link <%= currentPage === 1 ? 'disabled' : '' %>">
-            &laquo; Previous
-            </a> -->
+        <div class="pagination" id="pagination-list">
 
             <% 
                 let startPage = Math.max(1, currentPage - 2);
@@ -486,12 +523,26 @@
                 </a>
             <% } %>
 
-            <!-- <a href="?page=<%= currentPage + 1 %>" 
-            class="page-link <%= currentPage === totalPages ? 'disabled' : '' %>">
-            Next &raquo;
-            </a> -->
         </div>
     <% } %>
+
+
+    <div id="skeleton-grid" style="display: none;" class="container">
+        <div id="posts-feed">
+            <% for(let i=0; i<8; i++) { %>
+                <div class="post-card">
+                    <div class="skeleton skeleton-thumb"></div>
+                    <div class="post-meta-wrapper" style="margin-top: 10px;">
+                        <div class="skeleton skeleton-avatar"></div>
+                        <div style="flex-grow: 1;">
+                            <div class="skeleton skeleton-title"></div>
+                            <div class="skeleton skeleton-text"></div>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+    </div>
 
 
     <div id="share-toast">Link copied to clipboard!</div>
@@ -501,6 +552,17 @@
 <%- include("partials/imageViewer") %>
 
 <script>
+    document.querySelectorAll('.page-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            // Only trigger if it's not the active page and not disabled
+            if (!this.classList.contains('active') && !this.classList.contains('disabled')) {
+                document.getElementById('posts-feed').style.opacity = '0.3';
+                document.getElementById('skeleton-grid').style.display = 'block';
+                document.getElementById('posts-feed').style.display = 'none';
+            }
+        });
+    });
+
     function sharePost(postId) {
         const fullUrl = window.location.origin + '/forum/post/' + postId;
         

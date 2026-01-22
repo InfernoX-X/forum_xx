@@ -99,9 +99,8 @@ router.post('/posts/create', upload.single('image'), async (req, res) => {
             `INSERT INTO posts (title, content, url, image, img_public_id, user_id) VALUES (?, ?, ?, ?, ?, ?)`,
             [title, content || null, url || null, imageUrl, imagePublicId, userId]
         );
-
         const newPostId = postResult.insertId;
-
+        
         // 3. Insert into post_categories bridge table
         if (forumIds) {
             const ids = Array.isArray(forumIds) ? forumIds : [forumIds];
