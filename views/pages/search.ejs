@@ -381,66 +381,64 @@
     </div>
 
     <div id="posts-feed">
-        <% for (const post of posts) { %>
-            <div class="post-card" id="post-<%= post.id %>">
-                
-                <div class="thumbnail-container popUpClass">
-                    <% if (post.image) { %>
-                        <img src="<%= post.image %>" class="post-display-image" loading="lazy" alt="Post Image">
-                    <% } else { %>
-                        <div style="height:100%; display:flex; align-items:center; justify-content:center; color:#444; font-size:0.8rem;">NO PREVIEW</div>
+    <% for (const post of posts) { %>
+        <div class="post-card" id="post-<%= post.id %>">
+            
+            <div class="thumbnail-container popUpClass">
+                <% if (post.thumbnail) { %>
+                    <img src="<%= post.thumbnail %>" class="post-display-image" loading="lazy" alt="Post Image">
+                <% } else { %>
+                    <div style="height:100%; display:flex; align-items:center; justify-content:center; color:#444; font-size:0.8rem;">NO PREVIEW</div>
+                <% } %>
+            </div>
+
+            <div class="post-meta-wrapper">
+                <div class="post-info">
+                    <h2 class="post-display-title">
+                        <a href="<%= post.url %>" target="_blank"><%= post.title %></a>
+                    </h2>
+
+                    <div class="sub-meta">
+                        <span><%= post.username %> • <%= timeAgo(post.created_at) %></span>
+                    </div>
+
+                    <div class="post-actions-row">
+                        <button class="btn-mini btn-info" onclick="openViewModal('<%= post.id %>')">Info</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-modal-<%= post.id %>" class="modal-overlay">
+                <div class="modal-content">
+                    <span class="close-modal" onclick="closeModal('view-modal-<%= post.id %>')">&times;</span>
+                    <h1 style="margin-bottom:20px;"><%= post.title %></h1>
+                    
+                    <div class="modal-image-gallery" style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
+                        <% if(post.all_images) { 
+                            const images = post.all_images.split(','); 
+                            images.forEach(img => { %>
+                                <img src="<%= img %>" style="width:100%; border-radius:8px; border: 1px solid #333;" loading="lazy">
+                        <%  }); 
+                        } %>
+                    </div>
+
+                    <div style="margin-bottom:20px;">
+                        <% if (post.categories) { post.categories.split(',').forEach(cat => { %>
+                            <span class="forum-badge" style="background:var(--accent); color:white; padding:4px 10px; margin-right:5px;"><%= cat %></span>
+                        <% })} %>
+                    </div>
+                    
+                    <p style="white-space: pre-wrap; color: #ccc; line-height: 1.8; font-size:1.1rem;"><%= post.content %></p>
+                    
+                    <% if(post.url) { %>
+                        <a href="<%= post.url %>" target="_blank" style="color:var(--accent); display:block; margin-top:20px; word-break:break-all;"><%= post.url %></a>
                     <% } %>
                 </div>
-
-                <div class="post-meta-wrapper">
-                    
-
-                    <div class="post-info">
-                        <h2 class="post-display-title">
-                            <% if(post.title.length > 80) { %>
-                                <a href="<%= post.url %>" target="_blank"><%= post.title.slice(0,80) %>...</a>
-                            <% } else { %>
-                                <a href="<%= post.url %>" target="_blank"><%= post.title %></a>
-                            <% } %>
-                        </h2>
-
-                        <div class="sub-meta">
-                            <span><%= post.username %> • <%= timeAgo(post.created_at) %></span>
-                            <div>
-                                <% if (post.categories) { %>
-                                    <% post.categories.split(',').slice(0, 3).forEach(cat => { %>
-                                        <span class="forum-badge"><%= cat %></span>
-                                    <% }) %>
-                                <% } %>
-                            </div>
-                        </div>
-
-                        <div class="post-actions-row">
-                            <button class="btn-mini btn-info" onclick="openViewModal('<%= post.id %>')">Info</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="view-modal-<%= post.id %>" class="modal-overlay">
-                    <div class="modal-content">
-                        <span class="close-modal" onclick="closeModal('view-modal-<%= post.id %>')">&times;</span>
-                        <h1 style="margin-bottom:20px;"><%= post.title %></h1>
-                        <% if(post.image) { %> <img src="<%= post.image %>" style="width:100%; border-radius:8px; margin-bottom:20px;" loading="lazy"> <% } %>
-                        <div style="margin-bottom:20px;">
-                            <% if (post.categories) { post.categories.split(',').forEach(cat => { %>
-                                <span class="forum-badge" style="background:var(--accent); color:white; padding:4px 10px; margin-right:5px;"><%= cat %></span>
-                            <% })} %>
-                        </div>
-                        <p style="white-space: pre-wrap; color: #ccc; line-height: 1.8; font-size:1.1rem;"><%= post.content %></p>
-                        <% if(post.url) { %>
-                            <a href="<%= post.url %>" target="_blank" style="color:var(--accent); display:block; margin-top:20px; word-break:break-all;"><%= post.url %></a>
-                        <% } %>
-                    </div>
-                </div>
-
             </div>
-        <% } %>
-    </div>
+
+        </div>
+    <% } %>
+</div>
 
     <% if (totalPages > 1) { %>
         <div class="pagination">

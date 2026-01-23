@@ -133,9 +133,15 @@
                 <label>Full Video Link (Any Site)</label>
                 <input type="text" name="url" placeholder="Full Video Link" required>
                 
-                <label for="post-image" class="file-label" id="main-file-label">📎 ATTACH IMAGE</label>
-                <input type="file" id="post-image" name="image" accept="image/*" style="display:none" required
-                       onchange="document.getElementById('main-file-label').innerText = '📂 ' + this.files[0].name">
+                <label>Or Paste Image URLs (One per line)</label>
+                <textarea id="urlInput" name="remoteUrls" rows="3" 
+                    placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.png" 
+                    style="font-size: 0.8rem; margin-bottom: 15px;"></textarea>
+
+                <label for="post-images" class="file-label" id="main-file-label">📎 OR UPLOAD FROM DEVICE</label>
+                <input type="file" id="post-images" name="images" multiple accept="image/*" style="display:none" onchange="updatePreviews()">
+
+                <div id="image-preview-container" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 18px;"></div>
 
                 <button type="submit" class="btn-accent">PUBLISH!</button>
             </form>
@@ -168,6 +174,56 @@
 </div>
 
 <script>
+    async function updatePreviews() {
+        const container = document.getElementById('image-preview-container');
+        const fileInput = document.getElementById('post-images');
+        const urlInput = document.getElementById('urlInput');
+        const label = document.getElementById('main-file-label');
+        
+        container.innerHTML = ""; // Clear existing
+
+        let totalCount = 0;
+        const MAX_ALLOWED = 5;
+
+        // 1. Process Files (Up to cap)
+        Array.from(fileInput.files).forEach(file => {
+            if (totalCount < MAX_ALLOWED) {
+                const reader = new FileReader();
+                reader.onload = (e) => addThumb(e.target.result);
+                reader.readAsDataURL(file);
+                totalCount++;
+            }
+        });
+
+        // 2. Process URLs (If we haven't hit 5 yet)
+        const urls = urlInput.value.split(/[\s\n,]+/).filter(u => u.trim().startsWith('http'));
+        urls.forEach(url => {
+            if (totalCount < MAX_ALLOWED) {
+                addThumb(url);
+                totalCount++;
+            }
+        });
+
+        // 3. Update Label and UI feedback
+        if (totalCount >= MAX_ALLOWED) {
+            label.style.borderColor = "var(--accent)";
+            label.innerText = "⚠️ LIMIT REACHED (MAX 5)";
+        } else {
+            label.style.borderColor = "var(--border)";
+            label.innerText = fileInput.files.length > 0 ? `📂 ${fileInput.files.length} files selected` : "📎 OR UPLOAD FROM DEVICE";
+        }
+
+        function addThumb(src) {
+            const div = document.createElement('div');
+            div.style.aspectRatio = '1/1';
+            div.innerHTML = `<img src="${src}" style="width:100%; height:100%; object-fit:cover; border-radius:4px; border: 1px solid var(--accent);">`;
+            container.appendChild(div);
+        }
+    }
+
+    // Attach listener to URL input as well
+    document.getElementById('urlInput').addEventListener('input', updatePreviews);
+
     document.getElementById('tagSearchInput').addEventListener('input', function(e) {
         const searchTerm = e.target.value.toLowerCase().trim();
         const container = document.querySelector('.forum-selection-container');

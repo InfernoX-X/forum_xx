@@ -31,7 +31,7 @@ function timeAgo(date) {
     return Math.floor(seconds) + " seconds ago";
 }
 
-// View Video
+// VIEW
 router.get('/post/:id', async (req, res) => {
     try{
         const postId = req.params.id;
@@ -55,9 +55,11 @@ router.get('/post/:id', async (req, res) => {
         }
 
         const post = rows[0];
+        const [images] = await db.execute(`SELECT * FROM post_images WHERE post_id = ?`, [postId]);
 
         res.render('pages/post', { 
             post,
+            images,
             user: res.userInfo,
             timeAgo
         });
@@ -68,135 +70,248 @@ router.get('/post/:id', async (req, res) => {
     }
 });
 
-// New Video
-router.post('/posts/create', upload.single('image'), async (req, res) => {
+// CREATE
+router.post('/posts/create', upload.array('images', 5), async (req, res) => {
+    const connection = await db.getConnection();
     try {
-        const { title, content, url, forumIds } = req.body;
+        await connection.beginTransaction();
+
+        const { title, content, url, forumIds, remoteUrls } = req.body;
         const userId = res.userInfo.id;
 
-        let imageUrl = null;
-        let imagePublicId = null;
-
-        // 1. Check if a file exists. If so, upload to Cloudinary
-        if (req.file) {
-            const uploadResult = await new Promise((resolve, reject) => {
-                const stream = cloudinary.uploader.upload_stream(
-                    { resource_type: 'auto' },
-                    (error, result) => {
-                        if (error) reject(error);
-                        else resolve(result);
-                    }
-                );
-                stream.end(req.file.buffer);
-            });
-            
-            imageUrl = uploadResult.secure_url;
-            imagePublicId = uploadResult.public_id;
-        }
-
-        // 2. Insert into main posts table (image fields will be null if no file)
-        const [postResult] = await db.execute(
-            `INSERT INTO posts (title, content, url, image, img_public_id, user_id) VALUES (?, ?, ?, ?, ?, ?)`,
-            [title, content || null, url || null, imageUrl, imagePublicId, userId]
+        // 1. Create the main post row
+        const [postResult] = await connection.execute(
+            `INSERT INTO posts (title, content, url, user_id) VALUES (?, ?, ?, ?)`,
+            [title, content || null, url || null, userId]
         );
         const newPostId = postResult.insertId;
-        
-        // 3. Insert into post_categories bridge table
+
+        // 2. Prepare all image sources (Files + URLs)
+        let imageSources = [];
+
+        // Add physical file buffers
+        if (req.files && req.files.length > 0) {
+            req.files.forEach(file => imageSources.push({ type: 'file', data: file.buffer }));
+        }
+
+        // Add pasted URLs (split by newline or space)
+        if (remoteUrls) {
+            const urls = remoteUrls.split(/[\s\n,]+/).filter(u => u.trim().startsWith('http'));
+            urls.forEach(u => imageSources.push({ type: 'url', data: u.trim() }));
+        }
+
+        // Enforce 5 image limit
+        const finalImages = imageSources.slice(0, 5);
+
+        // 3. Upload to Cloudinary and Save to DB
+        for (const img of finalImages) {
+            let uploadPromise;
+
+            if (img.type === 'file') {
+                uploadPromise = new Promise((resolve, reject) => {
+                    const stream = cloudinary.uploader.upload_stream(
+                        { resource_type: 'auto', folder: 'user_posts' },
+                        (error, result) => error ? reject(error) : resolve(result)
+                    );
+                    stream.end(img.data);
+                });
+            } else {
+                // Cloudinary can upload directly from a URL
+                uploadPromise = cloudinary.uploader.upload(img.data, {
+                    resource_type: 'auto',
+                    folder: 'user_posts'
+                });
+            }
+
+            const result = await uploadPromise;
+
+            await connection.execute(
+                `INSERT INTO post_images (post_id, image_url, img_public_id) VALUES (?, ?, ?)`,
+                [newPostId, result.secure_url, result.public_id]
+            );
+        }
+
+        // 4. Handle Categories
         if (forumIds) {
             const ids = Array.isArray(forumIds) ? forumIds : [forumIds];
             for (const fId of ids) {
-                await db.execute(`INSERT INTO post_categories (post_id, forum_id) VALUES (?, ?)`, [newPostId, fId]);
+                await connection.execute(
+                    `INSERT INTO post_categories (post_id, forum_id) VALUES (?, ?)`, 
+                    [newPostId, fId]
+                );
             }
         }
 
-        res.redirect(`back`);
+        await connection.commit();
+        res.redirect('back');
 
     } catch (err) {
-        console.error("Error creating post:", err);
+        await connection.rollback();
+        console.error("Critical error during post creation:", err);
         res.status(500).send('Internal Server Error');
+    } finally {
+        connection.release();
     }
 });
 
-// Edit Video
-router.post('/posts/edit/:id', upload.single('image'), async (req, res) => {
-    const postId = req.params.id;
-    const { title, content, url, forumIds } = req.body; 
-    
+// Edit Photos
+router.post('/posts/edit-image/:imageId', upload.single('image'), async (req, res) => {
+    const { imageId } = req.params;
+    const userId = res.userInfo.id;
+
+    if (!req.file) return res.status(400).send('No image provided');
+
     try {
-        let newImgLink = null;
-        let newPubId = null;
+        const [imgData] = await db.execute(`
+            SELECT pi.img_public_id, p.user_id 
+            FROM post_images pi
+            JOIN posts p ON pi.post_id = p.id
+            WHERE pi.id = ?`, [imageId]);
 
-        if (req.file) {
-            const result = await new Promise((resolve, reject) => {
-                const stream = cloudinary.uploader.upload_stream(
-                    { resource_type: 'auto' },
-                    (error, result) => {
-                        if (error) reject(error);
-                        else resolve(result);
-                    }
-                );
-                stream.end(req.file.buffer);
-            });
+        if (imgData.length === 0) return res.status(404).send('Image not found');
+        if (imgData[0].user_id !== userId) return res.status(403).send('Unauthorized');
 
-            newImgLink = result.secure_url;
-            newPubId = result.public_id;
-        }
+        // 1. Upload NEW image first
+        const result = await new Promise((resolve, reject) => {
+            const stream = cloudinary.uploader.upload_stream(
+                { resource_type: 'auto', folder: 'user_posts' },
+                (error, res) => (error ? reject(error) : resolve(res))
+            );
+            stream.end(req.file.buffer);
+        });
 
-        // 1. Update Post Text/Image
-        const sql = `
-            UPDATE posts 
-            SET title = COALESCE(NULLIF(?, ''), title), 
-                content = ?, 
-                url = ?,
-                image = COALESCE(?, image),
-                img_public_id = COALESCE(?, img_public_id)
-            WHERE id = ?`;
-        await db.execute(sql, [title, content, url, newImgLink, newPubId, postId]);
+        // 2. Update DB
+        await db.execute(
+            `UPDATE post_images SET image_url = ?, img_public_id = ? WHERE id = ?`,
+            [result.secure_url, result.public_id, imageId]
+        );
 
-        // 2. Update Categories (Bridge Table)
-        if (forumIds) {
-            // Remove old links
-            await db.execute(`DELETE FROM post_categories WHERE post_id = ?`, [postId]);
-            
-            // Add new links
-            const ids = Array.isArray(forumIds) ? forumIds : [forumIds];
-            for (const fId of ids) {
-                await db.execute(`INSERT INTO post_categories (post_id, forum_id) VALUES (?, ?)`, [postId, fId]);
-            }
+        // 3. ONLY THEN delete old image from Cloudinary
+        if (imgData[0].img_public_id) {
+            await cloudinary.uploader.destroy(imgData[0].img_public_id);
         }
 
         res.redirect('back');
     } catch (err) {
         console.error(err);
-        res.status(500).send('Update failed');
+        res.status(500).send('Failed to replace image');
     }
 });
 
-// Delete Video
-// router.post('/posts/delete/:postId', async (req, res) => {
-//     try {
-//         const postId = req.params.postId;
-//         const userId = res.userInfo.id; // Get ID of the logged-in user
-//         const forumId = req.body.forum_id; // Pass this from the hidden input to redirect back
+// Adding Photo
+router.post('/posts/add-images/:id', upload.array('images', 5), async (req, res) => {
+    const postId = req.params.id;
+    const userId = res.userInfo.id;
+    const connection = await db.getConnection();
 
-//         // We check BOTH the post id and the user_id for security
-//         const [result] = await db.execute(
-//             `UPDATE posts SET deleted = ? WHERE id = ? AND user_id = ?`,
-//             [1, postId, userId]
-//         );
+    try {
+        await connection.beginTransaction();
 
-//         if (result.affectedRows === 0) {
-//             return res.status(403).send("You don't have permission to delete this or the post doesn't exist.");
-//         }
+        // 1. Verify ownership
+        const [post] = await connection.execute(
+            `SELECT user_id FROM posts WHERE id = ?`, 
+            [postId]
+        );
 
-//         // Redirect back to the forum they were just on
-//         res.redirect(`/forum/${forumId}`);
+        if (post.length === 0 || post[0].user_id !== userId) {
+            await connection.rollback();
+            return res.status(403).send('Unauthorized or Post not found');
+        }
 
-//     } catch (err) {
-//         console.error('Error deleting post:', err);
-//         res.status(500).send('Could not delete post.');
-//     }
-// });
+        // 2. Count existing images
+        const [currentRows] = await connection.execute(
+            `SELECT COUNT(*) as count FROM post_images WHERE post_id = ?`, 
+            [postId]
+        );
+        const existingCount = currentRows[0].count;
+        const slotsAvailable = 5 - existingCount;
 
+        // 3. Validation
+        if (slotsAvailable <= 0) {
+            await connection.rollback();
+            return res.status(400).send('Limit reached: You already have 5 images.');
+        }
 
-module.exports = router;
+        if (!req.files || req.files.length === 0) {
+            await connection.rollback();
+            return res.status(400).send('No images selected.');
+        }
+
+        // 4. Only take the number of files that fit in the remaining slots
+        const filesToUpload = req.files.slice(0, slotsAvailable);
+
+        // 5. Upload loop
+        for (const file of filesToUpload) {
+            const result = await new Promise((resolve, reject) => {
+                const stream = cloudinary.uploader.upload_stream(
+                    { resource_type: 'auto', folder: 'user_posts' },
+                    (error, result) => error ? reject(error) : resolve(result)
+                );
+                stream.end(file.buffer);
+            });
+
+            await connection.execute(
+                `INSERT INTO post_images (post_id, image_url, img_public_id) VALUES (?, ?, ?)`,
+                [postId, result.secure_url, result.public_id]
+            );
+        }
+
+        await connection.commit();
+        res.redirect('back');
+
+    } catch (err) {
+        if (connection) await connection.rollback();
+        console.error("Upload error:", err);
+        res.status(500).send('Server Error');
+    } finally {
+        if (connection) connection.release();
+    }
+});
+
+// Edit
+router.post('/posts/edit/:id', async (req, res) => {
+    const postId = req.params.id;
+    const { title, content, url, forumIds } = req.body;
+    const userId = res.userInfo.id;
+    const conn = await db.getConnection(); // Get connection for transaction
+
+    try {
+        await conn.beginTransaction();
+
+        const [post] = await conn.execute(`SELECT user_id FROM posts WHERE id = ?`, [postId]);
+        if (post.length === 0 || post[0].user_id !== userId) {
+            await conn.rollback();
+            return res.status(403).send('Unauthorized');
+        }
+
+        // Update Text
+        await conn.execute(`
+            UPDATE posts 
+            SET title = COALESCE(NULLIF(?, ''), title), content = ?, url = ?
+            WHERE id = ?`, [title, content, url, postId]);
+
+        // Update Categories (Sync approach)
+        if (forumIds) {
+            await conn.execute(`DELETE FROM post_categories WHERE post_id = ?`, [postId]);
+            const ids = Array.isArray(forumIds) ? forumIds : [forumIds];
+            
+            // Bulk Insert optimized
+            if (ids.length > 0) {
+                const values = ids.map(fId => [postId, fId]);
+                await conn.query(`INSERT INTO post_categories (post_id, forum_id) VALUES ?`, [values]);
+            }
+        }
+
+        await conn.commit();
+        res.redirect('back');
+    } catch (err) {
+        await conn.rollback();
+        console.error(err);
+        res.status(500).send('Update failed');
+    } finally {
+        conn.release();
+    }
+});
+
+module.exports = router;    
+

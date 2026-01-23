@@ -7,29 +7,32 @@ const bcrypt = require("bcrypt");
 // ------------------- Server Side -------------------
 // Register
 router.post('/register', async (req, res) => {
-  const { username, email, password } = req.body;
+  let { username, email, password } = req.body;
 
   if (!username || !email || !password) {
     return res.status(400).json({ message: 'Username, email, and password are required' });
   }
 
+  if (password.length < 7 || password.length > 20) {
+    return res.status(400).json({ message: 'Password must be between 7 and 20 characters' });
+  }
+  username = username.trim();
+  email = email.trim().toLowerCase();
+
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const [userResult] = await db.execute(
+    const [result] = await db.execute(
       'INSERT INTO users (username, email, password) VALUES (?, ?, ?)',
       [username, email, hashedPassword]
     );
 
-    const [users] = await db.execute(
-      'SELECT id, username, email, password FROM users WHERE username = ?',
-      [username]
-    );
+    const user = {
+      id: result.insertId,
+      username: username,
+      email: email
+    };
 
-    if (users.length === 0) {
-      return res.status(401).json({ message: 'Invalid username or password' });
-    }
-    const user = users[0];
     // Generate a JWT token and send it back to the client
     const token = generateJwtToken(user);
 

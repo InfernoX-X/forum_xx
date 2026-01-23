@@ -19,47 +19,48 @@ function timeAgo(date) {
     return Math.floor(seconds) + " seconds ago";
 }
 
-// Main Page
+// Main Page Route
 router.get('/', async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
-        const limit = 15; // Number of posts per page
+        const limit = 15;
         const offset = (page - 1) * limit;
 
-        // 1. Get total post count for pagination math
-        const [countResult] = await db.execute(
-            'SELECT COUNT(*) as total FROM posts WHERE deleted = 0'
-        );
+        const [countResult] = await db.execute('SELECT COUNT(*) as total FROM posts WHERE deleted = 0');
         const totalPosts = countResult[0].total;
         const totalPages = Math.ceil(totalPosts / limit);
 
-        // 2. Fetch the specific slice of posts (Latest first)
         const [posts] = await db.execute(`
             SELECT p.*, u.username, 
-                   GROUP_CONCAT(f.title) as categories,
-                   GROUP_CONCAT(f.id) as forum_ids
-            FROM posts p 
-            JOIN users u ON p.user_id = u.id 
-            LEFT JOIN post_categories pc ON p.id = pc.post_id
-            LEFT JOIN forums f ON pc.forum_id = f.id
-            WHERE p.deleted = 0
-            GROUP BY p.id
-            ORDER BY p.created_at DESC
-            LIMIT ? OFFSET ?`, [limit.toString(), offset.toString()]);
-
-        const [allForums] = await db.execute(
-            `SELECT id, title, header FROM forums ORDER BY header DESC, title ASC`
-        );
+            GROUP_CONCAT(DISTINCT f.title) as categories,
+            GROUP_CONCAT(DISTINCT f.id) as forum_ids,
+            -- This gets all URLs for display
+            (SELECT GROUP_CONCAT(image_url ORDER BY id ASC) FROM post_images WHERE post_id = p.id) as all_images,
+            -- This gets all IDs for the 'Replace' route
+            (SELECT GROUP_CONCAT(id ORDER BY id ASC) FROM post_images WHERE post_id = p.id) as image_ids,
+            -- The first image for the feed thumbnail
+            (SELECT image_url FROM post_images WHERE post_id = p.id ORDER BY id ASC LIMIT 1) as thumbnail,
+            (SELECT COUNT(*) FROM post_images WHERE post_id = p.id) as image_count
+        FROM posts p 
+        JOIN users u ON p.user_id = u.id 
+        LEFT JOIN post_categories pc ON p.id = pc.post_id
+        LEFT JOIN forums f ON pc.forum_id = f.id
+        WHERE p.deleted = 0
+        GROUP BY p.id
+        ORDER BY p.created_at DESC
+        LIMIT ? OFFSET ?`, [limit.toString(), offset.toString()]);
+            
+        const [allForums] = await db.execute(`SELECT id, title, header FROM forums ORDER BY header DESC, title ASC`);
 
         res.render('index', { 
-            posts: posts,
-            allForums: allForums,
+            posts,
+            allForums,
             user: res.userInfo,
-            timeAgo: timeAgo,
+            timeAgo,
             currentPage: page,
-            totalPages: totalPages,
+            totalPages,
             forumTitle: "Home",
-            siteTitle: "ForumX" // Ensure this is passed for your <title> tag
+            siteTitle: "ForumX"
         });
     } catch (err) {
         console.error('Database Error:', err);
@@ -106,8 +107,12 @@ router.get('/search', async (req, res) => {
         const query = `
             SELECT 
                 p.*, u.username,
-                GROUP_CONCAT(f.title) as categories,
-                GROUP_CONCAT(f.id) as forum_ids
+                GROUP_CONCAT(DISTINCT f.title) as categories,
+                GROUP_CONCAT(DISTINCT f.id) as forum_ids,
+                -- Added these subqueries
+                (SELECT image_url FROM post_images WHERE post_id = p.id ORDER BY id ASC LIMIT 1) as thumbnail,
+                (SELECT GROUP_CONCAT(image_url) FROM post_images WHERE post_id = p.id ORDER BY id ASC) as all_images,
+                (SELECT COUNT(*) FROM post_images WHERE post_id = p.id) as image_count
             FROM posts p 
             JOIN users u ON p.user_id = u.id
             LEFT JOIN post_categories pc ON p.id = pc.post_id
@@ -188,8 +193,6 @@ router.get('/contribute', async (req, res) => {
 // Categorues 
 router.get('/categories', async (req, res) => {
     try {
-        const [headerRows] = await db.execute('SELECT DISTINCT header FROM forums WHERE header IS NOT NULL');
-
         const query = `
             SELECT 
                 f.id, f.title, f.bio, f.header, 
