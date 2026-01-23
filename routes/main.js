@@ -109,9 +109,11 @@ router.get('/search', async (req, res) => {
                 p.*, u.username,
                 GROUP_CONCAT(DISTINCT f.title) as categories,
                 GROUP_CONCAT(DISTINCT f.id) as forum_ids,
-                -- Added these subqueries
+                -- 1. Added this line to fetch the IDs for the "Replace" functionality
+                (SELECT GROUP_CONCAT(id ORDER BY id ASC) FROM post_images WHERE post_id = p.id) as image_ids,
+                -- 2. Added ORDER BY here to ensure URLs match the IDs above
+                (SELECT GROUP_CONCAT(image_url ORDER BY id ASC) FROM post_images WHERE post_id = p.id) as all_images,
                 (SELECT image_url FROM post_images WHERE post_id = p.id ORDER BY id ASC LIMIT 1) as thumbnail,
-                (SELECT GROUP_CONCAT(image_url) FROM post_images WHERE post_id = p.id ORDER BY id ASC) as all_images,
                 (SELECT COUNT(*) FROM post_images WHERE post_id = p.id) as image_count
             FROM posts p 
             JOIN users u ON p.user_id = u.id
@@ -129,6 +131,7 @@ router.get('/search', async (req, res) => {
             offset.toString()
         ]);
 
+        
         // 3. Fetch all forums so the user can see/change filters on the results page
         const [allForumsRaw] = await db.execute(
             'SELECT id, title, header FROM forums ORDER BY header ASC, title ASC'
@@ -144,9 +147,12 @@ router.get('/search', async (req, res) => {
             return groups;
         }, {});
         
+        const [allForums] = await db.execute(`SELECT id, title, header FROM forums ORDER BY header DESC, title ASC`);
+
         res.render('pages/search', { 
             posts,
             groupedForums: groupedForums,
+            allForums,
             selectedForums: forumIds,
             user: res.userInfo,
             timeAgo: timeAgo,
