@@ -525,28 +525,17 @@
     .progress-bar-fill {
         height: 100%;
         width: var(--p, 0%); 
-        background: linear-gradient(90deg, var(--accent), #ff8e3c, #fde047);
         background-size: 200% auto;
+        
+        background: linear-gradient(90deg, var(--accent), #ff8e3c, #fde047);
         box-shadow: 0 0 12px rgba(249, 55, 66, 0.3);
         transition: width 0.5s ease;
-        
+
         /* background: linear-gradient(90deg, var(--accent), #ff8e3c);
         box-shadow: 0 0 8px rgba(249, 55, 66, 0.5);
         transition: width 0.5s ease-in-out; */
     }
 
-    /* Ensure the tooltip doesn't get cut off on mobile */
-    @media (max-width: 480px) {
-        .badge-tooltip {
-            right: auto;
-            left: -50px; /* Offset to keep it on screen for small devices */
-            width: 160px;
-        }
-        .badge-tooltip::after {
-            right: auto;
-            left: 55px;
-        }
-    }
 
     .pulse-indicator {
         width: 8px;
@@ -571,44 +560,6 @@
     @keyframes pulse-ring {
         0% { transform: scale(.7); opacity: 0.8; }
         80%, 100% { transform: scale(2.5); opacity: 0; }
-    }
-
-    .milestone-toast {
-        position: fixed;
-        bottom: -100px; /* Start hidden */
-        left: 50%;
-        transform: translateX(-50%);
-        background: #1a1a1a;
-        border: 1px solid var(--accent);
-        padding: 16px 24px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        z-index: 2000;
-        transition: bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    .milestone-toast.show {
-        bottom: 30px;
-    }
-
-    .milestone-icon {
-        font-size: 2rem;
-        filter: drop-shadow(0 0 5px var(--accent));
-    }
-
-    .milestone-text h4 {
-        margin: 0;
-        color: #fff;
-        font-size: 1rem;
-    }
-
-    .milestone-text p {
-        margin: 0;
-        color: var(--text-dim);
-        font-size: 0.8rem;
     }
 
 </style>
@@ -770,28 +721,8 @@
     </div>
 </nav>  
 
-<div id="milestoneToast" class="milestone-toast">
-    <div class="milestone-icon" id="m-icon">🏆</div>
-    <div class="milestone-text">
-        <h4 id="m-title">Rank Up!</h4>
-        <p id="m-msg">You've unlocked a new badge.</p>
-    </div>
-</div>
 
 <script>
-    function showMilestone(rankName, icon) {
-        const toast = document.getElementById('milestoneToast');
-        document.getElementById('m-icon').innerText = icon;
-        document.getElementById('m-title').innerText = `Promoted to ${rankName}!`;
-        
-        toast.classList.add('show');
-        
-        // Hide after 5 seconds
-        setTimeout(() => {
-            toast.classList.remove('show');
-        }, 5000);
-    }
-
     document.addEventListener('DOMContentLoaded', () => {
         const settingsBtn = document.getElementById('settingsBtn');
         const settingsDropdown = document.getElementById('settingsDropdown');
