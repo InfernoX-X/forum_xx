@@ -96,9 +96,63 @@
 
 <div class="container">
     <header class="page-header">
-        <h1>CONTRIBUTE</h1>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <h1>CONTRIBUTE</h1>
+            <button id="infoBtn" style="background: var(--surface); border: 1px solid var(--border); color: var(--accent); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-weight: 800; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; transition: 0.2s;">!</button>
+        </div>
         <p>Expand the community by sharing new content or creating new tags.</p>
     </header>
+
+    <div id="guideModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px);">
+        <div class="card" style="max-width: 700px; width: 100%; position: relative; border-color: var(--accent); box-shadow: 0 10px 40px rgba(0,0,0,0.5); padding: 0;">
+            
+            <div style="padding: 20px 30px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin-bottom: 0;">🚀 Full Contribution Guide</h3>
+                <button id="closeGuide" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.5rem;">&times;</button>
+            </div>
+
+            <div style="padding: 30px; max-height: 75vh; overflow-y: auto;">
+                
+                <div style="margin-bottom: 30px;">
+                    <h4 style="color: var(--accent); margin-bottom: 12px; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px;">1. Sharing New Content</h4>
+                    
+                    <p style="font-size: 0.9rem; margin-bottom: 10px;"><strong style="color: #fff;">🏷️ Titles & Tags:</strong></p>
+                    <ul style="list-style: none; color: #ccc; font-size: 0.85rem; padding-left: 10px; border-left: 1px solid #333; margin-bottom: 15px;">
+                        <li style="margin-bottom: 8px;">• <strong>Naming:</strong> Use <em>"Original Video Title (Performer Name)"</em>.</li>
+                        <li style="margin-bottom: 8px;">• <strong>Multi-Tagging:</strong> You can select multiple categories. Use the <strong>Search Bar</strong> inside the selection box to find specific tags instantly.</li>
+                    </ul>
+
+                    <p style="font-size: 0.9rem; margin-bottom: 10px;"><strong style="color: #fff;">🔗 Video Links & Media:</strong></p>
+                    <ul style="list-style: none; color: #ccc; font-size: 0.85rem; padding-left: 10px; border-left: 1px solid #333;">
+                        <li style="margin-bottom: 8px;">• <strong>Video URL:</strong> Paste the full link to the source (e.g., YouTube, Vimeo, or other hosting sites). <strong>This is required.</strong></li>
+                        <li style="margin-bottom: 8px;">• <strong>Previews:</strong> Maximum of 5 images. If using URLs, ensure they are direct links (ending in <code>.jpg</code>, <code>.png</code>).</li>
+                    </ul>
+                </div>
+
+                <!-- <div style="margin-bottom: 30px;">
+                    <h4 style="color: var(--accent); margin-bottom: 12px; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px;">2. Creating New Tags</h4>
+                    <p style="font-size: 0.85rem; color: #ccc; margin-bottom: 10px;">If a performer or category doesn't exist yet:</p>
+                    <ul style="list-style: none; color: #ccc; font-size: 0.85rem; padding-left: 10px; border-left: 1px solid #333;">
+                        <li style="margin-bottom: 8px;">• <strong>Parent Header:</strong> You <u>must</u> select the correct parent group (e.g., placing a new performer under the "Performers" header).</li>
+                        <li style="margin-bottom: 8px;">• <strong>Bio:</strong> Keep it short—this appears as a subtitle for the tag.</li>
+                    </ul>
+                </div> -->
+
+                <!-- <div style="background: #0a0a0a; padding: 20px; border: 1px solid #222; border-radius: 4px;">
+                    <h4 style="color: #fff; margin-bottom: 10px; font-size: 0.9rem;">📝 Best Practices</h4>
+                    <ul style="list-style: none; color: #888; font-size: 0.8rem;">
+                        <li style="margin-bottom: 5px;">• Search before creating: Don't create "Lesbians" if "Lesbian" already exists.</li>
+                        <li style="margin-bottom: 5px;">• Check links: Ensure the video URL isn't broken before publishing.</li>
+                        <li style="margin-bottom: 5px;">• Quality: Use high-quality preview images to help your post get more views.</li>
+                    </ul>
+                </div> -->
+            </div>
+
+            <div style="padding: 20px 30px; border-top: 1px solid var(--border); background: var(--surface);">
+                <button id="closeGuideBtn" class="btn-accent">I'VE READ THE RULES - LET'S GO</button>
+            </div>
+        </div>
+    </div>
 
     <div class="contribute-grid">
         
@@ -172,6 +226,37 @@
 
     </div>
 </div>
+
+<script>
+    // Modal Logic
+    const modal = document.getElementById('guideModal');
+    const infoBtn = document.getElementById('infoBtn');
+    const closeX = document.getElementById('closeGuide');
+    const closeBtn = document.getElementById('closeGuideBtn');
+
+    // Open
+    infoBtn.addEventListener('click', () => {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    });
+
+    // Close functions
+    const closeModal = () => {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto'; // Re-enable scrolling
+    };
+
+    [closeX, closeBtn].forEach(btn => btn.addEventListener('click', closeModal));
+
+    // Close on outside click
+    window.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+
+    // Hover effect for the ! button
+    infoBtn.addEventListener('mouseover', () => infoBtn.style.borderColor = 'var(--accent)');
+    infoBtn.addEventListener('mouseleave', () => infoBtn.style.borderColor = 'var(--border)');
+</script>
 
 <script>
     async function updatePreviews() {

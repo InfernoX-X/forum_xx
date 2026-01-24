@@ -449,205 +449,244 @@
 .skeleton-avatar { width: 36px; height: 36px; border-radius: 50%; }
 .skeleton-title { width: 80%; height: 18px; border-radius: 4px; margin-bottom: 8px; }
 .skeleton-text { width: 50%; height: 14px; border-radius: 4px; }
+
+</style>
+
+<style>
+    .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 80px 20px;
+    background: #111; /* Matches your dark theme */
+    border: 1px solid #222;
+    border-radius: 12px;
+    margin: 20px 0;
+}
+
+.empty-state h2 {
+    color: #fff;
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+
+.empty-state p {
+    color: #888;
+    max-width: 400px;
+    line-height: 1.6;
+}
+
 </style>
 
 <body>
-<%- include("partials/navBar") %>
+<%- include("../partials/navBar") %>
 
 <div class="container">
-    <div id="posts-feed">
-    <% for (const post of posts) { %>
-        <div class="post-card" id="post-<%= post.id %>">
-            
-            <div class="thumbnail-container">
-                    <% 
-                        const postDate = new Date(post.created_at);
-                        const now = new Date();
-                        const diffInHours = (now - postDate) / (1000 * 60 * 60);
-                        if (diffInHours < 24) { 
-                    %>
-                        <div class="new-badge">New</div>
-                    <% } %>
-
-                    <% if (post.all_images) { 
-                        const imgCount = post.all_images.split(',').length; 
-                        if (imgCount > 1) { %>
-                            <div class="image-count-badge">
-                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                                    <polyline points="21 15 16 10 5 21"></polyline>
-                                </svg>
-                                <%= imgCount %>
-                            </div>
-                    <% } } %>
-
-                    <button class="thumbnail-share-btn" 
-                            title="Copy Link"
-                            onclick="event.stopPropagation(); sharePost('<%= post.id %>')">
-                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
-                            <polyline points="16 6 12 2 8 6"></polyline>
-                            <line x1="12" y1="2" x2="12" y2="15"></line>
-                        </svg>
-                    </button>
-
-                    <div class="popUpClass" style="width:100%; height:100%;">
-                        <% if (post.thumbnail) { %>
-                            <img src="<%= post.thumbnail %>" class="post-display-image" loading="lazy" alt="Post Image">
-                        <% } else { %>
-                            <div style="height:100%; display:flex; align-items:center; justify-content:center; color:#444; font-size:0.8rem;">NO PREVIEW</div>
-                        <% } %>
-                    </div>
-                </div>
-
-            <div class="post-meta-wrapper">
-                <div class="post-info">
-                    <h2 class="post-display-title">
-                        <a href="/forum/post/<%= post.id %>"><%= post.title %></a>
-                    </h2>
-
-                    <div class="sub-meta">
-                        <span><a style="color: var(--text-muted); text-decoration: none;" href="/user/<%= post.userId %>"><%= post.username %></a> • <%= timeAgo(post.created_at) %></span>
-                        <div>
-                            <% if (post.categories) { %>
-                                <% post.categories.split(',').slice(0, 3).forEach(cat => { %>
-                                    <span class="forum-badge"><%= cat %></span>
-                                <% }) %>
-                            <% } %>
-                        </div>
-                    </div>
-
-                    <div class="post-actions-row">
-                        <button class="btn-mini btn-info" onclick="openViewModal('<%= post.id %>')">Info</button>
-
-                        <% if (user && user.id == post.user_id) { %>
-                            <button class="btn-mini btn-edit hide-editBtn" onclick="openEditModal('<%= post.id %>')">Edit</button>
-                        <% } %>
-                    </div>
-                </div>
-            </div>
-
-            <div id="view-modal-<%= post.id %>" class="modal-overlay">
-                <div class="modal-content">
-                    <span class="close-modal" onclick="closeModal('view-modal-<%= post.id %>')">&times;</span>
-                    <h1 style="margin-bottom:20px;"><%= post.title %></h1>
-                    
-                    <div class="modal-image-gallery" style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
-                        <% if(post.all_images) { 
-                            const images = post.all_images.split(','); 
-                            images.forEach(img => { %>
-                                <img src="<%= img %>" style="width:100%; border-radius:8px; border: 1px solid #333;" loading="lazy">
-                        <%  }); 
-                        } %>
-                    </div>
-
-                    <div style="margin-bottom:20px;">
-                        <% if (post.categories) { post.categories.split(',').forEach(cat => { %>
-                            <span class="forum-badge" style="background:var(--accent); color:white; padding:4px 10px; margin-right:5px;"><%= cat %></span>
-                        <% })} %>
-                    </div>
-                    
-                    <p style="white-space: pre-wrap; color: #ccc; line-height: 1.8; font-size:1.1rem;"><%= post.content %></p>
-                    
-                    <% if(post.url) { %>
-                        <a href="<%= post.url %>" target="_blank" style="color:var(--accent); display:block; margin-top:20px; word-break:break-all;"><%= post.url %></a>
-                    <% } %>
-                </div>
-            </div>
-
-            <% if (user && user.id === post.user_id) { %>
-                <div id="edit-modal-<%= post.id %>" class="modal-overlay">
-                    <div class="modal-content">
-                        <span class="close-modal" onclick="closeModal('edit-modal-<%= post.id %>')">&times;</span>
-                        <h2 style="color:var(--accent); margin-bottom:20px;">Edit Post Settings</h2>
-                        
-                        <form action="/forum/posts/edit/<%= post.id %>" method="POST">
-                            <label>Categories</label>
-                            <input type="text" placeholder="Search tags..." class="edit-field" oninput="filterEditTags(this, '<%= post.id %>')">
-
-                            <div id="edit-list-<%= post.id %>" style="max-height:120px; overflow-y:auto; background:#111; padding:10px; border:1px solid #222; border-radius:8px; margin-bottom:15px;">
-                                <% allForums.forEach(f => { %>
-                                    <label class="edit-tag-label" data-name="<%= f.title.toLowerCase() %>" style="display:inline-flex; align-items:center; gap:8px; width:45%; color:#aaa; cursor:pointer; font-size:0.8rem; margin-bottom:5px;">
-                                        <input type="checkbox" name="forumIds" value="<%= f.id %>" 
-                                            <%= post.forum_ids && post.forum_ids.split(',').includes(f.id.toString()) ? 'checked' : '' %>>
-                                        <%= f.title %>
-                                    </label>
-                                <% }) %>
-                            </div>
-
-                            <label>Title</label>
-                            <input type="text" name="title" value="<%= post.title %>" class="edit-field" required>
-                            
-                            <label>Summary</label>
-                            <textarea name="content" rows="3" class="edit-field"><%= post.content %></textarea>
-
-                            <label>External Link</label>
-                            <input type="text" name="url" value="<%= post.url %>" class="edit-field">
-
-                            <button type="submit" class="btn-mini" style="background:var(--accent); width:100%; height:40px; border-radius:6px; margin-bottom:20px;">Save Above Changes</button>
-                        </form>
-
-                        <hr style="border:0; border-top:1px solid #262626; margin:10px 0 20px 0;">
-
-                        <label style="margin-bottom:10px; display:block;">Replace Images Individually (Each Replace with Reload the page!)</label>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px;">
-                            <% if(post.all_images && post.image_ids) { 
-                                const imgs = post.all_images.split(',');
-                                const ids = post.image_ids.split(',');
-                                imgs.forEach((img, index) => { %>
-                                
-                                <div style="background:#1a1a1a; padding:8px; border-radius:8px; border:1px solid #333; text-align:center;">
-                                    <img src="<%= img %>" style="width:100%; aspect-ratio:1; object-fit:cover; border-radius:4px; margin-bottom:8px;">
-                                    
-                                    <form action="/forum/posts/edit-image/<%= ids[index] %>" method="POST" enctype="multipart/form-data">
-                                        <label class="btn-mini" style="background:#272727; width:100%; cursor:pointer; font-size:9px; padding:6px 0; display:block; border-radius:4px;">
-                                            CHOOSE NEW
-                                            <input type="file" name="image" accept="image/*" onchange="this.form.submit()" style="display:none;">
-                                        </label>
-                                    </form>
-                                </div>
-
-                            <% }); } %>
-                        </div>
-                        <% 
-                            const currentImgCount = post.image_ids ? post.image_ids.split(',').length : 0; 
-                        %>
-
-                        <div style="margin-top: 25px; padding-top: 20px; border-top: 1px dashed #333;">
-                            <% if (currentImgCount < 5) { %>
-                                <label style="color: var(--accent); margin-bottom: 10px;">
-                                    Add More Images (<%= 5 - currentImgCount %> slots left, more images won't upload even if shows here!)
-                                </label>
-                                
-                                <div id="preview-container-<%= post.id %>" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; margin-bottom: 15px;"></div>
-                                <form action="/forum/posts/add-images/<%= post.id %>" method="POST" enctype="multipart/form-data">
-                                    <div style="background: #111; border: 2px dashed #333; border-radius: 8px; padding: 15px; text-align: center;">
-                                        <input type="file" name="images" id="add-more-<%= post.id %>" accept="image/*" multiple 
-                                            style="display:none;" onchange="previewNewImages(this, '<%= post.id %>')">
-                                        
-                                        <label for="add-more-<%= post.id %>" style="cursor: pointer; color: #aaa; font-size: 0.85rem;">
-                                            <span id="label-text-<%= post.id %>">Click to select images</span>
-                                        </label>
-                                    </div>
-                                    <button type="submit" class="btn-mini" style="background: var(--accent); width: 100%; height: 35px; margin-top: 10px;">
-                                        UPLOAD NEW
-                                    </button>
-                                </form>
-                            <% } else { %>
-                                <p style="color: #666; font-size: 0.8rem; text-align: center; background: #1a1a1a; padding: 10px; border-radius: 6px;">
-                                    Maximum limit of 5 images reached.
-                                </p>
-                            <% } %>
-                        </div>
-
-                    </div>
-                </div>
-            <% } %>
-
+    <% if (!posts || posts.length === 0) { %>
+        <div class="empty-state">
+            <h2>No posts yet</h2>
+            <p>This user hasn't posted anything.</p>
+            <a href="/" style="color: var(--accent);">Back to Feed</a>
         </div>
     <% } %>
-</div>
+
+    <div id="posts-feed">
+        <% for (const post of posts) { %>
+            <div class="post-card" id="post-<%= post.id %>">
+                
+                <div class="thumbnail-container">
+                        <% 
+                            const postDate = new Date(post.created_at);
+                            const now = new Date();
+                            const diffInHours = (now - postDate) / (1000 * 60 * 60);
+                            if (diffInHours < 24) { 
+                        %>
+                            <div class="new-badge">New</div>
+                        <% } %>
+
+                        <% if (post.all_images) { 
+                            const imgCount = post.all_images.split(',').length; 
+                            if (imgCount > 1) { %>
+                                <div class="image-count-badge">
+                                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                        <polyline points="21 15 16 10 5 21"></polyline>
+                                    </svg>
+                                    <%= imgCount %>
+                                </div>
+                        <% } } %>
+
+                        <button class="thumbnail-share-btn" 
+                                title="Copy Link"
+                                onclick="event.stopPropagation(); sharePost('<%= post.id %>')">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                                <polyline points="16 6 12 2 8 6"></polyline>
+                                <line x1="12" y1="2" x2="12" y2="15"></line>
+                            </svg>
+                        </button>
+
+                        <div class="popUpClass" style="width:100%; height:100%;">
+                            <% if (post.thumbnail) { %>
+                                <img src="<%= post.thumbnail %>" class="post-display-image" loading="lazy" alt="Post Image">
+                            <% } else { %>
+                                <div style="height:100%; display:flex; align-items:center; justify-content:center; color:#444; font-size:0.8rem;">NO PREVIEW</div>
+                            <% } %>
+                        </div>
+                    </div>
+
+
+                <div class="post-meta-wrapper">
+                    <div class="post-info">
+                        <h2 class="post-display-title">
+                            <a href="/forum/post/<%= post.id %>"><%= post.title %></a>
+                        </h2>
+
+                        <div class="sub-meta">
+                            <span><%= post.username %> • <%= timeAgo(post.created_at) %></span>
+                            <div>
+                                <% if (post.categories) { %>
+                                    <% post.categories.split(',').slice(0, 3).forEach(cat => { %>
+                                        <span class="forum-badge"><%= cat %></span>
+                                    <% }) %>
+                                <% } %>
+                            </div>
+                        </div>
+
+                        <div class="post-actions-row">
+                            <button class="btn-mini btn-info" onclick="openViewModal('<%= post.id %>')">Info</button>
+
+                            <% if (user && user.id == post.user_id) { %>
+                                <button class="btn-mini btn-edit hide-editBtn" onclick="openEditModal('<%= post.id %>')">Edit</button>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-modal-<%= post.id %>" class="modal-overlay">
+                    <div class="modal-content">
+                        <span class="close-modal" onclick="closeModal('view-modal-<%= post.id %>')">&times;</span>
+                        <h1 style="margin-bottom:20px;"><%= post.title %></h1>
+                        
+                        <div class="modal-image-gallery" style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
+                            <% if(post.all_images) { 
+                                const images = post.all_images.split(','); 
+                                images.forEach(img => { %>
+                                    <img src="<%= img %>" style="width:100%; border-radius:8px; border: 1px solid #333;" loading="lazy">
+                            <%  }); 
+                            } %>
+                        </div>
+
+                        <div style="margin-bottom:20px;">
+                            <% if (post.categories) { post.categories.split(',').forEach(cat => { %>
+                                <span class="forum-badge" style="background:var(--accent); color:white; padding:4px 10px; margin-right:5px;"><%= cat %></span>
+                            <% })} %>
+                        </div>
+                        
+                        <p style="white-space: pre-wrap; color: #ccc; line-height: 1.8; font-size:1.1rem;"><%= post.content %></p>
+                        
+                        <% if(post.url) { %>
+                            <a href="<%= post.url %>" target="_blank" style="color:var(--accent); display:block; margin-top:20px; word-break:break-all;"><%= post.url %></a>
+                        <% } %>
+                    </div>
+                </div>
+
+                <% if (user && user.id === post.user_id) { %>
+                    <div id="edit-modal-<%= post.id %>" class="modal-overlay">
+                        <div class="modal-content">
+                            <span class="close-modal" onclick="closeModal('edit-modal-<%= post.id %>')">&times;</span>
+                            <h2 style="color:var(--accent); margin-bottom:20px;">Edit Post Settings</h2>
+                            
+                            <form action="/forum/posts/edit/<%= post.id %>" method="POST">
+                                <label>Categories</label>
+                                <input type="text" placeholder="Search tags..." class="edit-field" oninput="filterEditTags(this, '<%= post.id %>')">
+
+                                <div id="edit-list-<%= post.id %>" style="max-height:120px; overflow-y:auto; background:#111; padding:10px; border:1px solid #222; border-radius:8px; margin-bottom:15px;">
+                                    <% allForums.forEach(f => { %>
+                                        <label class="edit-tag-label" data-name="<%= f.title.toLowerCase() %>" style="display:inline-flex; align-items:center; gap:8px; width:45%; color:#aaa; cursor:pointer; font-size:0.8rem; margin-bottom:5px;">
+                                            <input type="checkbox" name="forumIds" value="<%= f.id %>" 
+                                                <%= post.forum_ids && post.forum_ids.split(',').includes(f.id.toString()) ? 'checked' : '' %>>
+                                            <%= f.title %>
+                                        </label>
+                                    <% }) %>
+                                </div>
+
+                                <label>Title</label>
+                                <input type="text" name="title" value="<%= post.title %>" class="edit-field" required>
+                                
+                                <label>Summary</label>
+                                <textarea name="content" rows="3" class="edit-field"><%= post.content %></textarea>
+
+                                <label>External Link</label>
+                                <input type="text" name="url" value="<%= post.url %>" class="edit-field">
+
+                                <button type="submit" class="btn-mini" style="background:var(--accent); width:100%; height:40px; border-radius:6px; margin-bottom:20px;">Save Above Changes</button>
+                            </form>
+
+                            <hr style="border:0; border-top:1px solid #262626; margin:10px 0 20px 0;">
+
+                            <label style="margin-bottom:10px; display:block;">Replace Images Individually (Each Replace with Reload the page!)</label>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px;">
+                                <% if(post.all_images && post.image_ids) { 
+                                    const imgs = post.all_images.split(',');
+                                    const ids = post.image_ids.split(',');
+                                    imgs.forEach((img, index) => { %>
+                                    
+                                    <div style="background:#1a1a1a; padding:8px; border-radius:8px; border:1px solid #333; text-align:center;">
+                                        <img src="<%= img %>" style="width:100%; aspect-ratio:1; object-fit:cover; border-radius:4px; margin-bottom:8px;">
+                                        
+                                        <form action="/forum/posts/edit-image/<%= ids[index] %>" method="POST" enctype="multipart/form-data">
+                                            <label class="btn-mini" style="background:#272727; width:100%; cursor:pointer; font-size:9px; padding:6px 0; display:block; border-radius:4px;">
+                                                CHOOSE NEW
+                                                <input type="file" name="image" accept="image/*" onchange="this.form.submit()" style="display:none;">
+                                            </label>
+                                        </form>
+                                    </div>
+
+                                <% }); } %>
+                            </div>
+                            <% 
+                                const currentImgCount = post.image_ids ? post.image_ids.split(',').length : 0; 
+                            %>
+
+                            <div style="margin-top: 25px; padding-top: 20px; border-top: 1px dashed #333;">
+                                <% if (currentImgCount < 5) { %>
+                                    <label style="color: var(--accent); margin-bottom: 10px;">
+                                        Add More Images (<%= 5 - currentImgCount %> slots left, more images won't upload even if shows here!)
+                                    </label>
+                                    
+                                    <div id="preview-container-<%= post.id %>" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; margin-bottom: 15px;"></div>
+                                    <form action="/forum/posts/add-images/<%= post.id %>" method="POST" enctype="multipart/form-data">
+                                        <div style="background: #111; border: 2px dashed #333; border-radius: 8px; padding: 15px; text-align: center;">
+                                            <input type="file" name="images" id="add-more-<%= post.id %>" accept="image/*" multiple 
+                                                style="display:none;" onchange="previewNewImages(this, '<%= post.id %>')">
+                                            
+                                            <label for="add-more-<%= post.id %>" style="cursor: pointer; color: #aaa; font-size: 0.85rem;">
+                                                <span id="label-text-<%= post.id %>">Click to select images</span>
+                                            </label>
+                                        </div>
+                                        <button type="submit" class="btn-mini" style="background: var(--accent); width: 100%; height: 35px; margin-top: 10px;">
+                                            UPLOAD NEW
+                                        </button>
+                                    </form>
+                                <% } else { %>
+                                    <p style="color: #666; font-size: 0.8rem; text-align: center; background: #1a1a1a; padding: 10px; border-radius: 6px;">
+                                        Maximum limit of 5 images reached.
+                                    </p>
+                                <% } %>
+                            </div>
+
+                        </div>
+                    </div>
+                <% } %>
+
+            </div>
+        <% } %>
+    </div>
+
     <% if (totalPages > 1) { %>
         <div class="pagination" id="pagination-list">
 
@@ -690,7 +729,7 @@
 
 </div>
 
-<%- include("partials/imageViewer") %>
+<%- include("../partials/imageViewer") %>
 
 <script>
     function previewNewImages(input, postId) {

@@ -31,17 +31,16 @@ function timeAgo(date) {
     return Math.floor(seconds) + " seconds ago";
 }
 
-// VIEW
+// VIEW SINGLE POST
 router.get('/post/:id', async (req, res) => {
-    try{
+    try {
         const postId = req.params.id;
 
+        // 1. Fetch Post Data
         const [rows] = await db.execute(`
-            SELECT 
-                p.*, 
-                u.username,
-                GROUP_CONCAT(f.title) AS categories,
-                GROUP_CONCAT(f.id) AS forum_ids
+            SELECT p.*, u.username,u.id as userId, 
+                   GROUP_CONCAT(f.title) AS categories,
+                   GROUP_CONCAT(DISTINCT f.id) AS forum_id_list
             FROM posts p
             JOIN users u ON p.user_id = u.id
             LEFT JOIN post_categories pc ON p.id = pc.post_id
@@ -50,27 +49,80 @@ router.get('/post/:id', async (req, res) => {
             GROUP BY p.id
         `, [postId]);
 
-        if (rows.length === 0) {
-            return res.status(404).send('Post not found');
+        if (rows.length === 0) return res.status(404).send('Post not found');
+        const post = rows[0];
+
+        // 2. Fetch Images & Comments  
+        const [images] = await db.execute(`SELECT * FROM post_images WHERE post_id = ?`, [postId]);
+        const [comments] = await db.execute(`
+            SELECT c.*, u.username FROM comments c 
+            JOIN users u ON c.user_id = u.id 
+            WHERE c.post_id = ? ORDER BY c.created_at DESC
+        `, [postId]);
+
+        // We look for posts that share the same forum_ids, excluding the current post
+        const forumIds = post.forum_id_list ? post.forum_id_list.split(',') : [];
+        
+        let recommended = [];
+        if (forumIds.length > 0) {
+            [recommended] = await db.query(`
+                SELECT p.id, p.title, p.created_at, 
+                    COUNT(pc.forum_id) AS shared_tag_count,
+                    (SELECT image_url FROM post_images WHERE post_id = p.id LIMIT 1) as thumb
+                FROM posts p
+                JOIN post_categories pc ON p.id = pc.post_id
+                WHERE pc.forum_id IN (?) AND p.id != ?
+                GROUP BY p.id
+                ORDER BY shared_tag_count DESC, p.created_at DESC
+                LIMIT 8
+            `, [forumIds, postId]);
+            if (recommended.length < 8) {
+                const [trending] = await db.query(`
+                    SELECT id, title, created_at FROM posts 
+                    WHERE id != ? 
+                    ORDER BY created_at DESC LIMIT ?
+                `, [postId, 8 - recommended.length]);
+                
+                recommended = [...recommended, ...trending];
+            }
         }
 
-        const post = rows[0];
-        const [images] = await db.execute(`SELECT * FROM post_images WHERE post_id = ?`, [postId]);
-
         res.render('pages/post', { 
-            post,
-            images,
+            post, images, comments, recommended,
             user: res.userInfo,
             timeAgo
         });
 
     } catch (err) {
-        console.error("Error fetching single post:", err);
-        res.status(500).send('Internal Server Error');
+        console.error(err);
+        res.status(500).send('Server Error');
     }
 });
 
-// CREATE
+// SUBMIT A COMMENT
+router.post('/post/:id/comment', async (req, res) => {
+    try {
+        const postId = req.params.id;
+        const { comment } = req.body;
+        const userId = res.userInfo.id; // Assuming res.userInfo contains the logged-in user
+
+        if (!comment || comment.trim() === "") {
+            return res.redirect('back');
+        }
+
+        await db.execute(
+            `INSERT INTO comments (post_id, user_id, content) VALUES (?, ?, ?)`,
+            [postId, userId, comment.trim()]
+        );
+
+        res.redirect('back'); // Refresh the page to show the new comment
+    } catch (err) {
+        console.error("Error saving comment:", err);
+        res.status(500).send('Failed to post comment');
+    }
+});
+
+// CREATE NEW
 router.post('/posts/create', upload.array('images', 5), async (req, res) => {
     const connection = await db.getConnection();
     try {
@@ -268,7 +320,7 @@ router.post('/posts/add-images/:id', upload.array('images', 5), async (req, res)
     }
 });
 
-// Edit
+// Edit POST
 router.post('/posts/edit/:id', async (req, res) => {
     const postId = req.params.id;
     const { title, content, url, forumIds } = req.body;

@@ -31,24 +31,24 @@ router.get('/', async (req, res) => {
         const totalPages = Math.ceil(totalPosts / limit);
 
         const [posts] = await db.execute(`
-            SELECT p.*, u.username, 
-            GROUP_CONCAT(DISTINCT f.title) as categories,
-            GROUP_CONCAT(DISTINCT f.id) as forum_ids,
-            -- This gets all URLs for display
-            (SELECT GROUP_CONCAT(image_url ORDER BY id ASC) FROM post_images WHERE post_id = p.id) as all_images,
-            -- This gets all IDs for the 'Replace' route
-            (SELECT GROUP_CONCAT(id ORDER BY id ASC) FROM post_images WHERE post_id = p.id) as image_ids,
-            -- The first image for the feed thumbnail
-            (SELECT image_url FROM post_images WHERE post_id = p.id ORDER BY id ASC LIMIT 1) as thumbnail,
-            (SELECT COUNT(*) FROM post_images WHERE post_id = p.id) as image_count
-        FROM posts p 
-        JOIN users u ON p.user_id = u.id 
-        LEFT JOIN post_categories pc ON p.id = pc.post_id
-        LEFT JOIN forums f ON pc.forum_id = f.id
-        WHERE p.deleted = 0
-        GROUP BY p.id
-        ORDER BY p.created_at DESC
-        LIMIT ? OFFSET ?`, [limit.toString(), offset.toString()]);
+                SELECT p.*, u.username, u.id as userId, 
+                GROUP_CONCAT(DISTINCT f.title) as categories,
+                GROUP_CONCAT(DISTINCT f.id) as forum_ids,
+                -- This gets all URLs for display
+                (SELECT GROUP_CONCAT(image_url ORDER BY id ASC) FROM post_images WHERE post_id = p.id) as all_images,
+                -- This gets all IDs for the 'Replace' route
+                (SELECT GROUP_CONCAT(id ORDER BY id ASC) FROM post_images WHERE post_id = p.id) as image_ids,
+                -- The first image for the feed thumbnail
+                (SELECT image_url FROM post_images WHERE post_id = p.id ORDER BY id ASC LIMIT 1) as thumbnail,
+                (SELECT COUNT(*) FROM post_images WHERE post_id = p.id) as image_count
+            FROM posts p 
+            JOIN users u ON p.user_id = u.id 
+            LEFT JOIN post_categories pc ON p.id = pc.post_id
+            LEFT JOIN forums f ON pc.forum_id = f.id
+            WHERE p.deleted = 0
+            GROUP BY p.id
+            ORDER BY p.created_at DESC
+            LIMIT ? OFFSET ?`, [limit.toString(), offset.toString()]);
             
         const [allForums] = await db.execute(`SELECT id, title, header FROM forums ORDER BY header DESC, title ASC`);
 
@@ -60,6 +60,60 @@ router.get('/', async (req, res) => {
             currentPage: page,
             totalPages,
             forumTitle: "Home",
+            siteTitle: "ForumX"
+        });
+    } catch (err) {
+        console.error('Database Error:', err);
+        res.redirect("/");
+    }
+});
+
+router.get('/user/:id', async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const page = parseInt(req.query.page) || 1;
+        const limit = 15;
+        const offset = (page - 1) * limit;
+
+        const [countResult] = await db.execute(
+            'SELECT COUNT(*) as total FROM posts WHERE user_id = ? AND deleted = 0', 
+            [userId]
+        );
+        const totalPosts = countResult[0].total;
+        const totalPages = Math.ceil(totalPosts / limit);
+
+        const [posts] = await db.execute(`
+            SELECT p.*, u.username, 
+            GROUP_CONCAT(DISTINCT f.title) as categories,
+            GROUP_CONCAT(DISTINCT f.id) as forum_ids,
+            (SELECT GROUP_CONCAT(image_url ORDER BY id ASC) FROM post_images WHERE post_id = p.id) as all_images,
+            (SELECT GROUP_CONCAT(id ORDER BY id ASC) FROM post_images WHERE post_id = p.id) as image_ids,
+            (SELECT image_url FROM post_images WHERE post_id = p.id ORDER BY id ASC LIMIT 1) as thumbnail,
+            (SELECT COUNT(*) FROM post_images WHERE post_id = p.id) as image_count
+        FROM posts p 
+        JOIN users u ON p.user_id = u.id 
+        LEFT JOIN post_categories pc ON p.id = pc.post_id
+        LEFT JOIN forums f ON pc.forum_id = f.id
+        WHERE p.user_id = ? AND p.deleted = 0  -- Added user_id filter here
+        GROUP BY p.id
+        ORDER BY p.created_at DESC
+        LIMIT ? OFFSET ?`, [userId, limit.toString(), offset.toString()]);
+            
+        const [allForums] = await db.execute(`SELECT id, title, header FROM forums ORDER BY header DESC, title ASC`);
+
+        const profileUsername = posts.length > 0 ? posts[0].username : "User";
+
+        console.log(posts);
+        
+
+        res.render('pages/user', { 
+            posts,
+            allForums,
+            user: res.userInfo,
+            timeAgo,
+            currentPage: page,
+            totalPages,
+            forumTitle: `${profileUsername}'s Posts`,
             siteTitle: "ForumX"
         });
     } catch (err) {
@@ -106,7 +160,7 @@ router.get('/search', async (req, res) => {
         // 2. Fetch the posts
         const query = `
             SELECT 
-                p.*, u.username,
+                p.*, u.username, u.id as userId, 
                 GROUP_CONCAT(DISTINCT f.title) as categories,
                 GROUP_CONCAT(DISTINCT f.id) as forum_ids,
                 -- 1. Added this line to fetch the IDs for the "Replace" functionality
