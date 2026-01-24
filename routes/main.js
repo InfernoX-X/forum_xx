@@ -103,9 +103,6 @@ router.get('/user/:id', async (req, res) => {
 
         const profileUsername = posts.length > 0 ? posts[0].username : "User";
 
-        console.log(posts);
-        
-
         res.render('pages/user', { 
             posts,
             allForums,
