@@ -76,15 +76,6 @@ router.get('/post/:id', async (req, res) => {
                 ORDER BY shared_tag_count DESC, p.created_at DESC
                 LIMIT 8
             `, [forumIds, postId]);
-            if (recommended.length < 8) {
-                const [trending] = await db.query(`
-                    SELECT id, title, created_at FROM posts 
-                    WHERE id != ? 
-                    ORDER BY created_at DESC LIMIT ?
-                `, [postId, 8 - recommended.length]);
-                
-                recommended = [...recommended, ...trending];
-            }
         }
 
         res.render('pages/post', { 
