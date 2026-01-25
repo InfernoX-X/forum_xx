@@ -76,6 +76,44 @@
             padding: 0 4px;
         }
 
+        /* Read More / Less Logic */
+        .content-wrapper {
+            position: relative;
+            max-height: 200px; /* Adjust default visible height */
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .content-wrapper.expanded {
+            max-height: none;
+        }
+
+        .content-fade {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            background: linear-gradient(transparent, #121212); /* Matches modal background */
+            pointer-events: none;
+        }
+
+        .content-wrapper.expanded .content-fade {
+            display: none;
+        }
+
+        .read-more-btn {
+            background: none;
+            border: none;
+            color: var(--accent);
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            padding: 0;
+            text-transform: uppercase;
+        }
+
         .author-avatar {
             width: 36px;
             height: 36px;
@@ -396,7 +434,125 @@
             to { bottom: 0; opacity: 0; }
         }
     </style>
+    <style>
+    .filter-controls-group {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 25px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--border);
+    }
 
+    .control-box {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .control-label {
+        color: var(--accent);
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        margin: 0;
+    }
+
+    .options-row {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+    }
+
+    /* Custom Checkbox & Radio Styling */
+    .custom-checkbox, .custom-radio {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .custom-checkbox input, .custom-radio input {
+        display: none; /* Hide default */
+    }
+
+    .checkmark, .radio-dot {
+        width: 18px;
+        height: 18px;
+        border: 2px solid #444;
+        background: #1a1a1a;
+        transition: all 0.2s;
+    }
+
+    .checkmark { border-radius: 4px; }
+    .radio-dot { border-radius: 50%; }
+
+    .label-text {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+
+    /* Active States */
+    input:checked + .checkmark,
+    input:checked + .radio-dot {
+        background: var(--accent);
+        border-color: var(--accent);
+    }
+
+    input:checked ~ .label-text {
+        color: var(--text-main);
+    }
+
+    /* Add a small white dot/check inside when checked */
+    .radio-dot::after {
+        content: '';
+        position: absolute;
+        top: 6px; left: 6px;
+        width: 6px; height: 6px;
+        background: white;
+        border-radius: 50%;
+        opacity: 0;
+    }
+    input:checked + .radio-dot::after { opacity: 1; }
+    .checkmark {
+        width: 18px;
+        height: 18px;
+        border: 2px solid #444;
+        background: #1a1a1a;
+        border-radius: 4px;
+        display: inline-block;
+        position: relative; /* Needed to anchor the checkmark */
+        transition: all 0.2s;
+    }
+
+    /* The actual checkmark (hidden by default) */
+    .checkmark::after {
+        content: "";
+        position: absolute;
+        display: none;
+        left: 5px;
+        top: 1px;
+        width: 4px;
+        height: 8px;
+        border: solid white;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+    }
+
+    /* Show the checkmark when the hidden input is checked */
+    input:checked + .checkmark::after {
+        display: block;
+    }
+
+    /* Background turns red (your accent color) when checked */
+    input:checked + .checkmark {
+        background: var(--accent);
+        border-color: var(--accent);
+    }
+    </style>
 </head>
 
 <body>
@@ -415,9 +571,48 @@
             <div class="filter-section">
                 <label style="margin-bottom: 15px; display: block;">Filter by Category Groups</label>
                 
+                <div class="filter-controls-group">
+                    <div class="control-box">
+                        <label class="control-label">Search In</label>
+                        <div class="options-row">
+                            <label class="custom-checkbox">
+                                <input type="checkbox" name="scope" value="title" <%= !scope || scope.includes('title') ? 'checked' : '' %>>
+                                <span class="checkmark"></span>
+                                <span class="label-text">Title</span>
+                            </label>
+                            <label class="custom-checkbox">
+                                <input type="checkbox" name="scope" value="content" <%= !scope || scope.includes('content') ? 'checked' : '' %>>
+                                <span class="checkmark"></span>
+                                <span class="label-text">Content</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="control-box">
+                        <label class="control-label">Match Strategy</label>
+                        <div class="options-row">
+                            <label class="custom-radio">
+                                <input type="radio" name="mode" value="any" <%= searchMode !== 'all' ? 'checked' : '' %>>
+                                <span class="radio-dot"></span>
+                                <span class="label-text">Any Category (OR)</span>
+                            </label>
+                            <label class="custom-radio">
+                                <input type="radio" name="mode" value="all" <%= searchMode === 'all' ? 'checked' : '' %>>
+                                <span class="radio-dot"></span>
+                                <span class="label-text">All Categories (AND)</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="tag-search-wrapper">
                     <input type="text" id="tagSearchInput" placeholder="Filter categories..." class="tag-search-field">
                 </div>
+
+                <div id="selected-tags-tray" class="selected-tags-container" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; min-height: 40px;">
+                    <span style="color: #666; font-size: 0.8rem; width: 100%;">Active Filters:</span>
+                </div>
+
 
                 <div class="headers-container">
                     <% for (const header in groupedForums) { %>
@@ -478,7 +673,7 @@
 
                     <div class="post-actions-row">
                         <button class="btn-mini btn-info" onclick="openViewModal('<%= post.id %>')">Info</button>
-                        <% if (user && user.id == post.user_id) { %>
+                        <% if (user && (user.id === post.user_id || user.isAdmin == 1)) { %>
                             <button class="btn-mini btn-edit hide-editBtn" onclick="openEditModal('<%= post.id %>')">Edit</button>
                         <% } %>
                     </div>
@@ -505,15 +700,24 @@
                         <% })} %>
                     </div>
                     
-                    <p style="white-space: pre-wrap; color: #ccc; line-height: 1.8; font-size:1.1rem;"><%= post.content %></p>
-                    
+                    <div id="content-container-<%= post.id %>" class="content-wrapper">
+                        <p style="color: #ccc; line-height: 1.8; font-size:1.1rem;">
+                            <%= post.content %>
+                        </p>
+                        <div class="content-fade"></div>
+                    </div>
+
+                    <button id="toggle-btn-<%= post.id %>" class="read-more-btn" onclick="toggleReadMore('<%= post.id %>')">
+                        Read More
+                    </button>
+
                     <% if(post.url) { %>
                         <a href="<%= post.url %>" target="_blank" style="color:var(--accent); display:block; margin-top:20px; word-break:break-all;"><%= post.url %></a>
                     <% } %>
                 </div>
             </div>
 
-            <% if (user && user.id === post.user_id) { %>
+            <% if (user && (user.id === post.user_id || user.isAdmin == 1)) { %>
                 <div id="edit-modal-<%= post.id %>" class="modal-overlay">
                     <div class="modal-content">
                         <span class="close-modal" onclick="closeModal('edit-modal-<%= post.id %>')">&times;</span>
@@ -813,6 +1017,65 @@
         });
     });
 
+    function toggleReadMore(postId) {
+        const container = document.getElementById(`content-container-${postId}`);
+        const btn = document.getElementById(`toggle-btn-${postId}`);
+        
+        if (container.classList.contains('expanded')) {
+            container.classList.remove('expanded');
+            btn.innerText = "Read More";
+            // Scroll back to top of modal when collapsing
+            btn.closest('.modal-content').scrollTop = 0;
+        } else {
+            container.classList.add('expanded');
+            btn.innerText = "Read Less";
+        }
+    }
+
+</script>
+
+<script>
+    function updateSelectedTray() {
+    const tray = document.getElementById('selected-tags-tray');
+    // Find all checked checkboxes in the forums list
+    const selectedCheckboxes = document.querySelectorAll('input[name="forums"]:checked');
+    
+    // Clear the tray except for the label
+    tray.innerHTML = '<span style="color: #666; font-size: 0.8rem; width: 100%;">Active Filters:</span>';
+
+    if (selectedCheckboxes.length === 0) {
+        tray.innerHTML += '<span style="color: #444; font-size: 0.8rem;">None selected</span>';
+        return;
+    }
+
+    selectedCheckboxes.forEach(cb => {
+        const labelText = cb.nextElementSibling.innerText;
+        
+        // Create a "Chip" for the tray
+        const chip = document.createElement('div');
+        chip.className = 'selected-chip';
+        chip.style.cssText = "background: var(--accent); color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 5px;";
+        chip.innerHTML = `${labelText} <span style="font-weight:bold">&times;</span>`;
+        
+        // Clicking the chip unchecks the original checkbox
+        chip.onclick = () => {
+            cb.checked = false;
+            updateSelectedTray(); // Refresh tray
+        };
+        
+        tray.appendChild(chip);
+    });
+}
+
+// Initialize on page load to catch EJS pre-selected items
+document.addEventListener('DOMContentLoaded', () => {
+    updateSelectedTray();
+    
+    // Attach listener to all forum checkboxes
+    document.querySelectorAll('input[name="forums"]').forEach(input => {
+        input.addEventListener('change', updateSelectedTray);
+    });
+});
 </script>
 
 </body>

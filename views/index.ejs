@@ -87,6 +87,44 @@
             padding: 0 4px;
         }
 
+        /* Read More / Less Logic */
+        .content-wrapper {
+            position: relative;
+            max-height: 200px; /* Adjust default visible height */
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .content-wrapper.expanded {
+            max-height: none;
+        }
+
+        .content-fade {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            background: linear-gradient(transparent, #121212); /* Matches modal background */
+            pointer-events: none;
+        }
+
+        .content-wrapper.expanded .content-fade {
+            display: none;
+        }
+
+        .read-more-btn {
+            background: none;
+            border: none;
+            color: var(--accent);
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            padding: 0;
+            text-transform: uppercase;
+        }
+
         .author-avatar {
             width: 36px;
             height: 36px;
@@ -521,7 +559,7 @@
                     <div class="post-actions-row">
                         <button class="btn-mini btn-info" onclick="openViewModal('<%= post.id %>')">Info</button>
 
-                        <% if (user && user.id == post.user_id) { %>
+                        <% if (user && (user.id === post.user_id || user.isAdmin == 1)) { %>
                             <button class="btn-mini btn-edit hide-editBtn" onclick="openEditModal('<%= post.id %>')">Edit</button>
                         <% } %>
                     </div>
@@ -547,16 +585,25 @@
                             <span class="forum-badge" style="background:var(--accent); color:white; padding:4px 10px; margin-right:5px;"><%= cat %></span>
                         <% })} %>
                     </div>
-                    
-                    <p style="white-space: pre-wrap; color: #ccc; line-height: 1.8; font-size:1.1rem;"><%= post.content %></p>
-                    
+
+                    <div id="content-container-<%= post.id %>" class="content-wrapper">
+                        <p style="color: #ccc; line-height: 1.8; font-size:1.1rem;">
+                            <%= post.content %>
+                        </p>
+                        <div class="content-fade"></div>
+                    </div>
+
+                    <button id="toggle-btn-<%= post.id %>" class="read-more-btn" onclick="toggleReadMore('<%= post.id %>')">
+                        Read More
+                    </button>
+
                     <% if(post.url) { %>
                         <a href="<%= post.url %>" target="_blank" style="color:var(--accent); display:block; margin-top:20px; word-break:break-all;"><%= post.url %></a>
                     <% } %>
                 </div>
             </div>
 
-            <% if (user && user.id === post.user_id) { %>
+            <% if (user && user.id === post.user_id || user.isAdmin == 1) { %>
                 <div id="edit-modal-<%= post.id %>" class="modal-overlay">
                     <div class="modal-content">
                         <span class="close-modal" onclick="closeModal('edit-modal-<%= post.id %>')">&times;</span>
@@ -831,6 +878,22 @@
     if (typeof initializeImageGallery === "function") {
         initializeImageGallery("popUpClass");
     }
+
+    function toggleReadMore(postId) {
+        const container = document.getElementById(`content-container-${postId}`);
+        const btn = document.getElementById(`toggle-btn-${postId}`);
+        
+        if (container.classList.contains('expanded')) {
+            container.classList.remove('expanded');
+            btn.innerText = "Read More";
+            // Scroll back to top of modal when collapsing
+            btn.closest('.modal-content').scrollTop = 0;
+        } else {
+            container.classList.add('expanded');
+            btn.innerText = "Read Less";
+        }
+    }
+
 </script>
 
 </body>

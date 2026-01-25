@@ -4,7 +4,7 @@ const getUserInfo = async (req, res, next) => {
   const userId = req.user.userId;
   
   try {
-    const [users] = await db.execute('SELECT id, username, email FROM users WHERE id = ?', [userId]);
+    const [users] = await db.execute('SELECT id, username, email, isAdmin FROM users WHERE id = ?', [userId]);
     
     const [rows] = await db.execute('SELECT COUNT(*) as total FROM posts WHERE deleted = 0 AND user_id = ?', [userId]);
 

@@ -108,6 +108,47 @@
     }
     .description-card:hover { background: #252525; }
     
+    /* Container for the content */
+    #content-wrapper {
+        overflow: hidden;
+        position: relative;
+        transition: max-height 0.3s ease-out;
+    }
+
+    /* Clamping the text to ~4 lines when collapsed */
+    .content-collapsed {
+        max-height: 100px; /* Adjust this height as needed */
+        -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+        mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+    }
+
+    /* Expanded state (no mask) */
+    .content-expanded {
+        max-height: 2000px !important; /* Large enough to fit any text */
+        -webkit-mask-image: none !important;
+        mask-image: none !important;
+    }
+
+    /* Read More Button Styling */
+    .read-more-link {
+        background: none;
+        border: none;
+        color: var(--accent);
+        padding: 0;
+        margin-top: 8px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .read-more-link:hover {
+        color: var(--accent-hover);
+        text-decoration: underline;
+    }
+
+
     .tags-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
     .forum-badge {
         background: var(--accent);
@@ -168,6 +209,7 @@
         .right-sidebar { grid-column: 2; position: sticky; top: 24px; }
     }
 
+    /* Side Recommend List */
     .sidebar-title {
         font-size: 1rem;
         font-weight: 800;
@@ -375,9 +417,13 @@
                 <% } %>
             </div>
             
-            <p class="post-content">
-                Description: <%= post.content %>
-            </p>
+            <div id="content-wrapper" class="content-collapsed">
+                <p class="post-content">
+                    <strong>Description:</strong> <%= post.content %>
+                </p>
+            </div>
+
+            <button id="read-more-btn" class="read-more-link" style="display: none;">Read More</button>
     
             <% if(post.url) { %>
                 <div style="margin-top: 30px;">
@@ -451,6 +497,31 @@
 <%- include("../partials/imageViewer") %>
 
 <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const wrapper = document.getElementById('content-wrapper');
+        const btn = document.getElementById('read-more-btn');
+        
+        // Check if the content is taller than our limit (100px)
+        if (wrapper.scrollHeight > 100) {
+            btn.style.display = 'inline-block'; // Show button only if content is long
+        }
+
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('content-collapsed')) {
+                wrapper.classList.remove('content-collapsed');
+                wrapper.classList.add('content-expanded');
+                btn.textContent = 'Read Less';
+            } else {
+                wrapper.classList.remove('content-expanded');
+                wrapper.classList.add('content-collapsed');
+                btn.textContent = 'Read More';
+                
+                // Optional: Scroll back up to the top of the description if closing
+                wrapper.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        });
+    });
+
     // This ensures all images in the gallery are clickable for the viewer
     if (typeof initializeImageGallery === "function") {
         // You might need to select all elements with the class

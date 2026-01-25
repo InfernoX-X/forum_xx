@@ -201,6 +201,7 @@ router.post('/posts/create', upload.array('images', 5), async (req, res) => {
 router.post('/posts/edit-image/:imageId', upload.single('image'), async (req, res) => {
     const { imageId } = req.params;
     const userId = res.userInfo.id;
+    const isAdmin = res.userInfo.isAdmin === 1;
 
     if (!req.file) return res.status(400).send('No image provided');
 
@@ -212,7 +213,9 @@ router.post('/posts/edit-image/:imageId', upload.single('image'), async (req, re
             WHERE pi.id = ?`, [imageId]);
 
         if (imgData.length === 0) return res.status(404).send('Image not found');
-        if (imgData[0].user_id !== userId) return res.status(403).send('Unauthorized');
+        if (imgData[0].user_id !== userId && !isAdmin) {
+            return res.status(403).send('Unauthorized');
+        }
 
         // 1. Upload NEW image first
         const result = await new Promise((resolve, reject) => {
@@ -245,6 +248,7 @@ router.post('/posts/edit-image/:imageId', upload.single('image'), async (req, re
 router.post('/posts/add-images/:id', upload.array('images', 5), async (req, res) => {
     const postId = req.params.id;
     const userId = res.userInfo.id;
+    const isAdmin = res.userInfo.isAdmin === 1; // Check admin status
     const connection = await db.getConnection();
 
     try {
@@ -256,7 +260,7 @@ router.post('/posts/add-images/:id', upload.array('images', 5), async (req, res)
             [postId]
         );
 
-        if (post.length === 0 || post[0].user_id !== userId) {
+        if (post.length === 0 || (post[0].user_id !== userId && !isAdmin)) {
             await connection.rollback();
             return res.status(403).send('Unauthorized or Post not found');
         }
@@ -316,13 +320,16 @@ router.post('/posts/edit/:id', async (req, res) => {
     const postId = req.params.id;
     const { title, content, url, forumIds } = req.body;
     const userId = res.userInfo.id;
+    const isAdmin = res.userInfo.isAdmin === 1; // Check admin status
     const conn = await db.getConnection(); // Get connection for transaction
 
     try {
         await conn.beginTransaction();
 
         const [post] = await conn.execute(`SELECT user_id FROM posts WHERE id = ?`, [postId]);
-        if (post.length === 0 || post[0].user_id !== userId) {
+
+        // UPDATED: Allow if owner OR admin
+        if (post.length === 0 || (post[0].user_id !== userId && !isAdmin)) {
             await conn.rollback();
             return res.status(403).send('Unauthorized');
         }

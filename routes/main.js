@@ -125,24 +125,50 @@ router.get('/search', async (req, res) => {
         const page = parseInt(req.query.page) || 1;
         const limit = 15;
         const offset = (page - 1) * limit;
+
         const searchTerm = req.query.q || '';
-        
-        // Handle categories: could be a single ID or an array of IDs
+        const searchMode = req.query.mode === 'all' ? 'all' : 'any';
+
+        let scope = req.query.scope || ['title', 'content'];
+        if (!Array.isArray(scope)) scope = [scope];
+
         let forumIds = req.query.forums || [];
-        if (!Array.isArray(forumIds) && forumIds !== '') {
-            forumIds = [forumIds];
+        if (!Array.isArray(forumIds) && forumIds !== '') forumIds = [forumIds];
+
+        let scopeClauses = [];
+        let queryParams = [];
+
+        if (searchTerm) {
+            if (scope.includes('title')) {
+                scopeClauses.push('p.title LIKE ?');
+                queryParams.push(`%${searchTerm}%`);
+            }
+            if (scope.includes('content')) {
+                scopeClauses.push('p.content LIKE ?');
+                queryParams.push(`%${searchTerm}%`);
+            }
+        }
+        let whereClause = 'p.deleted = 0';
+        if (scopeClauses.length > 0) {
+            whereClause += ` AND (${scopeClauses.join(' OR ')})`;
+        } else if (searchTerm) {
+            whereClause += ` AND 1=0`; 
         }
 
-        let whereClause = 'p.deleted = 0 AND (p.title LIKE ? OR p.content LIKE ?)';
-        let queryParams = [`%${searchTerm}%`, `%${searchTerm}%`];
 
-        // If specific forums are selected, we filter the results
         if (forumIds.length > 0) {
-            // Using placeholder (?,?,?) for the IN clause
             const placeholders = forumIds.map(() => '?').join(',');
-            whereClause += ` AND p.id IN (
-                SELECT post_id FROM post_categories WHERE forum_id IN (${placeholders})
-            )`;
+            if (searchMode === 'all') {
+                whereClause += ` AND p.id IN (
+                    SELECT post_id FROM post_categories 
+                    WHERE forum_id IN (${placeholders})
+                    GROUP BY post_id HAVING COUNT(DISTINCT forum_id) = ${forumIds.length}
+                )`;
+            } else {
+                whereClause += ` AND p.id IN (
+                    SELECT post_id FROM post_categories WHERE forum_id IN (${placeholders})
+                )`;
+            }
             queryParams = [...queryParams, ...forumIds];
         }
 
@@ -184,12 +210,12 @@ router.get('/search', async (req, res) => {
 
         
         // 3. Fetch all forums so the user can see/change filters on the results page
-        const [allForumsRaw] = await db.execute(
+        const [allForums] = await db.execute(
             'SELECT id, title, header FROM forums ORDER BY header ASC, title ASC'
         );
 
         // Group forums by header
-        const groupedForums = allForumsRaw.reduce((groups, forum) => {
+        const groupedForums = allForums.reduce((groups, forum) => {
             const header = forum.header || 'Other'; // Fallback for forums without a header
             if (!groups[header]) {
                 groups[header] = [];
@@ -198,12 +224,12 @@ router.get('/search', async (req, res) => {
             return groups;
         }, {});
         
-        const [allForums] = await db.execute(`SELECT id, title, header FROM forums ORDER BY header DESC, title ASC`);
-
         res.render('pages/search', { 
             posts,
             groupedForums: groupedForums,
             allForums,
+            scope: scope,
+            searchMode: searchMode,
             selectedForums: forumIds,
             user: res.userInfo,
             timeAgo: timeAgo,
