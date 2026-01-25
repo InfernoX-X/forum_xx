@@ -158,7 +158,7 @@
         
         <section class="card">
             <h3>Create New Content</h3>
-            <form action="/forum/posts/create" method="post" enctype="multipart/form-data">
+            <form action="/forum/posts/create" method="post" enctype="multipart/form-data" onsubmit="return validateMedia()">
                 <label>Video Title</label>
                 <input type="text" name="title" placeholder="Original Title with (Female Performer's name)" required>
 
@@ -228,6 +228,28 @@
 </div>
 
 <script>
+    function validateMedia() {
+        const fileInput = document.getElementById('post-images');
+        const urlInput = document.getElementById('urlInput');
+        
+        // Check if files are selected OR if there is text in the URL box
+        const hasFiles = fileInput.files.length > 0;
+        const hasUrls = urlInput.value.trim().length > 0;
+
+        if (!hasFiles && !hasUrls) {
+            alert("Please provide at least one image (either upload a file or paste a URL).");
+            
+            // Optional: Highlight the fields to show they are missing
+            document.getElementById('main-file-label').style.borderColor = "var(--accent)";
+            urlInput.style.borderColor = "var(--accent)";
+            
+            return false; // Prevents the form from submitting
+        }
+
+        return true; // Allows the form to submit
+    }
+
+
     // Modal Logic
     const modal = document.getElementById('guideModal');
     const infoBtn = document.getElementById('infoBtn');
@@ -266,6 +288,8 @@
         const label = document.getElementById('main-file-label');
         
         container.innerHTML = ""; // Clear existing
+        urlInput.style.borderColor = "var(--border)";
+        label.style.borderColor = "var(--border)";
 
         let totalCount = 0;
         const MAX_ALLOWED = 5;
@@ -306,6 +330,7 @@
         }
     }
 
+    
     // Attach listener to URL input as well
     document.getElementById('urlInput').addEventListener('input', updatePreviews);
 
