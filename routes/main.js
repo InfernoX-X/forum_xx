@@ -252,7 +252,7 @@ router.get('/contribute', async (req, res) => {
         const [allForums] = await db.execute(`
             SELECT id, title, header 
             FROM forums 
-            ORDER BY header DESC, title ASC
+            ORDER BY header ASC, title ASC
         `);
 
         const [headers] = await db.execute(`

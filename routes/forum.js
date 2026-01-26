@@ -55,7 +55,7 @@ router.get('/post/:id', async (req, res) => {
         // 2. Fetch Images & Comments  
         const [images] = await db.execute(`SELECT * FROM post_images WHERE post_id = ?`, [postId]);
         const [comments] = await db.execute(`
-            SELECT c.*, u.username FROM comments c 
+            SELECT c.*, u.username, u.id as userId FROM comments c 
             JOIN users u ON c.user_id = u.id 
             WHERE c.post_id = ? ORDER BY c.created_at DESC
         `, [postId]);
