@@ -62,9 +62,23 @@
         .forum-item {
             display: flex; align-items: center; gap: 8px; font-size: 0.8rem;
             cursor: pointer; padding: 5px; color: #ccc;
+            transition: all 0.2s ease;
+            background: #080808;
         }
-        .forum-item:hover { background: #151515; color: #fff; }
-        .forum-item input[type="checkbox"] { width: auto; margin: 0; accent-color: var(--accent); }
+        .forum-item:hover { 
+            border-color: #444 !important;
+            background: #111 !important; 
+            color: #fff; }
+
+        .forum-item:has(input:checked) {
+            border-color: var(--accent) !important;
+            background: rgba(249, 55, 66, 0.1) !important;
+            color: var(--accent) !important;
+        }
+        
+        .forum-item input[type="checkbox"] {
+            display: none;
+        }
 
         /* File Upload */
         .file-label { 
@@ -162,24 +176,53 @@
                 <label>Video Title</label>
                 <input type="text" name="title" placeholder="Original Title with (Female Performer's name)" required>
 
-                <label>Target Categories</label>
+                <label>Categorize Content</label>
+                <div id="selectedTagsPreview" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
+                </div>
                 <div class="tag-search-wrapper" style="margin-bottom: 10px;">
-                    <input type="text" id="tagSearchInput" placeholder="Quick find category..." 
-                        style="font-size: 0.8rem; padding: 8px; margin-bottom: 0;">
+                    <input type="text" id="tagSearchInput" placeholder="Quick find any tag..." style="font-size: 0.8rem; padding: 8px; margin-bottom: 0;">
                 </div>
-                <div class="forum-selection-container">
-                    <% let currentHeader = ""; %>
-                    <% allForums.forEach(f => { %>
-                        <% if (f.header !== currentHeader) { 
-                            currentHeader = f.header; %>
-                            <div class="category-group-header"><%= currentHeader %></div>
-                        <% } %>
-                        <label class="forum-item" data-name="<%= f.title.toLowerCase() %>">
-                            <input type="checkbox" name="forumIds" value="<%= f.id %>">
-                            <%= f.title %>
-                        </label>
+
+                <!-- <div class="forum-selection-container" style="max-height: 400px;"> -->
+                    <% 
+                        // 1. Define the headers you want to prioritize at the top
+                        const headerOrder = ["Act", "Orientation", "No. of People", "Age", "Body","Ethnicity","Hair","Level","Locations","Profession","Relationship","Scenario","Actions","Toys"];
+
+                        // 2. Group the forums by header
+                        const grouped = {};
+                        allForums.forEach(f => {
+                            if (!grouped[f.header]) grouped[f.header] = [];
+                            grouped[f.header].push(f);
+                        });
+
+                        // 3. Get all headers currently present in the data
+                        const existingHeaders = Object.keys(grouped);
+
+                        // 4. Create the final sequence: Priorities first, then the remaining "leftovers"
+                        const finalHeaderSequence = [
+                            ...headerOrder.filter(h => existingHeaders.includes(h)),
+                            ...existingHeaders.filter(h => !headerOrder.includes(h))
+                        ];
+                    %>
+
+                    <% finalHeaderSequence.forEach(header => { 
+                        const forums = grouped[header]; 
+                    %>
+                        <div class="category-section" style="margin-bottom: 15px; border: 1px solid #222; border-radius: 4px; overflow: hidden;">
+                            <div class="category-group-header" style="margin: 0; padding: 8px 10px; background: #1a1a1a; color: #fff; font-weight: bold; border-bottom: 1px solid #222;">
+                                <%= header %>
+                            </div>
+                            <div class="category-options" style="padding: 10px; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; background: #111;">
+                                <% forums.forEach(f => { %>
+                                    <label class="forum-item" data-name="<%= f.title.toLowerCase() %>" style="border: 1px solid #222; padding: 6px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; color: #ccc; display: flex; align-items: center; gap: 5px;">
+                                        <input type="checkbox" name="forumIds" value="<%= f.id %>" style="margin: 0;">
+                                        <%= f.title %>
+                                    </label>
+                                <% }) %>
+                            </div>
+                        </div>
                     <% }) %>
-                </div>
+                <!-- </div> -->
 
                 <label>Body Content</label>
                 <textarea name="content" rows="4" placeholder="Detailed description..." required></textarea>
@@ -228,25 +271,57 @@
 </div>
 
 <script>
+
+    const forumCheckboxes = document.querySelectorAll('input[name="forumIds"]');
+    const selectedPreview = document.getElementById('selectedTagsPreview');
+
+    forumCheckboxes.forEach(cb => {
+        cb.addEventListener('change', () => {
+            updateSelectedChips();
+        });
+    });
+
+    function updateSelectedChips() {
+        selectedPreview.innerHTML = '';
+        const selected = Array.from(forumCheckboxes).filter(cb => cb.checked);
+        
+        selected.forEach(cb => {
+            const tagName = cb.parentElement.textContent.trim();
+            const chip = document.createElement('span');
+            chip.style.cssText = "background: var(--accent); color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px;";
+            chip.innerHTML = `${tagName} <span style="font-size: 1rem;">&times;</span>`;
+            
+            // Clicking the chip unchecks the box
+            chip.onclick = () => {
+                cb.checked = false;
+                updateSelectedChips();
+            };
+            selectedPreview.appendChild(chip);
+        });
+    }
+
     function validateMedia() {
         const fileInput = document.getElementById('post-images');
         const urlInput = document.getElementById('urlInput');
+        const checkboxes = document.querySelectorAll('input[name="forumIds"]:checked');
         
-        // Check if files are selected OR if there is text in the URL box
+        // 1. Check Categories (New)
+        if (checkboxes.length === 0) {
+            alert("Please select at least one category/tag.");
+            document.querySelector('.forum-selection-container').style.borderColor = "var(--accent)";
+            return false;
+        }
+
+        // 2. Existing Image Validation
         const hasFiles = fileInput.files.length > 0;
         const hasUrls = urlInput.value.trim().length > 0;
 
         if (!hasFiles && !hasUrls) {
-            alert("Please provide at least one image (either upload a file or paste a URL).");
-            
-            // Optional: Highlight the fields to show they are missing
-            document.getElementById('main-file-label').style.borderColor = "var(--accent)";
-            urlInput.style.borderColor = "var(--accent)";
-            
-            return false; // Prevents the form from submitting
+            alert("Please provide at least one image.");
+            return false; 
         }
 
-        return true; // Allows the form to submit
+        return true; 
     }
 
 
@@ -336,39 +411,24 @@
 
     document.getElementById('tagSearchInput').addEventListener('input', function(e) {
         const searchTerm = e.target.value.toLowerCase().trim();
-        const container = document.querySelector('.forum-selection-container');
-        const items = container.querySelectorAll('.forum-item');
-        const headers = container.querySelectorAll('.category-group-header');
+        const sections = document.querySelectorAll('.category-section');
 
-        // 1. Filter the individual forum items
-        items.forEach(item => {
-            const tagName = item.getAttribute('data-name') || "";
-            if (tagName.includes(searchTerm)) {
-                item.classList.remove('hidden-item');
-            } else {
-                item.classList.add('hidden-item');
-            }
-        });
+        sections.forEach(section => {
+            const items = section.querySelectorAll('.forum-item');
+            let hasMatch = false;
 
-        // 2. Hide headers that no longer have visible items following them
-        headers.forEach(header => {
-            let nextEl = header.nextElementSibling;
-            let hasVisibleChild = false;
-
-            // Check all siblings until the next header or end of container
-            while (nextEl && !nextEl.classList.contains('category-group-header')) {
-                if (nextEl.classList.contains('forum-item') && !nextEl.classList.contains('hidden-item')) {
-                    hasVisibleChild = true;
-                    break;
+            items.forEach(item => {
+                const tagName = item.getAttribute('data-name') || "";
+                if (tagName.includes(searchTerm)) {
+                    item.style.display = 'flex';
+                    hasMatch = true;
+                } else {
+                    item.style.display = 'none';
                 }
-                nextEl = nextEl.nextElementSibling;
-            }
+            });
 
-            if (hasVisibleChild) {
-                header.classList.remove('hidden-item');
-            } else {
-                header.classList.add('hidden-item');
-            }
+            // Hide the whole section (including header) if no items match
+            section.style.display = hasMatch ? 'block' : 'none';
         });
     });
 </script>
