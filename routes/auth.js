@@ -42,7 +42,7 @@ router.post('/register', async (req, res) => {
       path: '/',
       secure: process.env.NODE_ENV === 'production', // Only secure in production
       httpOnly: true,
-      sameSite: 'strict'
+      sameSite: 'Lax'
     });
 
     res.redirect('/');
@@ -93,7 +93,7 @@ router.post('/login', async (req, res) => {
       path: '/',
       secure: process.env.NODE_ENV === 'production', // Only secure in production
       httpOnly: true,
-      sameSite: 'strict'
+      sameSite: 'Lax'
     });
 
 
