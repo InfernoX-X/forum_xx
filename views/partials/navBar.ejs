@@ -112,7 +112,7 @@
         right: 0;
         top: calc(100% + 15px);
         background-color: var(--dropdown-bg);
-        min-width: 240px;
+        min-width: 280px;
         box-shadow: 0px 12px 24px rgba(0,0,0,0.6);
         border-radius: 12px;
         border: 1px solid var(--border-color);
@@ -347,65 +347,6 @@
         .nav-actions { gap: 15px; }
     }
     
-    .badge {
-        font-size: 0.65rem;
-        padding: 3px 8px;
-        border-radius: 4px;
-        text-transform: uppercase;
-        font-weight: 800;
-        display: inline-flex;
-        align-items: center;
-        margin-left: 4px;
-    }
-
-    .badge-noob { background: #2a2a2a; color: #888; border: 1px solid #444; }
-
-    .badge-contributor { background: #1e3a2f; color: #4ade80; border: 1px solid #14532d; } 
-
-    .badge-regular { background: #1e293b; color: #38bdf8; border: 1px solid #1e40af; } 
-
-    .badge-elder {
-        background: #4a2d0f;
-        color: #fb923c;
-        border: 1px solid #7c2d12;
-        box-shadow: 0 0 5px rgba(124, 45, 18, 0.3);
-    }
-
-    .badge-elite { 
-        background: linear-gradient(135deg, #f93742 0%, #991b1b 100%); 
-        color: white; 
-    }
-
-    .badge-expert { 
-        background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%); 
-        color: white;
-        box-shadow: 0 0 10px rgba(168, 85, 247, 0.4);
-    }
-
-    .badge-legend { 
-        background: linear-gradient(135deg, #f59e0b 0%, #78350f 100%); 
-        color: #fff;
-        border: 1px solid #fde047;
-        box-shadow: 0 0 15px rgba(245, 158, 11, 0.5);
-        animation: pulse 2s infinite;
-    }
-
-    .badge-god {
-        background: linear-gradient(135deg, #111 0%, #F93742 50%, #111 100%);
-        background-size: 200% auto;
-        color: #fff;
-        border: 1px solid #f93742;
-        box-shadow: 0 0 15px rgba(249, 55, 66, 0.6);
-        animation: godFlare 3s linear infinite;
-        text-shadow: 0 0 5px #000;
-    }
-
-    @keyframes godFlare {
-        0% { background-position: 0% center; }
-        50% { background-position: 100% center; }
-        100% { background-position: 0% center; }
-    }
-
     /* Help Icon Styling */
     .badge-help {
         position: relative;
@@ -564,6 +505,68 @@
 
 </style>
 
+<style>
+    .badge {
+        font-size: 0.65rem;
+        padding: 3px 8px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        margin-left: 4px;
+    }
+
+    .badge-noob { background: #2a2a2a; color: #888; border: 1px solid #444; }
+
+    .badge-contributor { background: #1e3a2f; color: #4ade80; border: 1px solid #14532d; } 
+
+    .badge-regular { background: #1e293b; color: #38bdf8; border: 1px solid #1e40af; } 
+
+    .badge-elder {
+        background: #4a2d0f;
+        color: #fb923c;
+        border: 1px solid #7c2d12;
+        box-shadow: 0 0 5px rgba(124, 45, 18, 0.3);
+    }
+
+    .badge-elite { 
+        background: linear-gradient(135deg, #f93742 0%, #991b1b 100%); 
+        color: white; 
+    }
+
+    .badge-expert { 
+        background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%); 
+        color: white;
+        box-shadow: 0 0 10px rgba(168, 85, 247, 0.4);
+    }
+
+    .badge-legend { 
+        background: linear-gradient(135deg, #f59e0b 0%, #78350f 100%); 
+        color: #fff;
+        border: 1px solid #fde047;
+        box-shadow: 0 0 15px rgba(245, 158, 11, 0.5);
+        animation: pulse 2s infinite;
+    }
+
+    .badge-god {
+        background: linear-gradient(135deg, #111 0%, #F93742 50%, #111 100%);
+        background-size: 200% auto;
+        color: #fff;
+        border: 1px solid #f93742;
+        box-shadow: 0 0 15px rgba(249, 55, 66, 0.6);
+        animation: godFlare 3s linear infinite;
+        text-shadow: 0 0 5px #000;
+    }
+
+    @keyframes godFlare {
+        0% { background-position: 0% center; }
+        50% { background-position: 100% center; }
+        100% { background-position: 0% center; }
+    }
+
+</style>
+
 <nav class="main-navbar">
     <div class="nav-container">
         <a href="/" class="logo">Forum<span>X</span></a>
@@ -585,21 +588,45 @@
             <div class="dropdown">
                 <button class="dropbtn-icon" id="settingsBtn">⚙️</button>
                 
+                <% 
+                    // 1. MASTER CONFIG (Sorted high to low)
+                    const ranks = [
+                        { min: 2000, label: 'God', class: 'god', icon: '🐦‍🔥' },
+                        { min: 1000, label: 'Legend', class: 'legend', icon: '👑' },
+                        { min: 500,  label: 'Expert', class: 'expert', icon: '💎' },
+                        { min: 250,  label: 'Elite', class: 'elite', icon: '🔥' },
+                        { min: 100,  label: 'Elder', class: 'elder', icon: '🔶' },
+                        { min: 50,   label: 'Regular', class: 'regular', icon: '🛡️' },
+                        { min: 10,   label: 'Member', class: 'contributor', icon: '📜' },
+                        { min: 0,    label: 'Novice', class: 'noob', icon: '🌱' }
+                    ];
+
+                    // 2. FIND CURRENT RANK
+                    let currentRank = ranks.find(r => user.postCount >= r.min);
+
+                    // 3. FIND NEXT RANK
+                    let nextRankIndex = ranks.findIndex(r => user.postCount >= r.min) - 1;
+                    let nextRank = nextRankIndex >= 0 ? ranks[nextRankIndex] : null;
+
+                    // 4. CALCULATE BRACKET PROGRESS
+                    let progress = 100;
+                    if (nextRank) {
+                        let currentLevelMin = currentRank.min;
+                        let nextLevelMin = nextRank.min;
+                        progress = ((user.postCount - currentLevelMin) / (nextLevelMin - currentLevelMin)) * 100;
+                    }
+                %>
+
                 <div class="dropdown-content" id="settingsDropdown">
                     <div class="user-info">
                         <small>SIGNED IN AS</small>
-                        <div style="display: flex; align-items: center; gap: 8px; position: relative;">
+                        <div style="display: flex; align-items: center; gap: 10px; position: relative;">
                             <div class="pulse-indicator" title="Live Session Active"></div>
-                            <strong><%= user.username %></strong>
-
-                            <% if (user.postCount >= 2000) { %><span class="badge badge-god">🐦‍🔥 God</span>
-                            <% } else if (user.postCount >= 1000) { %><span class="badge badge-legend">👑 Legend</span>
-                            <% } else if (user.postCount >= 500) { %><span class="badge badge-expert">💎 Expert</span>
-                            <% } else if (user.postCount >= 250) { %><span class="badge badge-elite">🔥 Elite</span>
-                            <% } else if (user.postCount >= 100) { %><span class="badge badge-elder">🔶 Elder</span>
-                            <% } else if (user.postCount >= 50) { %><span class="badge badge-regular">🛡️ Regular</span>
-                            <% } else if (user.postCount >= 10) { %><span class="badge badge-contributor">📜 Member</span>
-                            <% } else { %><span class="badge badge-noob">🌱 Novice</span><% } %>
+                            <strong style="letter-spacing: 1px;"><%= user.username %></strong>
+                            
+                            <span class="badge badge-<%= currentRank.class %>">
+                                <%= currentRank.icon %> <%= currentRank.label %>
+                            </span>
 
                             <div class="badge-help">
                                 <span class="help-icon">ⓘ</span>
@@ -607,79 +634,35 @@
                         </div>
 
                         <div class="badge-tooltip">
-                            <div class="tooltip-title">Rank Requirements</div>
+                            <div class="tooltip-title">System Hierarchy</div>
                             <table>
-                                <tr><td>🌱 Novice</td><td>0+</td></tr>
-                                <tr><td>📜 Member</td><td>10+</td></tr>
-                                <tr><td>🛡️ Regular</td><td>50+</td></tr>
-                                <tr><td>🔶 Elder</td><td>100+</td></tr>
-                                <tr><td>🔥 Elite</td><td>250+</td></tr>
-                                <tr><td>💎 Expert</td><td>500+</td></tr>
-                                <tr><td>👑 Legend</td><td>1000+</td></tr>
-                                <tr><td>🐦‍🔥 God</td><td>2000+</td></tr>
+                                <% [...ranks].reverse().forEach(rank => { %>
+                                    <tr class="<%= user.postCount >= rank.min ? 'rank-unlocked' : 'rank-locked' %>">
+                                        <td><%= rank.icon %> <%= rank.label %></td>
+                                        <td><%= rank.min %>+</td>
+                                    </tr>
+                                <% }); %>
                             </table>
                             
                             <div class="tooltip-footer">
-                                <% 
-                                    let nextGoal = 0;
-                                    let label = "";
-                                    if (user.postCount < 10) { nextGoal = 10; label = "Member"; }
-                                    else if (user.postCount < 50) { nextGoal = 50; label = "Regular"; }
-                                    else if (user.postCount < 100) { nextGoal = 100; label = "Elder"; }
-                                    else if (user.postCount < 250) { nextGoal = 250; label = "Elite"; }
-                                    else if (user.postCount < 500) { nextGoal = 500; label = "Expert"; }
-                                    else if (user.postCount < 1000) { nextGoal = 1000; label = "Legend"; }
-                                    else if (user.postCount < 2000) { nextGoal = 2000; label = "God"; }
-                                %>
-                                
-                                <% if (nextGoal > 0) { %>
-                                    Next: <strong><%= label %></strong> in <%= nextGoal - user.postCount %> posts
+                                <% if (nextRank) { %>
+                                    EST. UPLINK: <strong><%= nextRank.label %></strong> IN <%= nextRank.min - user.postCount %> UNITS
                                 <% } else { %>
-                                    You are a <strong>God</strong>! 🐦‍🔥
+                                    <span class="glitch-text">MAX LEVEL REACHED</span>
                                 <% } %>
                             </div>
-
                         </div>
 
                         <div class="user-progress-container" style="padding: 10px 0; margin-top: 6px;">
-                            <% 
-                                let thresholds = [10, 50, 100, 250, 500, 1000, 2000];
-                                let labels = ["Member", "Regular", "Elder", "Elite",  "Expert", "Legend", "God"];
-                                
-                                let nextThreshold = 2000; // Default to max
-                                let nextLabel = "God";
-
-                                // Find the first threshold that is GREATER than the user's current post count
-                                for(let i = 0; i < thresholds.length; i++) {
-                                    if(user.postCount < thresholds[i]) {
-                                        nextThreshold = thresholds[i];
-                                        nextLabel = labels[i];
-                                        break; 
-                                    }
-                                }
-
-                                // Calculate progress from 0 to the next milestone
-                                let progress = (user.postCount / nextThreshold) * 100;
-                                
-                                // Cap at 100% for Legends
-                                if (progress > 100) progress = 100;
-                            %>
-                            
-                            <div style="display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--text-dim); margin-bottom: 5px;">
-                                <span>Progress to <strong><%= nextLabel %></strong></span>
-                                <strong><%= Math.floor(progress) %>%</strong>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.6rem; color: #888; margin-bottom: 6px; text-transform: uppercase; font-weight: 900;">
+                                <span>Next Phase: <%= nextRank ? nextRank.label : 'N/A' %></span>
+                                <span><%= Math.floor(progress) %>%</span>
                             </div>
 
-                            <div class="progress-bar-bg">
-                                <div class="progress-bar-fill" style="--p: <%= progress %>%"></div>
+                            <div class="progress-bar-bg" style="height: 6px; background: #111; border-radius: 0;">
+                                <div class="progress-bar-fill" style="--p:<%= progress %>%; height: 100%; transition: width 1s cubic-bezier(0.22, 1, 0.36, 1); width: var(--p); "></div>
                             </div>
-
-                            <small style="display: block; font-size: 0.6rem; color: #555; margin-top: 4px; text-align: right;">
-                                <%= user.postCount %> / <%= nextThreshold %> posts
-                            </small>
-
                         </div>
-
                     </div>
                     
                     <div class="dropdown-section-title">Navigation</div>
