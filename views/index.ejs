@@ -550,7 +550,7 @@
                         <div>
                             <% if (post.categories) { %>
                                 <% post.categories.split(',').slice(0, 3).forEach(cat => { %>
-                                    <span class="forum-badge"><%= cat %></span>
+                                    <span class="forum-badge"  style="text-transform: capitalize;"><%= cat %></span>
                                 <% }) %>
                             <% } %>
                         </div>
@@ -582,7 +582,7 @@
 
                     <div style="margin-bottom:20px;">
                         <% if (post.categories) { post.categories.split(',').forEach(cat => { %>
-                            <span class="forum-badge" style="background:var(--accent); color:white; padding:4px 10px; margin-right:5px;"><%= cat %></span>
+                            <span class="forum-badge" style="background:var(--accent); color:white; padding:4px 10px; margin-right:5px; text-transform: capitalize;"><%= cat %></span>
                         <% })} %>
                     </div>
 

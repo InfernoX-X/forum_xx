@@ -450,7 +450,7 @@
                     <div style="display: none;" class="forum-row list-<%= header.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase() %>">
                         <div class="forum-info">
                             <div style="display: flex; align-items: center;">
-                                <a href="/search?q=&forums=<%= forum.id %>" class="forum-title"><%= forum.title %></a>
+                                <a href="/search?q=&forums=<%= forum.id %>" class="forum-title"  style="text-transform: capitalize;"><%= forum.title %></a>
                                 
                                 <% 
                                     const now = new Date();
