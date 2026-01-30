@@ -3,6 +3,30 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 const multer = require("multer");
+const sharp = require('sharp');
+
+async function compressImage(buffer) {
+    const originalSize = buffer.length;
+
+    // Use sharp to process the image
+    const processed = sharp(buffer)
+        .rotate() // Automatically rotates the image based on EXIF data (fixes sideways phone pics)
+        .resize({
+            width: 1600,
+            height: 1600,
+            fit: 'inside',          // Maintain aspect ratio, don't crop
+            withoutEnlargement: true // Don't upscale small images
+        })
+        .jpeg({ 
+            quality: 80, 
+            mozjpeg: true,
+            progressive: true 
+        });
+
+    const compressedBuffer = await processed.toBuffer();
+
+    return compressedBuffer.length < originalSize ? compressedBuffer : buffer;
+}
 
 const cloudinary = require('cloudinary').v2;
 
@@ -134,7 +158,10 @@ router.post('/posts/create', upload.array('images', 5), async (req, res) => {
 
         // Add physical file buffers
         if (req.files && req.files.length > 0) {
-            req.files.forEach(file => imageSources.push({ type: 'file', data: file.buffer }));
+            for (const file of req.files) {
+                const compressed = await compressImage(file.buffer);
+                imageSources.push({ type: 'file', data: compressed });
+            }
         }
 
         // Add pasted URLs (split by newline or space)
@@ -216,6 +243,7 @@ router.post('/posts/edit-image/:imageId', upload.single('image'), async (req, re
         if (imgData[0].user_id !== userId && !isAdmin) {
             return res.status(403).send('Unauthorized');
         }
+        const compressedBuffer = await compressImage(req.file.buffer);
 
         // 1. Upload NEW image first
         const result = await new Promise((resolve, reject) => {
@@ -223,7 +251,7 @@ router.post('/posts/edit-image/:imageId', upload.single('image'), async (req, re
                 { resource_type: 'auto', folder: 'user_posts' },
                 (error, res) => (error ? reject(error) : resolve(res))
             );
-            stream.end(req.file.buffer);
+            stream.end(compressedBuffer);
         });
 
         // 2. Update DB
@@ -289,12 +317,14 @@ router.post('/posts/add-images/:id', upload.array('images', 5), async (req, res)
 
         // 5. Upload loop
         for (const file of filesToUpload) {
+            const compressedBuffer = await compressImage(file.buffer);
+
             const result = await new Promise((resolve, reject) => {
                 const stream = cloudinary.uploader.upload_stream(
                     { resource_type: 'auto', folder: 'user_posts' },
                     (error, result) => error ? reject(error) : resolve(result)
                 );
-                stream.end(file.buffer);
+                stream.end(compressedBuffer);
             });
 
             await connection.execute(
