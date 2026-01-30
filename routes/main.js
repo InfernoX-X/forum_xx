@@ -357,6 +357,24 @@ router.get('/categories', async (req, res) => {
     }
 });
 
+// Add this to your router
+router.post('/forum/create-api-tag', async (req, res) => {
+  const userId = res.userInfo.id;
+  const { title, header, bio } = req.body;
+
+  try {
+    const [result] = await db.execute(
+      `INSERT INTO forums (user_id, title, header, bio) VALUES (?, ?, ?, ?)`,
+      [userId, title, header, bio]
+    );
+    
+    // Return the new tag so the frontend can use the ID immediately
+    res.json({ id: result.insertId, title, header });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to create tag" });
+  }
+});
+
 // Create New Tag
 router.post('/forum/create', async (req, res) => {
   const userId = req.user.userId;

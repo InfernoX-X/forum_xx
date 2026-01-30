@@ -93,14 +93,98 @@
         .hidden-item {
             display: none !important;
         }
-
-        /* Optional: Make the search input stand out slightly */
-        #tagSearchInput {
-            border-color: #333;
-            background: #000;
+    </style>
+    <style>
+        /* Container for the search and pills */
+        .tag-system {
+            background: #111;
+            border: 1px solid #222;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
         }
+
+        /* The Pills */
+        .tag-pill {
+            background: var(--accent) !important; /* Use your red accent */
+            color: white !important;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: none !important;
+        }
+
+        .tag-pill:hover {
+            background: rgba(255, 170, 0, 0.25);
+        }
+
+        .tag-pill span {
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            line-height: 1;
+        }
+
+        /* The Search Input */
+        #tagSearchInput {
+            background: #000;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 10px;
+            width: 100%;
+            border-radius: 4px;
+            outline: none;
+        }
+
         #tagSearchInput:focus {
             border-color: var(--accent);
+        }
+
+        #tagDropdown {
+            display: none; 
+            position: absolute; 
+            width: 100%; 
+            background: #1a1a1a; 
+            border: 1px solid #333; 
+            z-index: 999; /* Ensure it floats above other inputs */
+            max-height: 250px; 
+            overflow-y: auto;
+            border-bottom-left-radius: 4px;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+
+        /* Individual items in dropdown */
+        .dropdown-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            color: #ccc;
+            font-size: 0.85rem;
+            transition: background 0.2s;
+        }
+
+        .dropdown-item:hover {
+            background: #222;
+            color: #fff;
+        }
+
+        .dropdown-create-btn {
+            color: #ffaa00;
+            font-weight: bold;
+            border-top: 1px solid #222;
+        }
+        
+        .tag-pill, .dropdown-item {
+            text-transform: capitalize;
+        }
+    
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
@@ -143,23 +227,6 @@
                     </ul>
                 </div>
 
-                <!-- <div style="margin-bottom: 30px;">
-                    <h4 style="color: var(--accent); margin-bottom: 12px; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px;">2. Creating New Tags</h4>
-                    <p style="font-size: 0.85rem; color: #ccc; margin-bottom: 10px;">If a performer or category doesn't exist yet:</p>
-                    <ul style="list-style: none; color: #ccc; font-size: 0.85rem; padding-left: 10px; border-left: 1px solid #333;">
-                        <li style="margin-bottom: 8px;">• <strong>Parent Header:</strong> You <u>must</u> select the correct parent group (e.g., placing a new performer under the "Performers" header).</li>
-                        <li style="margin-bottom: 8px;">• <strong>Bio:</strong> Keep it short—this appears as a subtitle for the tag.</li>
-                    </ul>
-                </div> -->
-
-                <!-- <div style="background: #0a0a0a; padding: 20px; border: 1px solid #222; border-radius: 4px;">
-                    <h4 style="color: #fff; margin-bottom: 10px; font-size: 0.9rem;">📝 Best Practices</h4>
-                    <ul style="list-style: none; color: #888; font-size: 0.8rem;">
-                        <li style="margin-bottom: 5px;">• Search before creating: Don't create "Lesbians" if "Lesbian" already exists.</li>
-                        <li style="margin-bottom: 5px;">• Check links: Ensure the video URL isn't broken before publishing.</li>
-                        <li style="margin-bottom: 5px;">• Quality: Use high-quality preview images to help your post get more views.</li>
-                    </ul>
-                </div> -->
             </div>
 
             <div style="padding: 20px 30px; border-top: 1px solid var(--border); background: var(--surface);">
@@ -173,97 +240,45 @@
         <section class="card">
             <h3>Create New Content</h3>
             <form action="/forum/posts/create" method="post" enctype="multipart/form-data" onsubmit="return validateMedia()">
-                <label>Video Title</label>
+                <label>1. Name</label>
                 <input type="text" name="title" placeholder="Original Title with (Female Performer's name)" required>
 
-                <label>Categorize Content</label>
-                <div id="selectedTagsPreview" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
+                <label>2. Add Tags</label>
+                <div class="tag-system">
+                    <div id="pillContainer" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;"></div>
+                    
+                    <div class="search-wrapper" style="position: relative;">
+                        <input type="text" id="tagSearchInput" placeholder="Search or type new tag..." autocomplete="off">
+                        
+                        <div id="tagDropdown" style="display: none; position: absolute; width: 100%; background: #1a1a1a; border: 1px solid #333; z-index: 100; max-height: 200px; overflow-y: auto;"></div>
+                    </div>
+
+                    <div id="hiddenCheckboxes" style="display: none;">
+                        <% allForums.forEach(f => { %>
+                            <input type="checkbox" name="forumIds" value="<%= f.id %>" data-name="<%= f.title.toLowerCase() %>" id="check-<%= f.id %>">
+                        <% }) %>
+                    </div>
                 </div>
-                <div class="tag-search-wrapper" style="margin-bottom: 10px;">
-                    <input type="text" id="tagSearchInput" placeholder="Quick find any tag..." style="font-size: 0.8rem; padding: 8px; margin-bottom: 0;">
-                </div>
+                <!-- Hidden List of Tags -->
+                <div id="tag-data" style="display:none;" data-forums="<%= JSON.stringify(allForums) %>"></div>
 
-                <!-- <div class="forum-selection-container" style="max-height: 400px;"> -->
-                    <% 
-                        // 1. Define the headers you want to prioritize at the top
-                        const headerOrder = ["Act", "Orientation", "No. of People", "Age", "Body","Ethnicity","Hair","Level","Locations","Profession","Relationship","Scenario","Actions","Toys"];
-
-                        // 2. Group the forums by header
-                        const grouped = {};
-                        allForums.forEach(f => {
-                            if (!grouped[f.header]) grouped[f.header] = [];
-                            grouped[f.header].push(f);
-                        });
-
-                        // 3. Get all headers currently present in the data
-                        const existingHeaders = Object.keys(grouped);
-
-                        // 4. Create the final sequence: Priorities first, then the remaining "leftovers"
-                        const finalHeaderSequence = [
-                            ...headerOrder.filter(h => existingHeaders.includes(h)),
-                            ...existingHeaders.filter(h => !headerOrder.includes(h))
-                        ];
-                    %>
-
-                    <% finalHeaderSequence.forEach(header => { 
-                        const forums = grouped[header]; 
-                    %>
-                        <div class="category-section" style="margin-bottom: 15px; border: 1px solid #222; border-radius: 4px; overflow: hidden;">
-                            <div class="category-group-header" style="margin: 0; padding: 8px 10px; background: #1a1a1a; color: #fff; font-weight: bold; border-bottom: 1px solid #222;">
-                                <%= header %>
-                            </div>
-                            <div class="category-options" style="padding: 10px; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; background: #111;">
-                                <% forums.forEach(f => { %>
-                                    <label class="forum-item" data-name="<%= f.title.toLowerCase() %>" style="border: 1px solid #222; padding: 6px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; color: #ccc; display: flex; align-items: center; gap: 5px;">
-                                        <input type="checkbox" name="forumIds" value="<%= f.id %>" style="margin: 0;">
-                                        <%= f.title %>
-                                    </label>
-                                <% }) %>
-                            </div>
-                        </div>
-                    <% }) %>
-                <!-- </div> -->
-
-                <label>Body Content</label>
+                <label>3. Description</label>
                 <textarea name="content" rows="4" placeholder="Detailed description..." required></textarea>
 
-                <label>Full Video Link (Any Site)</label>
+                <label>4. Full Video Link (Any Site)</label>
                 <input type="text" name="url" placeholder="Full Video Link" required>
                 
-                <label>Or Paste Image URLs (One per line)</label>
+                <label>5. Paste Image URLs (One per line)</label>
                 <textarea id="urlInput" name="remoteUrls" rows="3" 
                     placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.png" 
                     style="font-size: 0.8rem; margin-bottom: 15px;"></textarea>
 
-                <label for="post-images" class="file-label" id="main-file-label">📎 OR UPLOAD FROM DEVICE</label>
+                <label for="post-images" class="file-label" id="main-file-label">📎 OR Image UPLOAD FROM DEVICE</label>
                 <input type="file" id="post-images" name="images" multiple accept="image/*" style="display:none" onchange="updatePreviews()">
 
                 <div id="image-preview-container" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 18px;"></div>
-
+                
                 <button type="submit" class="btn-accent">PUBLISH!</button>
-            </form>
-        </section>
-
-        <section class="card">
-            <h3>Start a Category</h3>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 20px;">
-                Couldn't find the tag, Create New tag!
-            </p>
-            <form action="/forum/create" method="post">
-                <label>Category Title</label>
-                <input type="text" name="title" placeholder="e.g. Lesbian / Straight" required>
-                
-                <label>Short Bio / Intro</label>
-                <input type="text" name="bio" placeholder="Small intro for tag" required>
-                
-                <label>Parent Header</label>
-                <select name="header" required>
-                    <% forums.forEach(header => { %>
-                        <option value="<%= header.name %>"><%= header.name %></option>
-                    <% }) %>
-                </select>
-
-                <button type="submit" class="btn-accent" style="background: #333;">CREATE CATEGORY</button>
             </form>
         </section>
 
@@ -271,34 +286,6 @@
 </div>
 
 <script>
-
-    const forumCheckboxes = document.querySelectorAll('input[name="forumIds"]');
-    const selectedPreview = document.getElementById('selectedTagsPreview');
-
-    forumCheckboxes.forEach(cb => {
-        cb.addEventListener('change', () => {
-            updateSelectedChips();
-        });
-    });
-
-    function updateSelectedChips() {
-        selectedPreview.innerHTML = '';
-        const selected = Array.from(forumCheckboxes).filter(cb => cb.checked);
-        
-        selected.forEach(cb => {
-            const tagName = cb.parentElement.textContent.trim();
-            const chip = document.createElement('span');
-            chip.style.cssText = "background: var(--accent); color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px;";
-            chip.innerHTML = `${tagName} <span style="font-size: 1rem;">&times;</span>`;
-            
-            // Clicking the chip unchecks the box
-            chip.onclick = () => {
-                cb.checked = false;
-                updateSelectedChips();
-            };
-            selectedPreview.appendChild(chip);
-        });
-    }
 
     function validateMedia() {
         const fileInput = document.getElementById('post-images');
@@ -323,7 +310,6 @@
 
         return true; 
     }
-
 
     // Modal Logic
     const modal = document.getElementById('guideModal');
@@ -353,9 +339,7 @@
     // Hover effect for the ! button
     infoBtn.addEventListener('mouseover', () => infoBtn.style.borderColor = 'var(--accent)');
     infoBtn.addEventListener('mouseleave', () => infoBtn.style.borderColor = 'var(--border)');
-</script>
 
-<script>
     async function updatePreviews() {
         const container = document.getElementById('image-preview-container');
         const fileInput = document.getElementById('post-images');
@@ -404,32 +388,138 @@
             container.appendChild(div);
         }
     }
-
     
     // Attach listener to URL input as well
     document.getElementById('urlInput').addEventListener('input', updatePreviews);
 
-    document.getElementById('tagSearchInput').addEventListener('input', function(e) {
-        const searchTerm = e.target.value.toLowerCase().trim();
-        const sections = document.querySelectorAll('.category-section');
+</script>
 
-        sections.forEach(section => {
-            const items = section.querySelectorAll('.forum-item');
-            let hasMatch = false;
+<script>
+    const tagDataEl = document.getElementById('tag-data');
+    const allTags = JSON.parse(tagDataEl.getAttribute('data-forums') || '[]');
+    const selectedTagIds = new Set();
 
-            items.forEach(item => {
-                const tagName = item.getAttribute('data-name') || "";
-                if (tagName.includes(searchTerm)) {
-                    item.style.display = 'flex';
-                    hasMatch = true;
-                } else {
-                    item.style.display = 'none';
-                }
-            });
+    const titleInput = document.querySelector('input[name="title"]');
+    const tagSearchInput = document.getElementById('tagSearchInput');
+    const pillContainer = document.getElementById('pillContainer');
+    const tagDropdown = document.getElementById('tagDropdown');
+    const hiddenCheckboxes = document.getElementById('hiddenCheckboxes');
 
-            // Hide the whole section (including header) if no items match
-            section.style.display = hasMatch ? 'block' : 'none';
+    // --- Add Tag Function ---
+    function addTag(tag) {
+        if (selectedTagIds.has(tag.id.toString())) return;
+        
+        selectedTagIds.add(tag.id.toString());
+        
+        // Find or create hidden checkbox
+        let cb = document.getElementById(`check-${tag.id}`);
+        if (!cb) {
+             cb = document.createElement('input');
+             cb.type = 'checkbox';
+             cb.name = 'forumIds';
+             cb.value = tag.id;
+             cb.id = `check-${tag.id}`;
+             hiddenCheckboxes.appendChild(cb);
+        }
+        cb.checked = true;
+
+        const pill = document.createElement('div');
+        pill.className = 'tag-pill';
+        pill.innerHTML = `${tag.title} <span onclick="removeTag('${tag.id}', this)">&times;</span>`;
+        pillContainer.appendChild(pill);
+    }
+
+    // --- Remove Tag Function ---
+    window.removeTag = (id, el) => {
+        selectedTagIds.delete(id.toString());
+        const cb = document.getElementById(`check-${id}`);
+        if (cb) cb.checked = false;
+        el.parentElement.remove();
+    };
+
+    // --- FEATURE: Auto-check from Title ---
+    titleInput.addEventListener('input', (e) => {
+        const text = e.target.value.toLowerCase();
+        if (text.length < 3) return; // Don't trigger for very short titles
+
+        allTags.forEach(tag => {
+            const tagName = tag.title.toLowerCase();
+            // Only auto-add if it's a whole word to avoid accidental tags
+            const regex = new RegExp(`\\b${tagName}\\b`, 'i');
+            if (regex.test(text)) {
+                addTag(tag);
+            }
         });
+    });
+
+    // --- FEATURE: Search & Dropdown ---
+    tagSearchInput.addEventListener('input', (e) => {
+        const val = e.target.value.toLowerCase().trim();
+        tagDropdown.innerHTML = '';
+        
+        if (val.length === 0) {
+            tagDropdown.style.display = 'none';
+            return;
+        }
+
+        const matches = allTags.filter(t => t.title.toLowerCase().includes(val));
+        
+        matches.slice(0, 10).forEach(match => { // Limit to 10 results for speed
+            const div = document.createElement('div');
+            div.className = 'dropdown-item'; // Uses your CSS
+            div.style = "padding: 10px; cursor: pointer; border-bottom: 1px solid #222; font-size: 0.8rem;";
+            div.innerHTML = `${match.title} <small style="color: #555; float: right;">${match.header}</small>`;
+            div.onclick = () => {
+                addTag(match);
+                tagSearchInput.value = '';
+                tagDropdown.style.display = 'none';
+            };
+            tagDropdown.appendChild(div);
+        });
+
+        // "Create New" Logic
+        if (!allTags.some(t => t.title.toLowerCase() === val)) {
+            const createOption = document.createElement('div');
+            createOption.style = "padding: 10px; color: var(--accent); cursor: pointer; font-weight: bold; border-top: 1px solid #333;";
+            createOption.innerHTML = `+ Create New: <span style="text-transform: capitalize;">"${val}"</span>`;
+            createOption.onclick = () => handleInlineCreate(val);
+            tagDropdown.appendChild(createOption);
+        }
+
+        tagDropdown.style.display = 'block';
+    });
+
+    // --- FEATURE: AJAX Create ---
+    async function handleInlineCreate(tagName) {
+        const originalText = tagSearchInput.value;
+        tagSearchInput.value = "Creating...";
+        
+        try {
+            const response = await fetch('/forum/create-api-tag', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    title: tagName, 
+                    header: 'API',
+                    bio: 'User created' 
+                })
+            });
+            const newTag = await response.json();
+            
+            allTags.push(newTag);
+            addTag(newTag);
+            
+            tagSearchInput.value = '';
+            tagDropdown.style.display = 'none';
+        } catch (err) {
+            alert("Error creating tag");
+            tagSearchInput.value = originalText;
+        }
+    }
+
+    // Close dropdown on click outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.search-wrapper')) tagDropdown.style.display = 'none';
     });
 </script>
 
