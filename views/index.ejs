@@ -489,6 +489,70 @@
 .skeleton-text { width: 50%; height: 14px; border-radius: 4px; }
 </style>
 
+<style>
+.tag-pill, .dropdown-item {
+    text-transform: capitalize;
+}
+
+.tag-pill {
+    background: var(--accent) !important; /* Use your red accent */
+    color: white !important;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: none !important;
+}
+
+.tag-pill:hover {
+    background: rgba(255, 170, 0, 0.25);
+}
+
+.tag-pill span {
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.custom-dropdown {
+    position: absolute;
+    z-index: 100;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 8px;
+    display: none;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+}
+
+.dropdown-item {
+    padding: 10px;
+    color: #aaa;
+    cursor: pointer;
+    font-size: 0.85rem;
+    border-bottom: 1px solid #222;
+}
+
+.dropdown-item:hover {
+    background: #222;
+    color: #fff;
+}
+
+.edit-field {
+    width: 100%;
+    padding: 10px;
+    background: #111;
+    border: 1px solid #333;
+    color: white;
+    border-radius: 8px;
+}
+</style>
 <body>
 <%- include("partials/navBar") %>
 
@@ -610,26 +674,46 @@
                         <h2 style="color:var(--accent); margin-bottom:20px;">Edit Post Settings</h2>
                         
                         <form action="/forum/posts/edit/<%= post.id %>" method="POST">
-                            <label>Categories</label>
-                            <input type="text" placeholder="Search tags..." class="edit-field" oninput="filterEditTags(this, '<%= post.id %>')">
+                            <label>1. Add/Remove Categories</label>
+                            <div class="category-manager" style="position:relative;">
+                                
+                                <div id="tag-container-<%= post.id %>" style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px;">
+                                    <% allForums.forEach(f => { %>
+                                        <% if (post.forum_ids && post.forum_ids.split(',').includes(f.id.toString())) { %>
+                                            <span class="tag-pill" data-id="<%= f.id %>">
+                                                <%= f.title %>
+                                                <input type="hidden" name="forumIds" value="<%= f.id %>">
+                                                <span class="remove-btn" onclick="removeTag(this)">×</span>
+                                            </span>
+                                        <% } %>
+                                    <% }) %>
+                                </div>
 
-                            <div id="edit-list-<%= post.id %>" style="max-height:120px; overflow-y:auto; background:#111; padding:10px; border:1px solid #222; border-radius:8px; margin-bottom:15px;">
-                                <% allForums.forEach(f => { %>
-                                    <label class="edit-tag-label" data-name="<%= f.title.toLowerCase() %>" style="display:inline-flex; align-items:center; gap:8px; width:45%; color:#aaa; cursor:pointer; font-size:0.8rem; margin-bottom:5px;">
-                                        <input type="checkbox" name="forumIds" value="<%= f.id %>" 
-                                            <%= post.forum_ids && post.forum_ids.split(',').includes(f.id.toString()) ? 'checked' : '' %>>
-                                        <%= f.title %>
-                                    </label>
-                                <% }) %>
+                                <input type="text" 
+                                    placeholder="Search and add categories..." 
+                                    class="edit-field" 
+                                    onfocus="toggleDropdown('<%= post.id %>', true)"
+                                    oninput="filterEditTags(this, '<%= post.id %>')">
+
+                                <div id="edit-list-<%= post.id %>" class="custom-dropdown">
+                                    <% allForums.forEach(f => { %>
+                                        <div class="dropdown-item" 
+                                            data-id="<%= f.id %>" 
+                                            data-name="<%= f.title.toLowerCase() %>"
+                                            onclick="addTag('<%= f.id %>', '<%= f.title %>', '<%= post.id %>')">
+                                            <%= f.title %>
+                                        </div>
+                                    <% }) %>
+                                </div>
                             </div>
 
-                            <label>Title</label>
+                            <label>2. Name</label>
                             <input type="text" name="title" value="<%= post.title %>" class="edit-field" required>
                             
-                            <label>Summary</label>
+                            <label>3. Description</label>
                             <textarea name="content" rows="3" class="edit-field"><%= post.content %></textarea>
 
-                            <label>External Link</label>
+                            <label>4. Full Video Link</label>
                             <input type="text" name="url" value="<%= post.url %>" class="edit-field">
 
                             <button type="submit" class="btn-mini" style="background:var(--accent); width:100%; height:40px; border-radius:6px; margin-bottom:20px;">Save Above Changes</button>
@@ -637,7 +721,7 @@
 
                         <hr style="border:0; border-top:1px solid #262626; margin:10px 0 20px 0;">
 
-                        <label style="margin-bottom:10px; display:block;">Replace Images Individually (Each Replace with Reload the page!)</label>
+                        <label style="margin-bottom:10px; display:block;">🔃 Replace Images Individually (Warning: Each Replace will Reload the page!)</label>
                         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px;">
                             <% if(post.all_images && post.image_ids) { 
                                 const imgs = post.all_images.split(',');
@@ -664,7 +748,7 @@
                         <div style="margin-top: 25px; padding-top: 20px; border-top: 1px dashed #333;">
                             <% if (currentImgCount < 5) { %>
                                 <label style="color: var(--accent); margin-bottom: 10px;">
-                                    Add More Images (<%= 5 - currentImgCount %> slots left, more images won't upload even if shows here!)
+                                    ➕ Add More Images (<%= 5 - currentImgCount %> slots left, more images won't upload even if shows here!)
                                 </label>
                                 
                                 <div id="preview-container-<%= post.id %>" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; margin-bottom: 15px;"></div>
@@ -819,40 +903,6 @@
         });
     }
 
-
-    function filterEditTags(inputElement, postId) {
-        const searchTerm = inputElement.value.toLowerCase().trim();
-        const modalContainer = document.getElementById(`edit-list-${postId}`);
-        const labels = modalContainer.querySelectorAll('.edit-tag-label');
-        const headers = modalContainer.querySelectorAll('.edit-group-header');
-
-        // Filter individual labels
-        labels.forEach(label => {
-            const tagName = label.getAttribute('data-name') || "";
-            if (tagName.includes(searchTerm)) {
-                label.style.display = 'inline-flex';
-            } else {
-                label.style.display = 'none';
-            }
-        });
-
-        // Handle Group Headers (hide if all tags under them are hidden)
-        headers.forEach(header => {
-            let nextEl = header.nextElementSibling;
-            let hasVisibleChild = false;
-
-            while (nextEl && !nextEl.classList.contains('edit-group-header')) {
-                if (nextEl.classList.contains('edit-tag-label') && nextEl.style.display !== 'none') {
-                    hasVisibleChild = true;
-                    break;
-                }
-                nextEl = nextEl.nextElementSibling;
-            }
-
-            header.style.display = hasVisibleChild ? 'block' : 'none';
-        });
-    }
-
     function openEditModal(postId) {
         document.getElementById(`edit-modal-${postId}`).style.display = 'flex';
         document.body.style.overflow = 'hidden';
@@ -893,6 +943,60 @@
             btn.innerText = "Read Less";
         }
     }
+
+    function toggleDropdown(postId, show) {
+    const list = document.getElementById(`edit-list-${postId}`);
+    // Delay hiding slightly so the click event on the item registers
+    if (!show) {
+        setTimeout(() => { list.style.display = 'none'; }, 200);
+    } else {
+        list.style.display = 'block';
+    }
+}
+
+function filterEditTags(inputElement, postId) {
+    const searchTerm = inputElement.value.toLowerCase().trim();
+    const dropdown = document.getElementById(`edit-list-${postId}`);
+    const items = dropdown.querySelectorAll('.dropdown-item');
+    
+    dropdown.style.display = 'block';
+
+    items.forEach(item => {
+        const name = item.getAttribute('data-name');
+        item.style.display = name.includes(searchTerm) ? 'block' : 'none';
+    });
+}
+
+function addTag(id, title, postId) {
+    const container = document.getElementById(`tag-container-${postId}`);
+    
+    // Prevent duplicates
+    const existing = container.querySelector(`[data-id="${id}"]`);
+    if (existing) return;
+
+    // Create the Pill
+    const pill = document.createElement('span');
+    pill.className = 'tag-pill';
+    pill.setAttribute('data-id', id);
+    pill.innerHTML = `
+        ${title}
+        <input type="hidden" name="forumIds" value="${id}">
+        <span class="remove-btn" onclick="removeTag(this)">×</span>
+    `;
+    
+    container.appendChild(pill);
+}
+
+function removeTag(element) {
+    element.parentElement.remove();
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.category-manager')) {
+        document.querySelectorAll('.custom-dropdown').forEach(d => d.style.display = 'none');
+    }
+});
 
 </script>
 
