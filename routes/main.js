@@ -211,22 +211,12 @@ router.get('/search', async (req, res) => {
         
         // 3. Fetch all forums so the user can see/change filters on the results page
         const [allForums] = await db.execute(
-            'SELECT id, title, header FROM forums ORDER BY header ASC, title ASC'
+            'SELECT id, title, header FROM forums ORDER BY title ASC'
         );
 
-        // Group forums by header
-        const groupedForums = allForums.reduce((groups, forum) => {
-            const header = forum.header || 'Other'; // Fallback for forums without a header
-            if (!groups[header]) {
-                groups[header] = [];
-            }
-            groups[header].push(forum);
-            return groups;
-        }, {});
         
         res.render('pages/search', { 
             posts,
-            groupedForums: groupedForums,
             allForums,
             scope: scope,
             searchMode: searchMode,
