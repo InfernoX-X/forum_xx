@@ -361,7 +361,7 @@
                             <label class="checkbox-label" data-name="<%= forum.title.toLowerCase() %>" style="margin-bottom: 8px; display: flex;">
                                 <input type="checkbox" name="forums" value="<%= forum.id %>" 
                                     <%= selectedForums.includes(forum.id.toString()) ? 'checked' : '' %>>
-                                <span style="font-size: 0.85rem;"><%= forum.title %></span>
+                                <span style="font-size: 0.85rem; text-transform: uppercase; font-weight: 600; letter-spacing: 1px;"><%= forum.title %></span>
                             </label>
                         <% }) %>
                     </div>
