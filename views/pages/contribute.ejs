@@ -4,21 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contribute | <%= siteTitle %></title>
-    <link rel="icon" href="<%= favIcon %>">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --accent: #F93742;
-            --bg: #000;
-            --surface: #111;
-            --border: #222;
-            --text-main: #FFF;
-            --text-muted: #888;
-            --input-bg: #080808;
-        }
+    <%- include("../partials/variables") %>
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background-color: var(--bg); color: var(--text-main); font-family: 'Inter', sans-serif; line-height: 1.5; }
+    <style>
+        :root{
+            --bg: var(--cx-bg);
+            --surface: var(--cx-surface);
+            --border: var(--cx-border);
+            --text-main: var(--cx-text-main);
+            --text-muted: var(--cx-text-muted);
+            --input-bg: var(--cx-input-bg);
+        }
+        body { background-color: var(--bg); color: var(--text-main); font-family: var(--font-family); line-height: 1.5; }
         
         .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
         .page-header { margin-bottom: 40px; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
@@ -39,12 +36,12 @@
         label { display: block; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; font-weight: 700; }
         .container input, textarea, select { 
             width: 100%; background: var(--input-bg); border: 1px solid var(--border); 
-            color: #fff; padding: 12px; margin-bottom: 18px; border-radius: 4px; font-family: inherit;
+            color: var(--white); padding: 12px; margin-bottom: 18px; border-radius: 4px; font-family: inherit;
         }
         .container input:focus, textarea:focus, select:focus { border-color: var(--accent); outline: none; }
 
         .btn-accent { 
-            background: var(--accent); color: #fff; border: none; padding: 12px 30px; 
+            background: var(--accent); color: var(--white); border: none; padding: 12px 30px; 
             font-weight: 700; border-radius: 4px; cursor: pointer; transition: 0.2s; width: 100%;
         }
         .btn-accent:hover { filter: brightness(1.2); }
@@ -68,7 +65,7 @@
         .forum-item:hover { 
             border-color: #444 !important;
             background: #111 !important; 
-            color: #fff; }
+            color: var(--white); }
 
         .forum-item:has(input:checked) {
             border-color: var(--accent) !important;
@@ -85,11 +82,7 @@
             display: inline-block; background: #222; padding: 10px 15px; border-radius: 4px; 
             font-size: 0.75rem; cursor: pointer; border: 1px solid var(--border); margin-bottom: 18px;
         }
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: var(--bg); }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
-
+        
         .hidden-item {
             display: none !important;
         }
@@ -131,9 +124,9 @@
 
         /* The Search Input */
         #tagSearchInput {
-            background: #000;
+            background: var(--input-bg);
             border: 1px solid #333;
-            color: #fff;
+            color: var(--white);
             padding: 10px;
             width: 100%;
             border-radius: 4px;
@@ -169,7 +162,7 @@
 
         .dropdown-item:hover {
             background: #222;
-            color: #fff;
+            color: var(--white);
         }
 
         .dropdown-create-btn {
@@ -181,7 +174,7 @@
         .tag-pill, .dropdown-item {
             text-transform: capitalize;
         }
-    
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(5px); }
             to { opacity: 1; transform: translateY(0); }
@@ -214,13 +207,13 @@
                 <div style="margin-bottom: 30px;">
                     <h4 style="color: var(--accent); margin-bottom: 12px; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px;">1. Sharing New Content</h4>
                     
-                    <p style="font-size: 0.9rem; margin-bottom: 10px;"><strong style="color: #fff;">🏷️ Titles & Tags:</strong></p>
+                    <p style="font-size: 0.9rem; margin-bottom: 10px;"><strong style="color: var(--white);">🏷️ Titles & Tags:</strong></p>
                     <ul style="list-style: none; color: #ccc; font-size: 0.85rem; padding-left: 10px; border-left: 1px solid #333; margin-bottom: 15px;">
                         <li style="margin-bottom: 8px;">• <strong>Naming:</strong> Use <em>"Original Video Title (Performer Name)"</em>.</li>
                         <li style="margin-bottom: 8px;">• <strong>Multi-Tagging:</strong> You can select multiple categories. Use the <strong>Search Bar</strong> inside the selection box to find specific tags instantly.</li>
                     </ul>
 
-                    <p style="font-size: 0.9rem; margin-bottom: 10px;"><strong style="color: #fff;">🔗 Video Links & Media:</strong></p>
+                    <p style="font-size: 0.9rem; margin-bottom: 10px;"><strong style="color: var(--white);">🔗 Video Links & Media:</strong></p>
                     <ul style="list-style: none; color: #ccc; font-size: 0.85rem; padding-left: 10px; border-left: 1px solid #333;">
                         <li style="margin-bottom: 8px;">• <strong>Video URL:</strong> Paste the full link to the source (e.g., YouTube, Vimeo, or other hosting sites). <strong>This is required.</strong></li>
                         <li style="margin-bottom: 8px;">• <strong>Previews:</strong> Maximum of 5 images. If using URLs, ensure they are direct links (ending in <code>.jpg</code>, <code>.png</code>).</li>
@@ -286,7 +279,6 @@
 </div>
 
 <script>
-
     function validateMedia() {
         const fileInput = document.getElementById('post-images');
         const urlInput = document.getElementById('urlInput');

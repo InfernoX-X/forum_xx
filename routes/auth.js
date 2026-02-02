@@ -104,6 +104,55 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// Update Password
+router.post('/update-password',verifyToken, async (req, res) => {
+  const { currentPassword, newPassword, confirmPassword } = req.body;
+  
+  // 1. Basic Validation
+  if (!currentPassword || !newPassword || !confirmPassword) {
+    return res.status(400).send('All fields are required.');
+  }
+
+  if (newPassword !== confirmPassword) {
+    return res.status(400).send('New passwords do not match.');
+  }
+
+  try {
+    const userId = req.user.userId;
+    
+    const [users] = await db.execute(
+      'SELECT password FROM users WHERE id = ?',
+      [userId]
+    );
+
+    if (users.length === 0) {
+      return res.status(404).send('User not found.');
+    }
+
+    const user = users[0];
+
+    // 3. Verify Current Password
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(401).send('Current password is incorrect.');
+    }
+
+    // 4. Hash New Password
+    const saltRounds = 10;
+    const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    // 5. Update Database
+    await db.execute(
+      'UPDATE users SET password = ? WHERE id = ?',
+      [hashedNewPassword, userId]
+    );
+
+    res.redirect('/?status=updated');
+  } catch (err) {
+    res.redirect('/?status=error');
+    console.error('Password update error:', err);
+  }
+});
 
 // ------------------- Client Side -------------------
 // Login

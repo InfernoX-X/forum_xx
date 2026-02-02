@@ -4,37 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= siteTitle %> | <%= searchKey %></title>
-    <link rel="icon" href="<%= favIcon %>">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --accent: #F93742;
-            --accent-hover: #ff4d57;
-            --bg: #0f0f0f; /* YouTube Darker Black */
-            --surface: transparent;
-            --surface-elevated: #1c1c1c;
-            --border: #262626;
-            --text-main: #f1f1f1;
-            --text-muted: #aaaaaa;
-            --radius: 12px;
-        }
+    <%- include("../partials/variables") %>
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+    <style>
         body { 
             background-color: var(--bg); 
             color: var(--text-main); 
-            font-family: 'Inter', sans-serif; 
+            font-family: var(--font-family); 
+            min-height: 100vh;  
+            overflow-x: hidden; 
+            overflow-y: auto;   
             line-height: 1.6;
             -webkit-font-smoothing: antialiased;
-            min-height: 100vh; /* Changed from height */
-            overflow-x: hidden; /* Only hide horizontal */
-            overflow-y: auto;   /* Allow vertical scroll */
         }
-
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: var(--bg); }
-        ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
 
         .container { 
             width: 95%; 
@@ -50,362 +32,6 @@
             align-items: start;
         }
 
-        .content-results{
-            height: 85vh;
-            overflow-y: scroll;
-        }
-
-        #posts-feed {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 40px 16px;
-            padding: 20px;
-        }
-
-        /* Post Card */
-        .post-card { 
-            width: 100%;
-            background: var(--surface); 
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.2s ease;
-        }
-
-        .thumbnail-container {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 16 / 9;
-            background: #262626;
-            border-radius: var(--radius);
-            overflow: hidden;
-            margin-bottom: 12px;
-            cursor: pointer;
-        }
-
-        .post-display-image { 
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: opacity 0.2s;
-        }
-
-        .thumbnail-container:hover .post-display-image { opacity: 0.9; }
-
-        .post-meta-wrapper {
-            display: flex;
-            gap: 12px;
-            padding: 0 4px;
-        }
-
-        .post-info { flex-grow: 1; }
-
-        .post-display-title {
-            font-size: 1rem;
-            font-weight: 600;
-            line-height: 1.4;
-            margin-bottom: 6px;
-            color: var(--text-main);
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .post-display-title a { color: inherit; text-decoration: none; }
-        .post-display-title a:hover { text-decoration: underline; }
-
-        .sub-meta {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-        
-
-
-        label { font-size: 0.75rem; color: var(--accent); font-weight: 700; text-transform: uppercase; margin-bottom: 5px; display: block; }
-
-
-        /* Pagination */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            margin: 40px 0 60px 0;
-            padding: 20px;
-        }
-
-        .page-link {
-            padding: 8px 16px;
-            background: #272727;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: background 0.2s;
-            border: 1px solid transparent;
-        }
-
-        .page-link:hover {
-            background: #3f3f3f;
-        }
-
-        .page-link.active {
-            background: white;
-            color: black;
-        }
-
-        .page-link.disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            pointer-events: none;
-        }
-    
-        .search-bar-wrap { display: flex; gap: 10px; align-items: flex-start; }
-
-        .edit-field {
-            background: #000;
-            padding: 12px 16px;
-            border-radius: 8px;
-            width: 100%;
-            color: white;
-            transition: border-color 0.2s;
-            outline: none;
-            border: 1px solid var(--border);
-        }
-        
-        .edit-field:focus{
-            border-color: var(--accent);
-        }
-
-        .btn-search {
-            background: var(--accent);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 400;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            cursor: pointer;
-            padding: 8px 12px;
-            width: 100px;
-            height: 40px;
-
-        }
-
-        .checkbox-label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-
-        .checkbox-label:hover {
-            color: white;
-        }
-
-        .checkbox-label input {
-            width: 16px;
-            height: 16px;
-            accent-color: var(--accent);
-        }
-
-        /* Tag Search */
-        .tag-search-field {
-            width: 100%;
-            background: #000;
-            border: 1px solid var(--border);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            outline: none;
-            letter-spacing: 1px;
-        }
-
-        .tag-search-field:focus {
-            border-color: var(--accent);
-        }
-
-    </style>
-
-    <style>
-        /* Share Btn on Thumbnail When Hover */
-        .thumbnail-share-btn {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            border: none;
-            width: 32px;
-            height: 32px;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            opacity: 0; /* Hidden by default */
-            transform: translateY(-5px);
-            transition: all 0.2s ease;
-            z-index: 10;
-        }
-
-        /* Show icon when hovering over the container */
-        .thumbnail-container:hover .thumbnail-share-btn {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .thumbnail-share-btn:hover {
-            background: var(--accent);
-        }
-
-        #share-toast {
-            visibility: hidden;
-            min-width: 250px;
-            background-color: #333;
-            color: #fff;
-            text-align: center;
-            border-radius: 8px;
-            padding: 16px;
-            position: fixed;
-            z-index: 3000;
-            left: 50%;
-            bottom: 30px;
-            transform: translateX(-50%);
-            font-weight: 600;
-            font-size: 0.9rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-            border: 1px solid var(--border);
-        }
-
-        #share-toast.show {
-            visibility: visible;
-            animation: fadein 0.5s, fadeout 0.5s 2.5s;
-        }
-
-        @keyframes fadein {
-            from { bottom: 0; opacity: 0; }
-            to { bottom: 30px; opacity: 1; }
-        }
-
-        @keyframes fadeout {
-            from { bottom: 30px; opacity: 1; }
-            to { bottom: 0; opacity: 0; }
-        }
-    </style>
-
-    <style>
-    .control-box {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .control-label {
-        color: var(--accent);
-        font-size: 0.7rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 1.2px;
-        margin: 0;
-    }
-
-    .options-row {
-        display: flex;
-        gap: 20px;
-        align-items: center;
-    }
-
-    .custom-checkbox, .custom-radio {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        cursor: pointer;
-        position: relative;
-    }
-
-    .custom-checkbox input, .custom-radio input {
-        display: none; /* Hide default */
-    }
-
-    .checkmark, .radio-dot {
-        width: 18px;
-        height: 18px;
-        border: 2px solid #444;
-        background: #1a1a1a;
-        transition: all 0.2s;
-    }
-
-    .checkmark { border-radius: 4px; }
-    .radio-dot { border-radius: 50%; }
-
-    .label-text {
-        font-size: 0.85rem;
-        color: var(--text-muted);
-        font-weight: 500;
-    }
-
-    input:checked + .checkmark,
-    input:checked + .radio-dot {
-        background: var(--accent);
-        border-color: var(--accent);
-    }
-
-    input:checked ~ .label-text {
-        color: var(--text-main);
-    }
-
-    .radio-dot::after {
-        content: '';
-        position: absolute;
-        top: 6px; left: 6px;
-        width: 6px; height: 6px;
-        background: white;
-        border-radius: 50%;
-        opacity: 0;
-    }
-    input:checked + .radio-dot::after { opacity: 1; }
-
-    .checkmark {
-        width: 18px;
-        height: 18px;
-        border: 2px solid #444;
-        background: #1a1a1a;
-        border-radius: 4px;
-        display: inline-block;
-        position: relative;
-        transition: all 0.2s;
-    }
-
-    .checkmark::after {
-        content: "";
-        position: absolute;
-        display: none;
-        left: 5px;
-        top: 1px;
-        width: 4px;
-        height: 8px;
-        border: solid white;
-        border-width: 0 2px 2px 0;
-        transform: rotate(45deg);
-    }
-
-    input:checked + .checkmark::after {
-        display: block;
-    }
-    </style>
-    
-    <style>
-
         .sidebar-filters {
             position: sticky;
             top: 20px;
@@ -419,17 +45,57 @@
             flex-direction: column;
         }
 
-        .sidebar-logo {
-            font-size: 1.2rem;
-            margin-bottom: 20px;
-            color: var(--text-main);
-            letter-spacing: 1px;
+        /* Advanced Search */
+        .search-bar-wrap { display: flex; gap: 10px; align-items: flex-start; }
+
+        .edit-field {
+            background: #000;
+            padding: 12px 16px;
+            border-radius: 8px;
+            width: 100%;
+            color: var(--white);
+            transition: border-color 0.2s;
+            outline: none;
+            border: 1px solid var(--border);
+        }
+        
+        .edit-field:focus{
+            border-color: var(--accent);
         }
 
-        .filter-box {
-            margin-top: 25px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border);
+        .btn-search {
+            background: var(--accent);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            font-weight: 400;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            padding: 8px 12px;
+            width: 100px;
+            height: 40px;
+        }
+
+        .control-box {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .control-label {
+            color: var(--accent);
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin: 0;
+        }
+
+        .options-row {
+            display: flex;
+            gap: 20px;
+            align-items: center;
         }
 
         .options-column {
@@ -438,7 +104,75 @@
             gap: 12px;
         }
 
-        /* Update these styles in your <style> tag */
+        .custom-checkbox, .custom-radio {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .custom-checkbox input, .custom-radio input {
+            display: none; /* Hide default */
+        }
+
+        .label-text{
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        .checkmark, .radio-dot {
+            width: 18px;
+            height: 18px;
+            border: 2px solid #444;
+            background: #1a1a1a;
+            transition: all 0.2s;
+            position: relative; 
+            display: inline-block;
+        }
+
+        .checkmark { border-radius: 4px; }
+        .radio-dot { border-radius: 50%; }
+
+        .checkmark::after {
+            content: "";
+            position: absolute;
+            display: none;
+            left: 5px;
+            top: 1px;
+            width: 4px;
+            height: 8px;
+            border: solid var(--white);
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .radio-dot::after {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px; 
+            width: 6px;
+            height: 6px;
+            background: var(--white);
+            border-radius: 50%;
+            opacity: 0;
+        }
+
+        input:checked + .checkmark::after {
+            display: block;
+        }
+
+        input:checked + .radio-dot::after {
+            opacity: 1;
+        }
+
+        input:checked + .checkmark,
+        input:checked + .radio-dot {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
         #selected-tags-tray {
             margin-bottom: 20px;
             padding: 10px;
@@ -447,7 +181,7 @@
         }
 
         .chip {
-            background: var(--accent) !important; /* Use your red theme */
+            background: var(--accent) !important; 
             color: white !important;
             border: none !important;
             font-weight: 600;
@@ -459,7 +193,6 @@
             background: var(--accent-hover) !important;
         }
 
-        /* Scrollable Tag List */
         .tag-list-scrollable {
             display: flex;
             flex-direction: column;
@@ -470,7 +203,6 @@
             overflow-y: auto;
         }
 
-        /* Selected Tags Tray in Sidebar */
         .selected-tags-container {
             display: flex;
             flex-wrap: wrap;
@@ -478,7 +210,60 @@
             margin: 10px 0;
         }
 
-        /* Responsive Fix */
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .checkbox-label:hover {
+            color: var(--white);
+        }
+
+        .checkbox-label input {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--accent);
+        }
+
+        .tag-search-field {
+            width: 100%;
+            background: #000;
+            border: 1px solid var(--border);
+            color: var(--white);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            outline: none;
+            letter-spacing: 1px;
+        }
+
+        .tag-search-field:focus {
+            border-color: var(--accent);
+        }
+
+        
+        /* Posts */
+        .content-results{
+            height: 85vh;
+            overflow-y: scroll;
+        }
+
+        #posts-feed {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 40px 16px;
+            padding: 20px;
+        }
+
+    </style>
+
+    <style>
+        /* Responsive */
         @media (max-width: 768px) {
             .main-layout {
                 grid-template-columns: 1fr;
@@ -490,14 +275,15 @@
                 top: 0;
             }
             body{
-                overflow: scroll;
+                /* overflow: scroll; */
+                overflow-y: auto
             }
             .content-results{
                 overflow: visible;
             }
 
             .container {
-                width: 100%; 
+                width: 95%; 
                 margin: 10px auto;
             }
             
@@ -516,6 +302,8 @@
 
 <body>
 <%- include("../partials/navBar") %>
+
+<%- include("../partials/imageViewer") %>
 
 <div class="container">
     <div class="main-layout">
@@ -594,94 +382,19 @@
                     </div>
                 <% } %>
 
-                <% for (const post of posts) { %>
-                    <div class="post-card" id="post-<%= post.id %>">
-    
-                        <div class="thumbnail-container popUpClass">
-                            <button class="thumbnail-share-btn" 
-                                    title="Copy Link"
-                                    onclick="event.stopPropagation(); sharePost('<%= post.id %>')">
-                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
-                                    <polyline points="16 6 12 2 8 6"></polyline>
-                                    <line x1="12" y1="2" x2="12" y2="15"></line>
-                                </svg>
-                            </button>
-                            
-                            <% if (post.thumbnail) { %>
-                                <img src="<%= post.thumbnail %>" class="post-display-image" loading="lazy" alt="Post Image">
-                            <% } else { %>
-                                <div style="height:100%; display:flex; align-items:center; justify-content:center; color:#444; font-size:0.8rem;">NO PREVIEW</div>
-                            <% } %>
-                        </div>
-    
-                        <div class="post-meta-wrapper">
-                            <div class="post-info">
-                                <h2 class="post-display-title">
-                                    <a href="/forum/post/<%= post.id %>" ><%= post.title %></a>
-                                </h2>
-    
-                                <div class="sub-meta">
-                                    <span><a style="color: var(--text-muted); text-decoration: none;" href="/user/<%= post.userId %>"><%= post.username %></a> • <%= timeAgo(post.created_at) %></span>
-                                </div>
+                <%- include("../partials/posts") %> 
 
-                            </div>
-                        </div>
-    
-                    </div>
-                <% } %>
             </div>
-    
-            <% if (totalPages > 1) { %>
-                <div class="pagination">
-                    <% 
-                        const buildQuery = (pageNum) => {
-                            let params = new URLSearchParams();
-                            params.append('q', searchKey || '');
-                            params.append('page', pageNum);
-                            params.append('mode', searchMode || 'any');
 
-                            const scopes = Array.isArray(scope) ? scope : [scope].filter(Boolean);
-                            scopes.forEach(s => params.append('scope', s));
-                            
-                            const forums = Array.isArray(selectedForums) ? selectedForums : [selectedForums].filter(Boolean);
-                            forums.forEach(id => params.append('forums', id));
-                            
-                            return params.toString();
-                        };
-                    %>
-
-                    <% 
-                        let startPage = Math.max(1, currentPage - 2);
-                        let endPage = Math.min(totalPages, startPage + 4);
-                        if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
-                    %>
-    
-                    <% for(let i = startPage; i <= endPage; i++) { %>
-                        <a href="?<%= buildQuery(i) %>" class="page-link <%= currentPage === i ? 'active' : '' %>"><%= i %></a>
-                    <% } %>
-    
-                </div>
-            <% } %>
-    
+            <%- include("../partials/pagination") %> 
+            
+            <%- include("../partials/notification") %> 
         </main>
     </div>
 </div>
 
-<div id="share-toast">Link copied to clipboard!</div>
-
-<%- include("../partials/imageViewer") %>
 
 <script>
-    function sharePost(postId) {
-        const fullUrl = window.location.origin + '/forum/post/' + postId;
-        navigator.clipboard.writeText(fullUrl).then(() => {
-            const toast = document.getElementById("share-toast");
-            toast.className = "show";
-            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
-        });
-    }
-
     function updateSelectedTray() {
         const tray = document.getElementById('selected-tags-tray');
         const selectedCheckboxes = document.querySelectorAll('.tag-list-scrollable input[name="forums"]:checked');
@@ -699,7 +412,7 @@
             const chip = document.createElement('div');
 
             chip.style.cssText = "background: #333; color: #eee; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 5px; border: 1px solid var(--border);";
-            chip.innerHTML = `${labelText} <span style="color: white; font-weight:bold">&times;</span>`;
+            chip.innerHTML = `${labelText} <span style="color: var(--white); font-weight:bold">&times;</span>`;
             chip.classList.add("chip");
 
             chip.onclick = () => {

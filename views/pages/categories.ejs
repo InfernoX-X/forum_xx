@@ -2,41 +2,13 @@
 <html lang="en">
 <head>
     <title><%= siteTitle %></title>
-    <link rel="icon" href="<%= favIcon %>">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <%- include("../partials/variables") %>
 </head>
 <style>
-    :root {
-        --accent: #F93742;
-        --bg: #000000;
-        --surface: #111111;
-        --border: #222222;
-        --text-main: #FFFFFF;
-        --text-muted: #888888;
-    }
-    /* Ensure smooth scrolling when clicking links */
-    html {
-        scroll-behavior: smooth;
-        scroll-padding-top: 100px; /* Adjust based on your navbar height */
-    }
-    ::-webkit-scrollbar {
-        min-width: 7px;
-        max-width: 0.5vw;
-        height: 0;
-        background-color: transparent;
-    }
-
-    ::-webkit-scrollbar-thumb{
-        background-color: var(--accent);
-        border-radius: 20px;
-    }
-
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
     body {
-        background-color: var(--bg);
         color: var(--text-main);
-        font-family: 'Inter', sans-serif;
+        background-color: var(--bg);
+        font-family: var(--font-family);
         line-height: 1.5;
         -webkit-font-smoothing: antialiased;
     }
@@ -45,63 +17,6 @@
         max-width: 1100px;
         margin: 80px auto;
         padding: 0 20px;
-    }
-
-    /* --- FAST SEARCH BAR --- */
-    .search-bar {
-        display: flex;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 4px;
-        margin-bottom: 40px;
-    }
-
-    .search-bar input {
-        flex: 1;
-        background: transparent;
-        border: none;
-        color: white;
-        padding: 12px 16px;
-        font-size: 1rem;
-        outline: none;
-    }
-
-    .btn-search {
-        background: var(--accent);
-        color: white;
-        border: none;
-        padding: 0 20px;
-        border-radius: 6px;
-        font-weight: 600;
-        cursor: pointer;
-        height: 40px;
-    }
-
-    /* --- COMPOSER (Collapsed for Speed) --- */
-    .composer {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 24px;
-        margin-bottom: 50px;
-    }
-
-    .composer h3 { font-size: 0.9rem; text-transform: uppercase; color: var(--accent); margin-bottom: 15px; letter-spacing: 1px; }
-
-    .composer-grid {
-        display: grid;
-        /* grid-template-columns: 1fr 1fr auto; */
-        gap: 12px;
-    }
-
-    .composer input, .composer select {
-        background: #000;
-        border: 1px solid var(--border);
-        color: white;
-        padding: 12px;
-        border-radius: 6px;
-        font-size: 0.9rem;
     }
 
     /* --- FORUM LIST (Table Style for Speed) --- */
@@ -178,7 +93,6 @@
 
     .lp-meta b { color: var(--text-main); }
 
-    /* Badges Styling */
     .badge {
         display: inline-flex;
         align-items: center;
@@ -224,60 +138,6 @@
         border: 1px solid #a29bfe;
     }
 
-    /* Tooltip on hover for stats */
-    .forum-row:hover .forum-stats {
-        transform: scale(1.1);
-        transition: transform 0.2s ease;
-    }
-    /* This highlights the text when searching */
-    .highlight {
-        background: rgba(249, 55, 66, 0.3);
-        color: white;
-        padding: 0 2px;
-        border-radius: 2px;
-    }
-    .quick-jump-container {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        margin-bottom: 25px;
-        padding: 10px 0;
-        overflow-x: auto; /* For mobile scroll */
-        border-bottom: 1px solid var(--border);
-        white-space: nowrap;
-    }
-
-    .jump-label {
-        font-size: 0.75rem;
-        font-weight: 800;
-        color: var(--text-muted);
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-
-    .jump-links {
-        display: flex;
-        gap: 8px;
-    }
-
-    .jump-btn {
-        text-decoration: none;
-        background: var(--surface);
-        color: var(--text-muted);
-        padding: 6px 12px;
-        border-radius: 4px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        border: 1px solid var(--border);
-        transition: all 0.2s ease;
-    }
-
-    .jump-btn:hover {
-        color: #fff;
-        border-color: var(--accent);
-        background: rgba(249, 55, 66, 0.05);
-    }
-
     #backToTop {
         position: fixed;
         bottom: 30px;
@@ -286,7 +146,7 @@
         border: none;
         outline: none;
         background-color: var(--accent);
-        color: white;
+        color: var(--white);
         cursor: pointer;
         padding: 12px 16px;
         border-radius: 4px;
@@ -296,7 +156,7 @@
     }
 
     #backToTop:hover {
-        background-color: #fff;
+        background-color: var(--white);
         color: var(--accent);
     }
     
@@ -401,15 +261,14 @@
     }
     
 </style>
-<%- include("../partials/navBar") %>
 
+<%- include("../partials/navBar") %>
 
 <body>
 
     <div class="container">
         <div class="sidebar-leaderboard">
             <div class="sidebar-header">
-                <i class="fas fa-trophy" style="color: gold; margin-right: 8px;"></i>
                 TOP CONTRIBUTORS
             </div>
             <div class="leaderboard-content">
@@ -427,27 +286,10 @@
             </div>
         </div>
 
-        <div class="quick-jump-container">
-            <span class="jump-label">Jump to:</span>
-            <div class="jump-links">
-                <% forums.forEach(header => { %>
-                    <a href="#cat-<%= header.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase() %>" class="jump-btn">
-                        <i class="fas <%= header.icon %>"></i> <%= header.name.split('(')[0] %>
-                    </a>
-                <% }) %>
-            </div>
-        </div>
-
         <% forums.forEach(header => { %>
             <div class="category-section" id="cat-<%= header.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase() %>">
-                <h2 class="category-label" style="--cat-color: <%= header.color || '#F93742' %>; border-bottom: 2px solid var(--cat-color); width:100%;">
-                    <span id="span-<%= header.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase() %>" onclick="toggleView('<%= header.name %>')" style="font-size: 1.5rem; color: white; background-color: var(--cat-color); padding: 0 10px; border-radius: 5px; cursor: pointer;">+</span>
-                    <i class="fas <%= header.icon %>" style="color: var(--cat-color); margin-right: 10px;"></i>
-                    <%= header.name %>
-                </h2>
-                
                 <% header.data.forEach(forum => { %>
-                    <div style="display: none;" class="forum-row list-<%= header.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase() %>">
+                    <div class="forum-row list-<%= header.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase() %>">
                         <div class="forum-info">
                             <div style="display: flex; align-items: center;">
                                 <a href="/search?q=&forums=<%= forum.id %>" class="forum-title"  style="text-transform: capitalize;"><%= forum.title %></a>
@@ -493,74 +335,11 @@
             </div>
         <% }) %>
 
-        
     </div>
-
 
     <div id="backToTop">↑</div>
 
 <script>
-    const toggleView = (name) => {
-        const n = name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase()
-        const list_ = document.getElementsByClassName(`list-${n}`);
-        let currentValue = document.getElementById(`span-${n}`).innerText;
-
-        if(currentValue == "-"){
-            for (let i = 0; i < list_.length; i++) {
-                const list = list_[i];
-                list.style.display = "none";
-                document.getElementById(`span-${n}`).innerText = "+";
-            }
-            
-        }else{
-            for (let i = 0; i < list_.length; i++) {
-                const list = list_[i];
-                list.style.display = "";
-                document.getElementById(`span-${n}`).innerText = "-";
-            }
-        }
-
-    };
-
-    const searchInput = document.getElementById('searchInput');
-    const forumRows = document.querySelectorAll('.forum-row');
-    const categories = document.querySelectorAll('.category-section');
-    const noResults = document.getElementById('noResults');
-
-    searchInput.addEventListener('input', function(e) {
-        const query = e.target.value.toLowerCase();
-        let anyVisible = false;
-
-        // Loop through every forum row
-        forumRows.forEach(row => {
-            const title = row.querySelector('.forum-title').innerText.toLowerCase();
-            const desc = row.querySelector('.forum-desc').innerText.toLowerCase();
-            
-            if (title.includes(query) || desc.includes(query)) {
-                row.style.display = 'grid'; // Matches your CSS display type
-                anyVisible = true;
-            } else {
-                row.style.display = 'none';
-            }
-        });
-
-        // Hide categories that have no visible rows
-        categories.forEach(cat => {
-            const visibleInCat = cat.querySelectorAll('.forum-row[style="display: grid;"]');
-            cat.style.display = visibleInCat.length > 0 ? 'block' : 'none';
-        });
-
-        // Show/Hide "No Results" message
-        noResults.style.display = anyVisible ? 'none' : 'block';
-    });
-
-    // Keep your original button functionality for "Hard Search" (database search)
-    document.getElementById("inputSubBtn").addEventListener("click", () => {
-        const q = searchInput.value;
-        if(q) window.location.href = "/search-results?q=" + encodeURIComponent(q);
-    });
-
-    // Show button when user scrolls down 400px
     window.onscroll = function() {
         if (document.body.scrollTop > 400 || document.documentElement.scrollTop > 400) {
             document.getElementById("backToTop").style.display = "block";
@@ -572,8 +351,6 @@
     document.getElementById("backToTop").onclick = function() {
         window.scrollTo({top: 0, behavior: 'smooth'});
     };
-
-
 </script>
 
 </body>

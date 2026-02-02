@@ -1,14 +1,5 @@
-
+<!-- Nav CSS -->
 <style>
-    :root {
-        --nav-bg: rgb(22, 22, 22);
-        --accent: #F93742;
-        --dropdown-bg: #1e1e1e;
-        --text-dim: #888;
-        --border-color: #333;
-        --input-bg: #2a2a2a;
-    }
-
     .main-navbar {
         height: 70px;
         width: 100%;
@@ -35,7 +26,7 @@
 
     .logo {
         text-decoration: none;
-        color: #fff;
+        color: var(--white);
         font-size: 1.5rem;
         font-weight: 800;
         white-space: nowrap;
@@ -43,7 +34,6 @@
 
     .logo span { color: var(--accent); }
 
-    /* Search Bar Container */
     .search-container {
         display: flex;
         justify-content: center;
@@ -62,7 +52,7 @@
         border: 1px solid var(--border-color);
         padding: 10px 15px 10px 40px;
         border-radius: 14px;
-        color: #fff;
+        color: var(--white);
         outline: none;
         transition: all 0.3s ease;
         font-size: 0.9rem;
@@ -71,7 +61,7 @@
 
     .search-wrapper input:focus {
         border-color: var(--accent);
-        background: #333;
+        background: var(--border-color);
         box-shadow: 0 0 0 4px rgba(249, 55, 66, 0.1);
     }
 
@@ -94,7 +84,7 @@
 
     .dropbtn {
         background: #222;
-        color: #fff;
+        color: var(--white);
         border: 1px solid var(--accent);
         padding: 8px 15px;
         border-radius: 8px;
@@ -153,7 +143,7 @@
     }
 
     .btn-label span:first-child {
-        font-size: 1.1rem; /* Icons slightly larger */
+        font-size: 1.1rem;
         width: 20px;
         text-align: center;
     }
@@ -253,42 +243,6 @@
         text-decoration: none;
     }
 
-    /* Responsive Design */
-    @media (max-width: 768px) {
-        .nav-container {
-            grid-template-columns: auto 1fr auto;
-        }
-        .search-wrapper input {
-            padding: 10px;
-            padding-left: 35px;
-        }
-        .dropbtn span { display: none; } /* Icon only on mobile */
-    }
-
-    @media (max-width: 480px) {
-        .search-container { padding: 0 5px; }
-        .logo { font-size: 1.1rem; }
-    }
-    
-    body.hide-images img, 
-    body.hide-images .popUpClass, 
-    body.hide-images .post-content img {
-        display: none !important;
-    }
-
-    /* Optional: Keep the logo visible while hiding other images */
-    body.hide-images .logo img {
-        display: block !important;
-    }
-
-    .hide-editBtn {
-        transition: opacity 0.3s ease;
-    }
-
-    body.hide-edit-active .hide-editBtn {
-        display: none !important;
-    }
-
     .nav-actions {
         display: flex;
         align-items: center;
@@ -298,7 +252,7 @@
 
     .action-btn {
         background: var(--accent);
-        color: #fff;
+        color: var(--white);
         text-decoration: none;
         padding: 6px 14px;
         border-radius: 8px;
@@ -316,7 +270,7 @@
     .dropbtn-icon {
         background: transparent;
         border: 1px solid var(--border-color);
-        color: #fff;
+        color: var(--white);
         width: 38px;
         height: 38px;
         border-radius: 50%;
@@ -341,10 +295,26 @@
     .dropdown-divider { border: 0; border-top: 1px solid var(--border-color); margin: 4px 0; }
     .logout-btn { color: var(--accent) !important; font-weight: 600; }
 
-    /* Responsive: Hide labels on small screens */
+    /* Responsive */
     @media (max-width: 600px) {
         .nav-actions .label { display: none; }
         .nav-actions { gap: 15px; }
+    }
+
+    @media (max-width: 768px) {
+        .nav-container {
+            grid-template-columns: auto 1fr auto;
+        }
+        .search-wrapper input {
+            padding: 10px;
+            padding-left: 35px;
+        }
+        .dropbtn span { display: none; } /* Icon only on mobile */
+    }
+
+    @media (max-width: 480px) {
+        .search-container { padding: 0 5px; }
+        .logo { font-size: 1.1rem; }
     }
     
     /* Help Icon Styling */
@@ -471,10 +441,6 @@
         background: linear-gradient(90deg, var(--accent), #ff8e3c, #fde047);
         box-shadow: 0 0 12px rgba(249, 55, 66, 0.3);
         transition: width 0.5s ease;
-
-        /* background: linear-gradient(90deg, var(--accent), #ff8e3c);
-        box-shadow: 0 0 8px rgba(249, 55, 66, 0.5);
-        transition: width 0.5s ease-in-out; */
     }
 
 
@@ -503,8 +469,28 @@
         80%, 100% { transform: scale(2.5); opacity: 0; }
     }
 
+    /* Image Hiding and Edit Mode Hiding */
+    body.hide-images img, 
+    body.hide-images .popUpClass, 
+    body.hide-images .post-content img {
+        display: none !important;
+    }
+
+    /* Optional: Keep the logo visible while hiding other images */
+    body.hide-images .logo img {
+        display: block !important;
+    }
+
+    .hide-editBtn {
+        transition: opacity 0.3s ease;
+    }
+
+    body.hide-edit-active .hide-editBtn {
+        display: none !important;
+    }
 </style>
 
+<!-- User Badges -->
 <style>
     .badge {
         font-size: 0.65rem;
@@ -543,7 +529,7 @@
 
     .badge-legend { 
         background: linear-gradient(135deg, #f59e0b 0%, #78350f 100%); 
-        color: #fff;
+        color: var(--white);
         border: 1px solid #fde047;
         box-shadow: 0 0 15px rgba(245, 158, 11, 0.5);
         animation: pulse 2s infinite;
@@ -552,7 +538,7 @@
     .badge-god {
         background: linear-gradient(135deg, #111 0%, #F93742 50%, #111 100%);
         background-size: 200% auto;
-        color: #fff;
+        color: var(--white);
         border: 1px solid #f93742;
         box-shadow: 0 0 15px rgba(249, 55, 66, 0.6);
         animation: godFlare 3s linear infinite;
@@ -565,6 +551,161 @@
         100% { background-position: 0% center; }
     }
 
+</style>
+
+<!-- Password Change Popup Modal -->
+<style>
+    .fx-modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(4px);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .fx-modal-overlay.active { display: flex; }
+
+    .fx-modal-content {
+        background: var(--dropdown-bg);
+        width: 90%;
+        max-width: 400px;
+        padding: 24px;
+        border-radius: 16px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        animation: fxModalIn 0.3s ease-out;
+    }
+
+    @keyframes fxModalIn {
+        from { transform: scale(0.9); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
+    .fx-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .fx-modal-header h3 { color: var(--white); margin: 0; font-size: 1.1rem; }
+
+    .fx-close-modal {
+        background: none;
+        border: none;
+        color: var(--text-dim);
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+
+    .fx-input-group { margin-bottom: 15px; }
+
+    .fx-input-group label {
+        display: block;
+        color: var(--text-dim);
+        font-size: 0.75rem;
+        font-weight: 700;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+    }
+
+    .fx-input-group input {
+        width: 100%;
+        background: var(--input-bg);
+        border: 1px solid var(--border-color);
+        padding: 12px;
+        border-radius: 8px;
+        color: var(--white);
+        outline: none;
+    }
+
+    .fx-input-group input:focus { border-color: var(--accent); }
+
+    .fx-save-btn {
+        width: 100%;
+        background: var(--accent);
+        color: var(--white);
+        border: none;
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: 700;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+    /* Loading State */
+    .fx-save-btn:disabled {
+        background: #444;
+        color: #888;
+        cursor: not-allowed;
+        transform: none;
+        opacity: 0.8;
+    }
+
+    .fx-spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: var(--white);
+        animation: fx-spin 0.8s linear infinite;
+    }
+
+    @keyframes fx-spin {
+        to { transform: rotate(360deg); }
+    }
+    /* Toast Notification Styling */
+    .fx-toast-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 3000;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .fx-toast {
+        background: #1e1e1e;
+        color: var(--white);
+        padding: 12px 20px;
+        border-radius: 10px;
+        border-left: 4px solid var(--accent);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        animation: fx-toast-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        min-width: 250px;
+    }
+
+    .fx-toast.success { border-left-color: #4ade80; }
+    .fx-toast.error { border-left-color: #F93742; }
+
+    @keyframes fx-toast-in {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+
+    .fx-toast-fade-out {
+        animation: fx-toast-out 0.4s forwards;
+    }
+
+    @keyframes fx-toast-out {
+        to { transform: translateX(100%); opacity: 0; }
+    }
 </style>
 
 <nav class="main-navbar">
@@ -665,7 +806,7 @@
                         </div>
                     </div>
                     
-                    <div class="dropdown-section-title">Navigation</div>
+                    <div class="dropdown-section-title">Extra Navigation</div>
                     
                     <button onclick="window.location.href='/categories'">
                         <div class="btn-label">
@@ -674,7 +815,7 @@
                         </div>
                         <span class="chevron">›</span>
                     </button>
-
+                    
                     <div class="dropdown-section-title">Interface</div>
                     
                     <button id="imageToggle" class="status-on">
@@ -693,6 +834,16 @@
                         <div class="switch"></div>
                     </button>
                     
+                    <div class="dropdown-section-title">Security</div>
+                    
+                    <button id="openPassModal">
+                        <div class="btn-label">
+                            <span>🔑</span>
+                            <span>Change Password</span>
+                        </div>
+                        <span class="chevron">›</span>
+                    </button>
+
                     <hr class="dropdown-divider">
                     
                     <button onclick="confirm('Logout?') ? window.location.href='/logout' : ''" class="logout-btn">
@@ -704,31 +855,78 @@
     </div>
 </nav>  
 
+<div id="passwordModal" class="fx-modal-overlay">
+    <div class="fx-modal-content">
+        <div class="fx-modal-header">
+            <h3>Update Security</h3>
+            <button class="fx-close-modal">&times;</button>
+        </div>
+        <form id="passwordForm" action="/update-password" method="POST">
+            <div class="fx-input-group">
+                <label>Current Password</label>
+                <input type="password" name="currentPassword" required placeholder="••••••••">
+            </div>
+            <div class="fx-input-group">
+                <label>New Password</label>
+                <input type="password" name="newPassword" required placeholder="••••••••">
+            </div>
+            <div class="fx-input-group">
+                <label>Repeat New Password</label>
+                <input type="password" name="confirmPassword" required placeholder="••••••••">
+            </div>
+            <button type="submit" class="fx-save-btn">Update Password</button>
+        </form>
+    </div>
+</div>
 
+<div id="toastContainer" class="fx-toast-container"></div>
+
+<!-- Nav JS -->
 <script>
+
     document.addEventListener('DOMContentLoaded', () => {
         const settingsBtn = document.getElementById('settingsBtn');
         const settingsDropdown = document.getElementById('settingsDropdown');
+        const passModal = document.getElementById('passwordModal');
+        const openPassBtn = document.getElementById('openPassModal');
+        const closePassBtn = document.querySelector('.fx-close-modal');
+        const passwordForm = document.getElementById('passwordForm');
         const body = document.body;
 
-        // Toggle Dropdown
         settingsBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             settingsDropdown.classList.toggle('active');
         });
 
-        // Close on Outside Click
         document.addEventListener('click', (e) => {
-            if (!settingsDropdown.contains(e.target) && e.target !== settingsBtn) {
-                settingsDropdown.classList.remove('active');
+            if (settingsDropdown.classList.contains('active')) {
+                if (!settingsDropdown.contains(e.target) && e.target !== settingsBtn) {
+                    settingsDropdown.classList.remove('active');
+                }
             }
         });
 
-        // Toggle Logic (Images)
+        openPassBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            settingsDropdown.classList.remove('active'); 
+            passModal.classList.add('active');
+        });
+
+        closePassBtn.addEventListener('click', () => {
+            passModal.classList.remove('active');
+        });
+
+        // passModal.addEventListener('click', (e) => {
+        //     if (e.target === passModal) {
+        //         passModal.classList.remove('active');
+        //     }
+        // });
+
+        // --- TOGGLE LOGIC (Images) ---
         const imageBtn = document.getElementById('imageToggle');
         const updateImages = (hide) => {
             body.classList.toggle('hide-images', hide);
-            // Toggle the class that moves the switch slider
             imageBtn.classList.toggle('status-on', !hide);
         };
 
@@ -739,28 +937,70 @@
             updateImages(hide);
         });
 
-        // Toggle Logic (editMode)
+        // --- TOGGLE LOGIC (Edit Mode) ---
         const editModeBtn = document.getElementById('editModeToggle');
         const updateEditMode = (hide) => {
             body.classList.toggle('hide-edit-active', hide);
-            // Toggle the class that moves the switch slider
             editModeBtn.classList.toggle('status-on', !hide);
         };
 
         editModeBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            // Correctly check the state of the body
             const isNowHidden = body.classList.contains('hide-edit-active');
             const nextState = !isNowHidden;
-            
             localStorage.setItem('hideEditBtn', nextState);
             updateEditMode(nextState);
         });
 
-        const savedEditState = localStorage.getItem('hideEditBtn') === 'true';
-        
-        // Init
+        passwordForm.addEventListener('submit', (e) => {
+            const submitBtn = passwordForm.querySelector('.fx-save-btn');
+            const newPass = passwordForm.elements['newPassword'].value;
+            const confirmPass = passwordForm.elements['confirmPassword'].value;
+
+            // 1. Validate
+            if (newPass !== confirmPass) {
+                e.preventDefault();
+                alert("New passwords do not match!");
+                return;
+            }
+
+            // 2. Loading State
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<div class="fx-spinner"></div> Updating...`;
+        });
+
+        // --- TOAST NOTIFICATION SYSTEM ---
+        const showToast = (message, type = 'success') => {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `fx-toast ${type}`;
+            
+            const icon = type === 'success' ? '✅' : '❌';
+            
+            toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+            container.appendChild(toast);
+
+            // Auto-remove after 4 seconds
+            setTimeout(() => {
+                toast.classList.add('fx-toast-fade-out');
+                setTimeout(() => toast.remove(), 400);
+            }, 4000);
+        };
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('status')) {
+            const status = urlParams.get('status');
+            if (status === 'updated') showToast('Security updated successfully!', 'success');
+            if (status === 'error') showToast('Failed to update security.', 'error');
+            
+            // Clean up the URL so the toast doesn't reappear on manual refresh
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        // --- INITIALIZE STATES ---
         updateImages(localStorage.getItem('hideForumImages') === 'true');
-        updateEditMode(savedEditState);
+        updateEditMode(localStorage.getItem('hideEditBtn') === 'true');
     });
+
+    
 </script>

@@ -1,0 +1,96 @@
+<style>
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        margin: 40px 0 60px 0;
+        padding: 20px;
+    }
+
+    .page-link {
+        padding: 8px 16px;
+        color: var(--white);
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        min-width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #333;
+        background: transparent;
+        transition: all 0.2s;
+    }
+
+    .page-link.active {
+        background: var(--accent);
+        color: var(--white);
+        border-color: var(--accent);
+        box-shadow: 0 0 15px rgba(249, 55, 66, 0.3);
+    }
+
+    .page-link:hover {
+        background: #3f3f3f;
+    }
+
+    .page-link.active:hover{
+        background-color: var(--accent-hover);
+    }
+
+    .page-link.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+</style>
+
+<% if (totalPages > 1) { %>
+    <div class="pagination" id="pagination-list">
+        <% 
+            // 1. Define the query builder to keep search filters intact
+            const buildQuery = (pageNum) => {
+                let params = new URLSearchParams();
+                params.append('q', typeof searchKey !== 'undefined' ? searchKey : '');
+                params.append('page', pageNum);
+                params.append('mode', typeof searchMode !== 'undefined' ? searchMode : 'any');
+
+                // Handle arrays or single values for scope
+                if (typeof scope !== 'undefined') {
+                    const scopes = Array.isArray(scope) ? scope : [scope].filter(Boolean);
+                    scopes.forEach(s => params.append('scope', s));
+                }
+                
+                // Handle arrays or single values for forums
+                if (typeof selectedForums !== 'undefined') {
+                    const forums = Array.isArray(selectedForums) ? selectedForums : [selectedForums].filter(Boolean);
+                    forums.forEach(id => params.append('forums', id));
+                }
+                
+                return params.toString();
+            };
+
+            // 2. Logic for visible page numbers (sliding window)
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, startPage + 4);
+            if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
+        %>
+
+        <% if (currentPage > 1) { %>
+            <a href="?<%= buildQuery(currentPage - 1) %>" class="page-link">&laquo;</a>
+        <% } %>
+
+        <% for(let i = startPage; i <= endPage; i++) { %>
+            <a href="?<%= buildQuery(i) %>" 
+               class="page-link <%= currentPage === i ? 'active' : '' %>">
+               <%= i %>
+            </a>
+        <% } %>
+
+        <% if (currentPage < totalPages) { %>
+            <a href="?<%= buildQuery(currentPage + 1) %>" class="page-link">&raquo;</a>
+        <% } %>
+    </div>
+<% } %>
