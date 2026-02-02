@@ -301,7 +301,7 @@ router.get('/categories', async (req, res) => {
             -- Then join the forums table using the bridge
             JOIN forums f ON f.id = pc.forum_id 
             WHERE p.deleted = 0 
-            AND u.id != 1 
+            -- AND u.id != 1 
             AND f.header != 'General'
             GROUP BY u.id, u.username
             ORDER BY post_count DESC 
@@ -347,7 +347,7 @@ router.get('/categories', async (req, res) => {
     }
 });
 
-// Add this to your router
+// Create New Tag Inline 
 router.post('/forum/create-api-tag', async (req, res) => {
   const userId = res.userInfo.id;
   const { title, header, bio } = req.body;
@@ -365,7 +365,122 @@ router.post('/forum/create-api-tag', async (req, res) => {
   }
 });
 
-// Create New Tag
+// Requests
+router.get('/requests', async (req, res) => {
+    try {
+        const filter = req.query.filter || ''; // '', 'open', 'pending', 'finished', 'mine'
+        const userId = res.userInfo.id;
+        
+        let query = `
+            SELECT 
+                r.*, 
+                u.username, 
+                (SELECT username FROM users WHERE id = r.fulfilled_by_id) as contributor_name,
+                p.title as post_title,
+                img.image_url as post_preview
+            FROM content_requests r 
+            JOIN users u ON r.user_id = u.id
+            LEFT JOIN posts p ON r.fulfilled_post_id = p.id
+            LEFT JOIN (
+                /* This subquery picks only the FIRST image for each post */
+                SELECT post_id, MIN(image_url) as image_url 
+                FROM post_images 
+                GROUP BY post_id
+            ) img ON p.id = img.post_id
+        `;
+        
+        let params = [];
+
+        // Logic Switch
+        if (filter === 'mine') {
+            query += " WHERE r.user_id = ? ";
+            params.push(userId);
+        } else if (['open', 'pending', 'finished'].includes(filter)) {
+            query += " WHERE r.status = ? ";
+            params.push(filter);
+        } else {
+            query += " WHERE 1 = 1 ";
+        }
+
+        query += " ORDER BY r.created_at DESC";
+
+        const [requests] = await db.execute(query, params);
+
+        res.render('pages/requests', { 
+            requests, 
+            user: res.userInfo, 
+            currentFilter: filter,
+            timeAgo
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error");
+    }
+});
+// Create Request
+router.post('/requests/create', async (req, res) => {
+    try {
+        const { message } = req.body;
+        await db.execute('INSERT INTO content_requests (user_id, message) VALUES (?, ?)', 
+        [res.userInfo.id, message]);
+        res.redirect('/requests');
+    } catch (err) {
+        res.status(500).send("Error");
+    }
+});
+
+// Contributor submits the finished post URL
+router.post('/requests/fulfill/:requestId', async (req, res) => {
+    let { postId } = req.body;
+    const requestId = req.params.requestId;
+
+    // Back-end Regex: If they sent a URL, extract the ID
+    const match = postId.toString().match(/(\d+)$/);
+    if (match) {
+        postId = match[1];
+    } else {
+        return res.status(400).send("Invalid Post ID");
+    }
+
+    try {
+        await db.execute(
+            `UPDATE content_requests 
+             SET fulfilled_post_id = ?, fulfilled_by_id = ?, status = 'pending' 
+             WHERE id = ?`,
+            [postId, res.userInfo.id, requestId]
+        );
+        res.redirect('/requests?filter=pending');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error");
+    }
+});
+
+// Requester clicks "FINISH"
+router.post('/requests/finish/:requestId', async (req, res) => {
+    const requestId = req.params.requestId;
+    const userId = res.userInfo.id;
+
+    try {
+        // Ensure only the person who REQUESTED it can finish it
+        await db.execute(
+            "UPDATE content_requests SET status = 'finished' WHERE id = ? AND user_id = ?",
+            [requestId, userId]
+        );
+        res.redirect('/requests');
+    } catch (err) {
+        res.status(500).send("Error finishing request");
+    }
+});
+
+
+
+
+
+
+
+
+// Create New Tag (Not Using, 100% not sure, that's why not delete)
 router.post('/forum/create', async (req, res) => {
   const userId = req.user.userId;
   const { title, header, bio } = req.body;
