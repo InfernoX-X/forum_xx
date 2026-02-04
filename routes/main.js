@@ -119,6 +119,59 @@ router.get('/user/:id', async (req, res) => {
     }
 });
 
+router.get('/drafts', async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = 15;
+        const offset = (page - 1) * limit;
+        const isAdmin = res.userInfo.isAdmin === 1; 
+
+        if (!isAdmin) {
+            return res.redirect('/');
+        }
+
+        const [countResult] = await db.execute(
+            'SELECT COUNT(*) as total FROM posts WHERE deleted = 1', 
+        );
+
+        const totalPosts = countResult[0].total;
+        const totalPages = Math.ceil(totalPosts / limit);
+
+        const [posts] = await db.execute(`
+            SELECT p.*, u.username, 
+            GROUP_CONCAT(DISTINCT f.title) as categories,
+            GROUP_CONCAT(DISTINCT f.id) as forum_ids,
+            (SELECT GROUP_CONCAT(image_url ORDER BY id ASC) FROM post_images WHERE post_id = p.id) as all_images,
+            (SELECT GROUP_CONCAT(id ORDER BY id ASC) FROM post_images WHERE post_id = p.id) as image_ids,
+            (SELECT image_url FROM post_images WHERE post_id = p.id ORDER BY id ASC LIMIT 1) as thumbnail,
+            (SELECT COUNT(*) FROM post_images WHERE post_id = p.id) as image_count
+        FROM posts p 
+        JOIN users u ON p.user_id = u.id 
+        LEFT JOIN post_categories pc ON p.id = pc.post_id
+        LEFT JOIN forums f ON pc.forum_id = f.id
+        WHERE p.deleted = 1  
+        -- Add user_id filter here
+        GROUP BY p.id
+        ORDER BY p.created_at DESC
+        LIMIT ? OFFSET ?`, [limit.toString(), offset.toString()]);
+            
+        const [allForums] = await db.execute(`SELECT id, title, header FROM forums ORDER BY title ASC`);
+
+        res.render('pages/drafts', { 
+            posts,
+            allForums,
+            user: res.userInfo,
+            timeAgo,
+            currentPage: page,
+            totalPages,
+            siteTitle: "ForumX"
+        });
+    } catch (err) {
+        console.error('Database Error:', err);
+        res.redirect("/");
+    }
+});
+
 // Search
 router.get('/search', async (req, res) => {
     try {
@@ -221,11 +274,11 @@ router.get('/search', async (req, res) => {
             scope: scope,
             searchMode: searchMode,
             selectedForums: forumIds,
-            user: res.userInfo,
             timeAgo: timeAgo,
             currentPage: page,
             totalPages: totalPages,
             searchKey: searchTerm,
+            user: res.userInfo,
             siteTitle: "Search Results"
         });
     } catch (err) {
@@ -480,7 +533,26 @@ router.post('/requests/finish/:requestId', async (req, res) => {
 
 
 
-// Create New Tag (Not Using, 100% not sure, that's why not delete)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// READ : Create New Tag (Not Using, 100% not sure, that's why not delete)
 router.post('/forum/create', async (req, res) => {
   const userId = req.user.userId;
   const { title, header, bio } = req.body;

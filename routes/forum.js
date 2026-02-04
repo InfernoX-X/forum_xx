@@ -69,11 +69,11 @@ router.get('/post/:id', async (req, res) => {
             JOIN users u ON p.user_id = u.id
             LEFT JOIN post_categories pc ON p.id = pc.post_id
             LEFT JOIN forums f ON pc.forum_id = f.id
-            WHERE p.id = ?
+            WHERE p.id = ? AND p.deleted = 0
             GROUP BY p.id
         `, [postId]);
 
-        if (rows.length === 0) return res.status(404).send('Post not found');
+        if (rows.length === 0) return res.redirect("/");
         const post = rows[0];
 
         // 2. Fetch Images & Comments  
@@ -143,13 +143,15 @@ router.post('/posts/create', upload.array('images', 5), async (req, res) => {
     try {
         await connection.beginTransaction();
 
-        const { title, content, url, forumIds, remoteUrls } = req.body;
+        const { title, content, url, forumIds, remoteUrls, draft } = req.body;
         const userId = res.userInfo.id;
+
+        let draftValue = draft || 0; 
 
         // 1. Create the main post row
         const [postResult] = await connection.execute(
-            `INSERT INTO posts (title, content, url, user_id) VALUES (?, ?, ?, ?)`,
-            [title, content || null, url || null, userId]
+            `INSERT INTO posts (title, content, url, deleted, user_id) VALUES (?, ?, ?, ?, ?)`,
+            [title, content || null, url || null, draftValue, userId]
         );
         const newPostId = postResult.insertId;
 
@@ -348,10 +350,12 @@ router.post('/posts/add-images/:id', upload.array('images', 5), async (req, res)
 // Edit POST
 router.post('/posts/edit/:id', async (req, res) => {
     const postId = req.params.id;
-    const { title, content, url, forumIds } = req.body;
+    const { title, content, url, forumIds, draft } = req.body;
     const userId = res.userInfo.id;
     const isAdmin = res.userInfo.isAdmin === 1; // Check admin status
     const conn = await db.getConnection(); // Get connection for transaction
+
+    let draftValue = draft || 0; 
 
     try {
         await conn.beginTransaction();
@@ -367,8 +371,15 @@ router.post('/posts/edit/:id', async (req, res) => {
         // Update Text
         await conn.execute(`
             UPDATE posts 
-            SET title = COALESCE(NULLIF(?, ''), title), content = ?, url = ?
-            WHERE id = ?`, [title, content, url, postId]);
+            SET 
+                title = COALESCE(NULLIF(?, ''), title), 
+                content = ?, 
+                url = ?, 
+                created_at = CASE WHEN deleted = 1 AND ? = 0 THEN CURRENT_TIMESTAMP ELSE created_at END,
+                deleted = ?
+            WHERE id = ?`, 
+            [title, content, url, draftValue, draftValue, postId]
+        );
 
         // Update Categories (Sync approach)
         if (forumIds) {

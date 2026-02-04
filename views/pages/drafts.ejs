@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saved Drafts | <%= siteTitle %></title>
+    <%- include("../partials/variables") %>
+</head>
+
+<style>
+    body { 
+        font-family: var(--font-family);
+        color: var(--text-main); 
+        background-color: var(--bg); 
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    .container { width: 95%; max-width: 1800px; margin: 20px auto; }
+
+    #posts-feed {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 40px 16px;
+        padding: 20px;
+    }
+
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 80px 20px;
+        background: #111;  
+        border: 1px solid #222;
+        border-radius: 12px;
+        margin: 20px 0;
+    }
+
+    .empty-state h2 {
+        color: var(--white);
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+    }
+
+    .empty-state p {
+        color: #888;
+        max-width: 400px;
+        line-height: 1.6;
+    }
+</style>
+
+<body>
+<%- include("../partials/navBar") %>
+
+<%- include("../partials/imageViewer") %>
+
+
+<div class="container">
+    <% if (!posts || posts.length === 0) { %>
+        <div class="empty-state">
+            <h2>No Saved Drafts</h2>
+            <a href="/" style="color: var(--accent);">Back to Feed</a>
+        </div>
+    <% } %>
+
+    <div id="posts-feed">
+        <%- include("../partials/posts") %> 
+    </div>
+
+    <%- include("../partials/pagination") %> 
+    
+    <%- include("../partials/notification") %> 
+
+</div>
+
+</body>
+</html>

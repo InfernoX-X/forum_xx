@@ -848,7 +848,7 @@
                         <small>SIGNED IN AS</small>
                         <div style="display: flex; align-items: center; gap: 10px; position: relative;">
                             <div class="pulse-indicator" title="Live Session Active"></div>
-                            <strong style="letter-spacing: 1px;"><%= user.username %></strong>
+                            <strong style="letter-spacing: 1px;"><a style="color: var(--white); text-decoration: none;" href="/user/<%= user.id %>" ><%= user.username %></a></strong>
                             
                             <span class="badge badge-<%= currentRank.class %>">
                                 <%= currentRank.icon %> <%= currentRank.label %>
@@ -891,8 +891,8 @@
                         </div>
                     </div>
                     
-                    <div class="dropdown-section-title">Extra Navigation</div>
                     
+                    <div class="dropdown-section-title">Extra Navigation</div>
                     
                     <button onclick="window.location.href='/categories'">
                         <div class="btn-label">
@@ -901,6 +901,7 @@
                         </div>
                         <span class="chevron">›</span>
                     </button>
+                    
                     
                     <button onclick="window.location.href='/requests'">
                         <div class="btn-label">
@@ -915,6 +916,18 @@
                         </div>
                         <span class="chevron">›</span>
                     </button>
+                    
+                    <% if (user && user.isAdmin == 1) { %>
+                        <div class="dropdown-section-title">Admin Only</div>
+                        <button onclick="window.location.href='/drafts'">
+                            <div class="btn-label">
+                                <span>🕔</span>
+                                <span>Saved Drafts</span>
+                            </div>
+                            <span class="chevron">›</span>
+                        </button>
+                    <% } %>
+
 
                     <div class="dropdown-section-title">Interface</div>
                     

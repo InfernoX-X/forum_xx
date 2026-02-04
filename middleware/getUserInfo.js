@@ -14,7 +14,7 @@ const getUserInfo = async (req, res, next) => {
     const user = users[0];
     user.postCount = rows[0].total || 0;
     res.userInfo = user;
-    
+
     next();
     
   } catch (err) {
