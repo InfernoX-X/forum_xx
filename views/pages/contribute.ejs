@@ -465,6 +465,7 @@
     // --- FEATURE: Search & Dropdown ---
     tagSearchInput.addEventListener('input', (e) => {
         const val = e.target.value.trim();
+        const searchVal = val.toLowerCase();
         const formattedVal = formatTagName(val);
 
         tagDropdown.innerHTML = '';
@@ -474,9 +475,9 @@
             return;
         }
 
-        const matches = allTags.filter(t => t.title.toLowerCase().includes(val));
+        const matches = allTags.filter(t => t.title.toLowerCase().includes(searchVal));
         
-        matches.slice(0, 10).forEach(match => { // Limit to 10 results for speed
+        matches.slice(0, 20).forEach(match => { // Limit to 20 results for speed
             const div = document.createElement('div');
             div.className = 'dropdown-item'; // Uses your CSS
             div.style = "padding: 10px; cursor: pointer; border-bottom: 1px solid #222; font-size: 0.8rem;";
@@ -490,7 +491,7 @@
         });
 
         // "Create New" Logic
-        if (!allTags.some(t => t.title.toLowerCase() === val)) {
+        if (!allTags.some(t => t.title.toLowerCase() === searchVal )) {
             const createOption = document.createElement('div');
             createOption.style = "padding: 10px; color: var(--accent); cursor: pointer; font-weight: bold; border-top: 1px solid #333;";
             createOption.innerHTML = `+ Create New: <span>"${formattedVal}"</span>`;
