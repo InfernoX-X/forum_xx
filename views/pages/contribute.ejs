@@ -397,6 +397,24 @@
     const tagDropdown = document.getElementById('tagDropdown');
     const hiddenCheckboxes = document.getElementById('hiddenCheckboxes');
 
+    function formatTagName(str) {
+        return str.split('/').map(part => {
+            let trimmedPart = part.trim();
+
+            // 2. If this specific part is ALL CAPS (e.g., "DD" or "CFNM"), keep it
+            if (trimmedPart === trimmedPart.toUpperCase() && trimmedPart.length > 0) {
+                return trimmedPart;
+            }
+
+            // 3. Otherwise, fix "CheAting" -> "Cheating" and "double" -> "Double"
+            return trimmedPart
+                .toLowerCase()
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
+        }).join(' / '); // 4. Join back with spaces and the slash
+    }
+
     // --- Add Tag Function ---
     function addTag(tag) {
         if (selectedTagIds.has(tag.id.toString())) return;
@@ -446,7 +464,9 @@
 
     // --- FEATURE: Search & Dropdown ---
     tagSearchInput.addEventListener('input', (e) => {
-        const val = e.target.value.toLowerCase().trim();
+        const val = e.target.value.trim();
+        const formattedVal = formatTagName(val);
+
         tagDropdown.innerHTML = '';
         
         if (val.length === 0) {
@@ -473,8 +493,8 @@
         if (!allTags.some(t => t.title.toLowerCase() === val)) {
             const createOption = document.createElement('div');
             createOption.style = "padding: 10px; color: var(--accent); cursor: pointer; font-weight: bold; border-top: 1px solid #333;";
-            createOption.innerHTML = `+ Create New: <span style="text-transform: capitalize;">"${val}"</span>`;
-            createOption.onclick = () => handleInlineCreate(val);
+            createOption.innerHTML = `+ Create New: <span>"${formattedVal}"</span>`;
+            createOption.onclick = () => handleInlineCreate(formattedVal);
             tagDropdown.appendChild(createOption);
         }
 
@@ -483,6 +503,7 @@
 
     // --- FEATURE: AJAX Create ---
     async function handleInlineCreate(tagName) {
+        const formattedName = formatTagName(tagName);
         const originalText = tagSearchInput.value;
         tagSearchInput.value = "Creating...";
         
@@ -491,7 +512,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                    title: tagName, 
+                    title: formattedName, 
                     header: 'API',
                     bio: 'User created' 
                 })
