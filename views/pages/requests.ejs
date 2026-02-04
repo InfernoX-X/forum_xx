@@ -191,6 +191,17 @@
             justify-content: center;
             cursor: pointer;
         }
+
+        @media (max-width: 500px) {
+            .request-main{
+                /* display: flex; */
+                flex-direction: column;
+            }
+
+            .request-feed{
+                width: 100%;
+            }
+        }
     </style>
 
 <%- include("../partials/navBar") %>
@@ -233,7 +244,7 @@
             
             <div class="request-main" style="display: flex; justify-content: space-between; gap: 20px;">
                 <div style="flex: 1;">
-                    <p style="font-size: 1.1rem; color: var(--white); margin: 0;">"<%= req.message %>"</p>
+                    <p style="font-size: 1.1rem; color: var(--white); margin: 0; text-wrap: wrap;">"<%= req.message %>"</p>
                     <div class="meta" style="font-size: 0.75rem; color: var(--cx-text-muted); margin-top: 5px;">
                         Requested by <%= req.username %> • <%= timeAgo(req.created_at) %>
                     </div>
@@ -254,11 +265,11 @@
                     </div>
                     
                     <div style="flex-grow: 1;">
-                        <div style="font-size: 0.65rem; color: var(--accent); font-weight: 800; text-transform: uppercase;">Found Content:</div>
+                        <div style="font-size: 0.65rem; color: var(--accent); font-weight: 800; text-transform: uppercase;">Found:</div>
                         <a href="/forum/post/<%= req.fulfilled_post_id %>" target="_blank" style="color: var(--white); text-decoration: none; font-weight: 600; display: block; margin: 2px 0;">
-                            <%= req.post_title %>
+                            <%= req.post_title.length > 20 ? req.post_title.slice(0,20) + "..."  : req.post_title  %>
                         </a>
-                        <div style="font-size: 0.7rem; color: var(--cx-text-muted);">Uploaded by <%= req.contributor_name %></div>
+                        <div style="font-size: 0.7rem; color: var(--cx-text-muted);">By <%= req.contributor_name %></div>
                     </div>
 
                     <% if (req.status === 'pending' && user.id === req.user_id) { %>

@@ -18,18 +18,21 @@
         body { background-color: var(--bg); color: var(--text-main); font-family: var(--font-family); line-height: 1.5; }
         
         .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
-        .page-header { margin-bottom: 40px; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
+        .page-header { display: flex; align-items: center;flex-direction: column; margin-bottom: 40px; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
         .page-header h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -1px; }
         .page-header p { color: var(--text-muted); }
 
         /* Grid Layout */
-        .contribute-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 40px; align-items: start; }
+        .contribute-grid { display: flex; align-items: center; justify-content: center; gap: 40px; width: 100%; }
 
-        @media (max-width: 900px) {
-            .contribute-grid { grid-template-columns: 1fr; }
+        
+        .contribute-grid .card { background: var(--surface); border: 1px solid var(--border); padding: 30px; border-radius: 8px; width: 100%; max-width: 700px; }
+        
+        .guideBtn{
+            margin-top: 5px;
+            margin-bottom: 15px;
         }
 
-        /* Common Form Styles */
         .card { background: var(--surface); border: 1px solid var(--border); padding: 30px; border-radius: 8px; }
         .card h3 { font-size: 0.75rem; color: var(--accent); letter-spacing: 2px; margin-bottom: 20px; text-transform: uppercase; }
         
@@ -180,6 +183,38 @@
             to { opacity: 1; transform: translateY(0); }
         }
     </style>
+
+    <style>
+        
+        /* Responsive Overrides */
+        @media (max-width: 768px) {
+            #guideModal > div {
+                width: 95% !important;
+                max-height: 90vh !important;
+                display: flex;
+                flex-direction: column;
+            }
+
+            #guideModal .grid-container {
+                grid-template-columns: 1fr !important; /* Stack columns */
+                overflow-y: auto !important;
+                overflow-x: hidden;
+            }
+
+            #guideModal .left-panel {
+                border-right: none !important;
+                border-bottom: 1px solid var(--border);
+            }
+            
+            #guideModal .footer-area {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px !important;
+            }
+        }
+
+    </style>
+
 </head>
 <body>
 
@@ -188,45 +223,111 @@
 <div class="container">
     <header class="page-header">
         <div style="display: flex; align-items: center; gap: 15px;">
-            <h1>CONTRIBUTE</h1>
-            <button id="infoBtn" style="background: var(--surface); border: 1px solid var(--border); color: var(--accent); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-weight: 800; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; transition: 0.2s;">!</button>
+            <h1>CONTRIBUTE!</h1>
         </div>
+        <button class="guideBtn" id="infoBtn" style="background: rgba(249, 55, 66, 0.1); border: 1px solid var(--accent); color: var(--accent); padding: 5px 15px; border-radius: 20px; cursor: pointer; font-weight: 800; font-size: 0.7rem; display: flex; align-items: center; gap: 8px; transition: 0.2s;">
+            VIEW UPLOADING GUIDE <span style="font-size: 1rem;">!</span> 
+        </button>
         <p>Expand the community by sharing new content or creating new tags.</p>
     </header>
 
-    <div id="guideModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px);">
-        <div class="card" style="max-width: 700px; width: 100%; position: relative; border-color: var(--accent); box-shadow: 0 10px 40px rgba(0,0,0,0.5); padding: 0;">
+
+    <div id="guideModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(10px);">
+        <div class="card" style="max-width: 850px; width: 100%; position: relative; border-color: var(--accent); box-shadow: 0 20px 50px rgba(0,0,0,0.8); padding: 0; overflow: hidden; display: flex; flex-direction: column; max-height: 90vh;">
             
-            <div style="padding: 20px 30px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
-                <h3 style="margin-bottom: 0;">🚀 Full Contribution Guide</h3>
+            <div style="padding: 15px 25px; background: #111; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
+                <h3 style="margin: 0; color: var(--white); font-size: 0.9rem; letter-spacing: 1px;">UPLOADING BLUEPRINT</h3>
                 <button id="closeGuide" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.5rem;">&times;</button>
             </div>
 
-            <div style="padding: 30px; max-height: 75vh; overflow-y: auto;">
+            <div class="grid-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0; overflow-y: auto;">
                 
-                <div style="margin-bottom: 30px;">
-                    <h4 style="color: var(--accent); margin-bottom: 12px; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px;">1. Sharing New Content</h4>
+                <div class="left-panel" style="padding: 25px; background: #0a0a0a; border-right: 1px solid var(--border);">
+                    <p style="font-size: 0.7rem; color: var(--accent); font-weight: 800; margin-bottom: 15px; text-transform: uppercase;">Correct Example:</p>
                     
-                    <p style="font-size: 0.9rem; margin-bottom: 10px;"><strong style="color: var(--white);">🏷️ Titles & Tags:</strong></p>
-                    <ul style="list-style: none; color: #ccc; font-size: 0.85rem; padding-left: 10px; border-left: 1px solid #333; margin-bottom: 15px;">
-                        <li style="margin-bottom: 8px;">• <strong>Naming:</strong> Use <em>"Original Video Title (Performer Name)"</em>.</li>
-                        <li style="margin-bottom: 8px;">• <strong>Multi-Tagging:</strong> You can select multiple categories. Use the <strong>Search Bar</strong> inside the selection box to find specific tags instantly.</li>
-                    </ul>
+                    <div style="pointer-events: none; opacity: 0.9;">
+                        <label style="font-size: 0.6rem; color: #555;">1. NAME</label>
+                        <div style="background: #151515; border: 1px solid #333; padding: 8px; border-radius: 4px; font-size: 0.8rem; margin-bottom: 15px; color: #fff;">
+                            What Happened Last Night (Zoe Parker)
+                        </div>
 
-                    <p style="font-size: 0.9rem; margin-bottom: 10px;"><strong style="color: var(--white);">🔗 Video Links & Media:</strong></p>
-                    <ul style="list-style: none; color: #ccc; font-size: 0.85rem; padding-left: 10px; border-left: 1px solid #333;">
-                        <li style="margin-bottom: 8px;">• <strong>Video URL:</strong> Paste the full link to the source (e.g., YouTube, Vimeo, or other hosting sites). <strong>This is required.</strong></li>
-                        <li style="margin-bottom: 8px;">• <strong>Previews:</strong> Maximum of 5 images. If using URLs, ensure they are direct links (ending in <code>.jpg</code>, <code>.png</code>).</li>
-                    </ul>
+                        <label style="font-size: 0.6rem; color: #555;">2. ADD TAGS</label>
+                        <div style="display: flex; gap: 5px; margin-bottom: 15px; flex-wrap: wrap;">
+                            <span style="background: var(--accent); color: #fff; padding: 3px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: bold;">Straight</span>
+                            <span style="background: var(--accent); color: #fff; padding: 3px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: bold;">Family</span>
+                            <span style="background: var(--accent); color: #fff; padding: 3px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: bold;">Bedroom</span>
+                            <span style="background: var(--accent); color: #fff; padding: 3px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: bold;">Convinced</span>
+                            <span style="background: var(--accent); color: #fff; padding: 3px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: bold;">Pussy Licking</span>
+                            <span style="background: var(--accent); color: #fff; padding: 3px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: bold;">Daughter's Friend</span>
+                        </div>
+
+                        
+                        <label style="font-size: 0.6rem; color: #555;">3. DESCRIPTION</label>
+                        <div style="background: #151515; border: 1px solid #333; padding: 8px; border-radius: 4px; font-size: 0.7rem; margin-bottom: 15px; color: #b1b1b1;">
+                            After a sleepover begins, Marcus fondles a sleeping Zoe. Once she wakes, he convinces her to engage in sexual acts beside his daughter. Zoe complies but remains hesitant and overwhelmed.
+                        </div>
+
+                        <label style="font-size: 0.6rem; color: #555;">4. FULL VIDEO LINK (ANY SITE)</label>
+                        <div style="background: #151515; border: 1px solid #333; padding: 8px; border-radius: 4px; font-size: 0.7rem; margin-bottom: 15px; color: #b1b1b1;">
+                            https://mat6tube.com/watch/-123429083_456240958
+                        </div>
+
+                        <label style="font-size: 0.6rem; color: #555;">5. PASTE IMAGE URLS OR UPLOAD (MAX 5)</label>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                            <div style="aspect-ratio: 1;"><img style="width: 100%; height: 100%; object-fit: cover;" src="https://i.ibb.co/Fk4sHXRf/763214-e9f7da1a5cb43a29f89467c93b2de583-post-single-big-1.jpg" alt=""></div>
+                            <div style="aspect-ratio: 1;"><img style="width: 100%; height: 100%; object-fit: cover; object-position: right;" src="https://i.ibb.co/0R35kj5z/preview-800.webp" alt=""></div>
+                        </div>
+                    </div>
                 </div>
 
+                <div class="right-panel" style="padding: 20px 30px; background: #111;">
+                    <div style="margin-bottom: 25px;">
+                        <h4 style="color: var(--white); font-size: 0.9rem; margin-bottom: 5px;">1. The Title/Name Rule</h4>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">Video Name, Always include the <strong>Performer Name</strong> in parentheses at the end. This helps our search engine find content faster.</p>
+                    </div>
+
+                    <div style="margin-bottom: 25px;">
+                        <h4 style="color: var(--white); font-size: 0.9rem; margin-bottom: 5px;">2. Multiple Tags</h4>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">Don't settle for one! Use the search bar to find categories. If a tag doesn't exist, type it and click <strong>Create New</strong>.</p>
+                    </div>
+                    
+                    <div style="margin-bottom: 25px;">
+                        <h4 style="color: var(--white); font-size: 0.9rem; margin-bottom: 5px;">3. Description</h4>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">Provide context for the post. You can copy the <strong>original source description</strong> or write a brief summary in your own words.<p>
+                    </div>
+                    
+                    <div style="margin-bottom: 25px;">
+                        <h4 style="color: var(--white); font-size: 0.9rem; margin-bottom: 5px;">4. Full Video Link</h4>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">Paste the URL to the <strong>full video</strong>. We support links from almost any hosting site—just ensure the link is public and active.</p>
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: var(--white); font-size: 0.9rem; margin-bottom: 8px;">5. Image Previews</h4>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 10px;">
+                            You can either <strong>paste the URL</strong> of an image directly or <strong>upload from storage</strong>. A maximum of 5 images can be added.
+                        </p>
+                        <div style="background: rgba(0,0,0,0.2); border-left: 3px solid var(--accent); padding: 10px 15px; border-radius: 4px;">
+                            <p style="font-size: 0.75rem; color: var(--white); margin-bottom: 5px; font-weight: 600;">Quality Guidelines:</p>
+                            <ul style="font-size: 0.7rem; color: #888; padding-left: 15px; margin: 0; line-height: 1.6;">
+                                <li>✅ <span style="color: #bbb;">Normal quality preferred</span> (720p/1080p).</li>
+                                <li>❌ No ultra-high 4K RAW files (slows loading).</li>
+                                <li>❌ No low-quality or pixelated thumbnails.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div style="padding: 20px 30px; border-top: 1px solid var(--border); background: var(--surface);">
-                <button id="closeGuideBtn" class="btn-accent">I'VE READ THE RULES - LET'S GO</button>
+            <div class="footer-area" style="padding: 15px 25px; border-top: 1px solid var(--border); background: #111; display: flex; gap: 15px; align-items: center; flex-shrink: 0;">
+                <div style="flex-grow: 1; font-size: 0.75rem; color: var(--accent); font-weight: 600; text-transform: uppercase;">
+                    Ready to contribute?
+                </div>
+                <button id="closeGuideBtn" class="btn-accent" style="width: auto; padding: 10px 40px; font-size: 0.8rem;">GET STARTED</button>
             </div>
         </div>
     </div>
+
+
 
     <div class="contribute-grid">
         
@@ -240,7 +341,7 @@
                 <div class="tag-system">
                     <div id="pillContainer" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;"></div>
                     
-                    <div class="search-wrapper" style="position: relative;">
+                    <div class="search-wrapper" style="position: relative; max-width: 100%;">
                         <input type="text" id="tagSearchInput" placeholder="Search or type new tag..." autocomplete="off">
                         
                         <div id="tagDropdown" style="display: none; position: absolute; width: 100%; background: #1a1a1a; border: 1px solid #333; z-index: 100; max-height: 200px; overflow-y: auto;"></div>
@@ -271,6 +372,11 @@
 
                 <div id="image-preview-container" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 18px;"></div>
                 
+                <p style="font-size: 0.65rem; color: var(--text-muted); text-align: center; margin-bottom: 10px;">
+                    By clicking publish, you agree to follow the 
+                    <a href="javascript:void(0)" onclick="modal.style.display='flex'" style="color: var(--accent); text-decoration: none; font-weight: bold;">Uploading Guide</a>.
+                </p>
+
                 <button type="submit" class="btn-accent">PUBLISH!</button>
             </form>
         </section>
@@ -534,6 +640,30 @@
     // Close dropdown on click outside
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.search-wrapper')) tagDropdown.style.display = 'none';
+    });
+</script>
+
+<script>
+    // --- AUTO-OPEN LOGIC ---
+    window.addEventListener('load', () => {
+        // Check if the user has seen the guide before using localStorage
+        const hasSeenGuide = localStorage.getItem('hasSeenPostingBlueprint');
+
+        if (!hasSeenGuide) {
+            // Show the modal
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+
+            // Mark as seen when they click "Get Started"
+            closeBtn.addEventListener('click', () => {
+                localStorage.setItem('hasSeenPostingBlueprint', 'true');
+            });
+            
+            // Also mark as seen if they just close the X
+            closeX.addEventListener('click', () => {
+                localStorage.setItem('hasSeenPostingBlueprint', 'true');
+            });
+        }
     });
 </script>
 
