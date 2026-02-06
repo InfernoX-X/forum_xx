@@ -182,7 +182,7 @@ router.post('/posts/create', upload.array('images', 5), async (req, res) => {
             if (img.type === 'file') {
                 uploadPromise = new Promise((resolve, reject) => {
                     const stream = cloudinary.uploader.upload_stream(
-                        { resource_type: 'auto', folder: 'user_posts' },
+                        { resource_type: 'auto', folder: 'user_posts', cache_control: 'public, max-age=31536000, immutable'},
                         (error, result) => error ? reject(error) : resolve(result)
                     );
                     stream.end(img.data);
@@ -250,7 +250,7 @@ router.post('/posts/edit-image/:imageId', upload.single('image'), async (req, re
         // 1. Upload NEW image first
         const result = await new Promise((resolve, reject) => {
             const stream = cloudinary.uploader.upload_stream(
-                { resource_type: 'auto', folder: 'user_posts' },
+                { resource_type: 'auto', folder: 'user_posts' , cache_control: 'public, max-age=31536000, immutable'},
                 (error, res) => (error ? reject(error) : resolve(res))
             );
             stream.end(compressedBuffer);
@@ -323,7 +323,7 @@ router.post('/posts/add-images/:id', upload.array('images', 5), async (req, res)
 
             const result = await new Promise((resolve, reject) => {
                 const stream = cloudinary.uploader.upload_stream(
-                    { resource_type: 'auto', folder: 'user_posts' },
+                    { resource_type: 'auto', folder: 'user_posts', cache_control: 'public, max-age=31536000, immutable' },
                     (error, result) => error ? reject(error) : resolve(result)
                 );
                 stream.end(compressedBuffer);

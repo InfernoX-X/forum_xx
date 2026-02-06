@@ -217,9 +217,10 @@
         position: absolute;
         top: 15px;
         right: 20px;
-        font-size: 2rem;
+        font-size: 2.5rem;
         cursor: pointer;
         color: var(--text-muted);
+        padding: 10px;
     }
 
     .content-wrapper {
@@ -396,7 +397,9 @@
                 </div>
 
                 <div class="post-actions-row">
-                    <button class="btn-mini btn-info" onclick="openViewModal('<%= post.id %>')">Info</button>
+                    <button class="btn-mini btn-info" style="display: flex; align-items: center;justify-content: center;">
+                        <a href="<%= post.url %>" target="_blank" style="color:var(--white); text-decoration: none;">Video</a>
+                    </button>
 
                     <% if (user && (user.id === post.user_id || user.isAdmin == 1)) { %>
                         <button class="btn-mini btn-edit hide-editBtn" onclick="openEditModal('<%= post.id %>')">Edit</button>
@@ -405,42 +408,6 @@
             </div>
         </div>
 
-        <div id="view-modal-<%= post.id %>" class="modal-overlay">
-            <div class="modal-content">
-                <span class="close-modal" onclick="closeModal('view-modal-<%= post.id %>')">&times;</span>
-                <h1 style="margin-bottom:20px;"><%= post.title %></h1>
-                
-                <div class="modal-image-gallery" style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
-                    <% if(post.all_images) { 
-                        const images = post.all_images.split(','); 
-                        images.forEach(img => { %>
-                            <img src="<%= img %>" style="width:100%; border-radius:8px; border: 1px solid #333;" loading="lazy">
-                    <%  }); 
-                    } %>
-                </div>
-
-                <div style="margin-bottom:20px;">
-                    <% if (post.categories) { post.categories.split(',').forEach(cat => { %>
-                        <span class="forum-badge" style="background:var(--accent); color:var(--white); padding:4px 10px; margin-right:5px; text-transform: capitalize;"><%= cat %></span>
-                    <% })} %>
-                </div>
-
-                <div id="content-container-<%= post.id %>" class="content-wrapper">
-                    <p style="color: #ccc; line-height: 1.8; font-size:1.1rem;">
-                        <%= post.content %>
-                    </p>
-                    <div class="content-fade"></div>
-                </div>
-
-                <button id="toggle-btn-<%= post.id %>" class="read-more-btn" onclick="toggleReadMore('<%= post.id %>')">
-                    Read More
-                </button>
-
-                <% if(post.url) { %>
-                    <a href="<%= post.url %>" target="_blank" style="color:var(--accent); display:block; margin-top:20px; word-break:break-all;"><%= post.url %></a>
-                <% } %>
-            </div>
-        </div>
 
         <% if (user && user.id === post.user_id || user.isAdmin == 1) { %>
             <div id="edit-modal-<%= post.id %>" class="modal-overlay">
@@ -449,38 +416,37 @@
                     <h2 style="color:var(--accent); margin-bottom:20px;">Edit Post Settings</h2>
                     
                     <form action="/forum/posts/edit/<%= post.id %>" method="POST">
-                        <label>1. Add/Remove Categories</label>
-                        <div class="category-manager" style="position:relative;">
+                        <label>1. Update Categories</label>
+                        <div class="tag-system" style="background: #161616; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                             
-                            <div id="tag-container-<%= post.id %>" style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px;">
+                            <div id="mandatory-groups-<%= post.id %>" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                                </div>
+
+                            <label style="font-size: 0.6rem; opacity: 0.7; color: var(--accent);">Active Tags</label>
+                            <div id="tag-container-<%= post.id %>" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 10px;">
                                 <% allForums.forEach(f => { %>
                                     <% if (post.forum_ids && post.forum_ids.split(',').includes(f.id.toString())) { %>
-                                        <span class="tag-pill" data-id="<%= f.id %>">
-                                            <%= f.title %>
+                                        <div class="tag-pill" data-id="<%= f.id %>">
+                                            <%= f.title %> 
                                             <input type="hidden" name="forumIds" value="<%= f.id %>">
-                                            <span class="remove-btn" onclick="removeTag(this)">×</span>
-                                        </span>
+                                            <span onclick="this.parentElement.remove()">&times;</span>
+                                        </div>
                                     <% } %>
                                 <% }) %>
                             </div>
-
-                            <input type="text" 
-                                placeholder="Search and add categories..." 
-                                class="edit-field" 
-                                onfocus="toggleDropdown('<%= post.id %>', true)"
-                                oninput="filterEditTags(this, '<%= post.id %>')">
-
-                            <div id="edit-list-<%= post.id %>" class="custom-dropdown">
-                                <% allForums.forEach(f => { %>
-                                    <div class="dropdown-item" 
-                                        data-id="<%= f.id %>" 
-                                        data-name="<%= f.title.toLowerCase() %>"
-                                        onclick="addTag('<%= f.id %>', '<%= f.title %>', '<%= post.id %>')">
-                                        <%= f.title %>
-                                    </div>
-                                <% }) %>
+                            
+                            <div class="search-wrapper" style="position: relative;">
+                                <input type="text" 
+                                    id="tagSearchInput-<%= post.id %>" 
+                                    class="edit-field" 
+                                    style="margin-bottom:0;"
+                                    placeholder="Search to add tags (e.g. Threesome, Squirt)..." 
+                                    autocomplete="off"
+                                    oninput="handleSearch(this, '<%= post.id %>')">
+                                <div id="tagDropdown-<%= post.id %>" class="custom-dropdown" style="top: 100%;"></div>
                             </div>
                         </div>
+
 
                         <label>2. Name</label>
                         <input type="text" name="title" value="<%= post.title %>" class="edit-field" required>
@@ -562,10 +528,147 @@
     </div>
 <% } %>
 
-
+<div id="tag-data-store" data-tags='<%- JSON.stringify(allForums).replace(/'/g, "&#39;") %>'></div>
 
 
 <script>
+    // Global data from the backend
+    const tagStore = document.getElementById('tag-data-store');
+    const allTags = JSON.parse(tagStore.getAttribute('data-tags'));
+
+    const MANDATORY_HEADERS = [ "channel", "no. of people", "orientation", "level", "finishing", "sex positions", "age" ,"emotions", "act", "ethnicity"];
+
+    function setupPostMandatory(postId) {
+        const container = document.getElementById(`mandatory-groups-${postId}`);
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        // Get currently active IDs to pre-check boxes
+        const activePills = document.querySelectorAll(`#tag-container-${postId} .tag-pill`);
+        const activeIds = Array.from(activePills).map(p => p.dataset.id);
+
+        MANDATORY_HEADERS.forEach(headerName => {
+            const groupTags = allTags.filter(t => t.header.toLowerCase() === headerName);
+            if (groupTags.length === 0) return;
+
+            // Calculate how many are currently selected for this specific group
+            const selectedInGroupCount = groupTags.filter(t => activeIds.includes(t.id.toString())).length;
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'custom-dropdown-static';
+            wrapper.style.position = 'relative'; // Crucial for absolute positioning of menu
+            
+            wrapper.innerHTML = `
+                <label style="margin-bottom:5px; color:var(--accent); display:block; font-size:0.65rem; text-transform:uppercase;">${headerName}</label>
+                <div class="dropdown-trigger" 
+                    style="background:#111; border:1px solid #333; padding:8px; border-radius:4px; cursor:pointer; font-size:0.75rem; display:flex; justify-content:space-between; align-items:center;">
+                    <span class="selected-text" style="max-width: 80%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        ${selectedInGroupCount > 0 ? `Selected (${selectedInGroupCount})` : 'Select...'}
+                    </span>
+                    <span style="font-size: 8px;">▼</span>
+                </div>
+                <div class="dropdown-menu-edit" style="display:none; background:#1a1a1a; border:1px solid var(--accent); max-height:200px; overflow-y:auto; position:absolute; z-index:100; width:100%; box-shadow: 0 4px 15px rgba(0,0,0,0.5); border-radius: 4px; margin-top: 2px;">
+                    ${groupTags.map(tag => {
+                        const checked = activeIds.includes(tag.id.toString()) ? 'checked' : '';
+                        return `
+                        <label style="display:flex; align-items:center; padding:10px; gap:10px; cursor:pointer; font-size:0.75rem; border-bottom:1px solid #222; transition: background 0.2s;">
+                            <input type="checkbox" value="${tag.id}" data-title="${tag.title}" data-header="${headerName}" ${checked} 
+                                style="accent-color: var(--accent);"
+                                onchange="syncEditSelection(this, '${postId}')">
+                            <span class="tag-label-text">${tag.title}</span>
+                        </label>`;
+                    }).join('')}
+                </div>
+            `;
+            
+            const trigger = wrapper.querySelector('.dropdown-trigger');
+            const menu = wrapper.querySelector('.dropdown-menu-edit');
+            
+            trigger.onclick = (e) => {
+                e.stopPropagation();
+                const isVisible = menu.style.display === 'block';
+                // Close all other open dropdowns first
+                document.querySelectorAll('.dropdown-menu-edit').forEach(m => m.style.display = 'none');
+                menu.style.display = isVisible ? 'none' : 'block';
+            };
+
+            container.appendChild(wrapper);
+        });
+    }
+
+    function syncEditSelection(checkbox, postId) {
+        const id = checkbox.value;
+        const title = checkbox.dataset.title;
+        const header = checkbox.dataset.header;
+        const tagContainer = document.getElementById(`tag-container-${postId}`);
+
+        // 1. Update the Active Tag Pills
+        if (checkbox.checked) {
+            if (!tagContainer.querySelector(`[data-id="${id}"]`)) {
+                const pill = document.createElement('div');
+                pill.className = 'tag-pill';
+                pill.dataset.id = id;
+                pill.innerHTML = `${title} <input type="hidden" name="forumIds" value="${id}"> <span onclick="removeEditTag(this, '${postId}', '${id}')">&times;</span>`;
+                tagContainer.appendChild(pill);
+            }
+        } else {
+            const pill = tagContainer.querySelector(`[data-id="${id}"]`);
+            if (pill) pill.remove();
+        }
+
+        // 2. Update the "Selected (X)" count in the button trigger
+        const parentWrapper = checkbox.closest('.custom-dropdown-static');
+        const allCheckboxesInGroup = parentWrapper.querySelectorAll('input[type="checkbox"]');
+        const checkedCount = Array.from(allCheckboxesInGroup).filter(c => c.checked).length;
+        
+        const textSpan = parentWrapper.querySelector('.selected-text');
+        textSpan.innerText = checkedCount > 0 ? `Selected (${checkedCount})` : 'Select...';
+        
+        // Optional: Highlight the label color if something is selected
+        textSpan.style.color = checkedCount > 0 ? 'var(--accent)' : '#fff';
+    }
+
+    function removeEditTag(span, postId, id) {
+        span.parentElement.remove();
+        // Uncheck in the mandatory grid if it exists there
+        const cb = document.querySelector(`#mandatory-groups-${postId} input[value="${id}"]`);
+        if (cb) cb.checked = false;
+    }
+
+    function handleSearch(input, postId) {
+        const val = input.value.toLowerCase().trim();
+        const dropdown = document.getElementById(`tagDropdown-${postId}`);
+        dropdown.innerHTML = '';
+        
+        if (val.length < 1) { dropdown.style.display = 'none'; return; }
+
+        const matches = allTags.filter(t => 
+            t.title.toLowerCase().includes(val) && 
+            !MANDATORY_HEADERS.includes(t.header.toLowerCase())
+        );
+
+        matches.slice(0, 10).forEach(match => {
+            const div = document.createElement('div');
+            div.className = 'dropdown-item';
+            div.innerHTML = `${match.title} <small style="float:right; opacity:0.5;">${match.header}</small>`;
+            div.onclick = () => {
+                syncEditSelection({checked: true, value: match.id, dataset: {title: match.title}}, postId);
+                input.value = '';
+                dropdown.style.display = 'none';
+            };
+            dropdown.appendChild(div);
+        });
+        dropdown.style.display = 'block';
+    }
+
+    // Add this to your existing <script>
+    window.addEventListener('click', (e) => {
+        if (!e.target.closest('.custom-dropdown-static')) {
+            document.querySelectorAll('.dropdown-menu-edit').forEach(m => m.style.display = 'none');
+        }
+    });
+
     function previewNewImages(input, postId) {
         const previewContainer = document.getElementById(`preview-container-${postId}`);
         const label = document.getElementById(`label-text-${postId}`);
@@ -635,15 +738,11 @@
     }
 
     function openEditModal(postId) {
+        setupPostMandatory(postId);
         document.getElementById(`edit-modal-${postId}`).style.display = 'flex';
         document.body.style.overflow = 'hidden';
     }
-
-    function openViewModal(postId) {
-        document.getElementById(`view-modal-${postId}`).style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-    }
-
+    
     function closeModal(modalId) {
         document.getElementById(modalId).style.display = 'none';
         document.body.style.overflow = 'auto';
@@ -660,75 +759,7 @@
         initializeImageGallery("popUpClass");
     }
 
-    function toggleReadMore(postId) {
-        const container = document.getElementById(`content-container-${postId}`);
-        const btn = document.getElementById(`toggle-btn-${postId}`);
-        
-        if (container.classList.contains('expanded')) {
-            container.classList.remove('expanded');
-            btn.innerText = "Read More";
-            // Scroll back to top of modal when collapsing
-            btn.closest('.modal-content').scrollTop = 0;
-        } else {
-            container.classList.add('expanded');
-            btn.innerText = "Read Less";
-        }
-    }
-
-    function toggleDropdown(postId, show) {
-        const list = document.getElementById(`edit-list-${postId}`);
-        // Delay hiding slightly so the click event on the item registers
-        if (!show) {
-            setTimeout(() => { list.style.display = 'none'; }, 200);
-        } else {
-            list.style.display = 'block';
-        }
-    }
-
-    function filterEditTags(inputElement, postId) {
-        const searchTerm = inputElement.value.toLowerCase().trim();
-        const dropdown = document.getElementById(`edit-list-${postId}`);
-        const items = dropdown.querySelectorAll('.dropdown-item');
-        
-        dropdown.style.display = 'block';
-
-        items.forEach(item => {
-            const name = item.getAttribute('data-name');
-            item.style.display = name.includes(searchTerm) ? 'block' : 'none';
-        });
-    }
-
-    function addTag(id, title, postId) {
-        const container = document.getElementById(`tag-container-${postId}`);
-        
-        // Prevent duplicates
-        const existing = container.querySelector(`[data-id="${id}"]`);
-        if (existing) return;
-
-        // Create the Pill
-        const pill = document.createElement('span');
-        pill.className = 'tag-pill';
-        pill.setAttribute('data-id', id);
-        pill.innerHTML = `
-            ${title}
-            <input type="hidden" name="forumIds" value="${id}">
-            <span class="remove-btn" onclick="removeTag(this)">×</span>
-        `;
-        
-        container.appendChild(pill);
-    }
-
-    function removeTag(element) {
-        element.parentElement.remove();
-    }
-
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('.category-manager')) {
-            document.querySelectorAll('.custom-dropdown').forEach(d => d.style.display = 'none');
-        }
-    });
-
 </script>
+
 
 

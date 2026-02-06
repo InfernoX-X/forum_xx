@@ -37,6 +37,7 @@
         .card h3 { font-size: 0.75rem; color: var(--accent); letter-spacing: 2px; margin-bottom: 20px; text-transform: uppercase; }
         
         label { display: block; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; font-weight: 700; }
+
         .container input, textarea, select { 
             width: 100%; background: var(--input-bg); border: 1px solid var(--border); 
             color: var(--white); padding: 12px; margin-bottom: 18px; border-radius: 4px; font-family: inherit;
@@ -102,7 +103,8 @@
 
         /* The Pills */
         .tag-pill {
-            background: var(--accent) !important; /* Use your red accent */
+            --color: var(--accent);
+            background: var(--color) !important;
             color: white !important;
             padding: 6px 12px;
             border-radius: 20px;
@@ -112,10 +114,48 @@
             align-items: center;
             gap: 8px;
             border: none !important;
+            cursor: pointer;
         }
-
-        .tag-pill:hover {
-            background: rgba(255, 170, 0, 0.25);
+    
+        #pillContainer .channel {
+            --color: rgb(51, 51, 51);
+            background: var(--color) !important;
+        }
+        #pillContainer .no_of_people {
+            --color: rgb(56, 89, 138);
+            background: var(--color) !important;
+        }
+        #pillContainer .orientation {
+            --color: rgb(91, 56, 124);
+            background: var(--color) !important;
+        }
+        #pillContainer .level {
+            --color: rgb(99, 32, 32);
+            background: var(--color) !important;
+        }
+        #pillContainer .finishing {
+            --color: rgb(33, 119, 55);
+            background: var(--color) !important;
+        }
+        #pillContainer .sex_positions {
+            --color: rgb(42, 53, 102);
+            background: var(--color) !important;
+        }
+        #pillContainer .age {
+            --color: rgb(124, 78, 52);
+            background: var(--color) !important;
+        }
+        #pillContainer .emotions {
+            --color: rgb(124, 56, 90);
+            background: var(--color) !important;
+        }
+        #pillContainer .act {
+            --color: rgb(101, 105, 43);
+            background: var(--color) !important;
+        }
+        #pillContainer .ethnicity {
+            --color: rgb(48, 124, 105);
+            background: var(--color) !important;
         }
 
         .tag-pill span {
@@ -154,34 +194,88 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.8);
         }
 
-        /* Individual items in dropdown */
-        .dropdown-item {
-            padding: 10px 15px;
+        .tag-pill small {
+            text-transform: uppercase;
+            margin-right: 5px;
+            color: var(--accent);
+        }
+
+
+
+
+        /* Adjust Pill container for better visibility */
+        #pillContainer {
+            border-bottom: 1px solid #222;
+            padding-bottom: 15px;
+        }
+
+         
+        /* Container for the whole dropdown */
+        .custom-dropdown {
+            position: relative;
+            width: 100%;
+        }
+
+        /* The box the user clicks */
+        .dropdown-trigger {
+            background: #111;
+            border: 1px solid #333;
+            padding: 10px 12px;
+            border-radius: 4px;
             cursor: pointer;
-            color: #aaa;
-            font-size: 0.85rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: #888;
+            transition: border 0.2s;
+        }
+
+        .dropdown-trigger:hover { border-color: #555; }
+        .custom-dropdown.active .dropdown-trigger { border-color: var(--accent); color: #fff; }
+
+        /* The floating menu */
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 105%;
+            left: 0;
+            right: 0;
+            background: #181818;
+            border: 1px solid #333;
+            z-index: 9999;
+            max-height: 200px;
+            overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border-radius: 4px;
+        }
+
+        .custom-dropdown.active .dropdown-menu { display: block; }
+
+        /* Individual items in the menu */
+        .dropdown-item-label {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #222;
+            font-size: 0.75rem;
+            color: #eee;
             transition: background 0.2s;
         }
 
-        .dropdown-item:hover {
-            background: #222;
-            color: var(--white);
+        .dropdown-item-label:hover { background: #252525; }
+        .dropdown-item-label input {
+            margin-right: 12px;
+            accent-color: var(--accent);
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
         }
 
-        .dropdown-create-btn {
-            color: #ffaa00;
-            font-weight: bold;
-            border-top: 1px solid #222;
-        }
-        
-        .tag-pill, .dropdown-item {
-            text-transform: capitalize;
-        }
+        .dropdown-trigger .arrow { font-size: 0.5rem; transition: transform 0.2s; }
+        .custom-dropdown.active .arrow { transform: rotate(180deg); }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
     </style>
 
     <style>
@@ -337,25 +431,29 @@
                 <label>1. Name</label>
                 <input type="text" name="title" placeholder="Original Title with (Female Performer's name)" required>
 
-                <label>2. Add Tags</label>
-                <div class="tag-system">
-                    <div id="pillContainer" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;"></div>
-                    
-                    <div class="search-wrapper" style="position: relative; max-width: 100%;">
-                        <input type="text" id="tagSearchInput" placeholder="Search or type new tag..." autocomplete="off">
+                <label>2. Add Tags & Categories</label>
+                    <div class="tag-system">
                         
-                        <div id="tagDropdown" style="display: none; position: absolute; width: 100%; background: #1a1a1a; border: 1px solid #333; z-index: 100; max-height: 200px; overflow-y: auto;"></div>
+                        <div id="mandatory-groups" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        </div>
+
+                        <label style="font-size: 0.6rem; opacity: 0.7;">Selected Tags Summary</label>
+                        <div id="pillContainer" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;"></div>
+                        
+                        <div class="search-wrapper" style="position: relative; max-width: 100%;">
+                            <input type="text" id="tagSearchInput" placeholder="Search to add tags (e.g. Threesome, Squirt)..." autocomplete="off">
+                            <div id="tagDropdown"></div>
+                        </div>
+
+                        <div id="hiddenCheckboxes" style="display: none;">
+                        </div>
+
                     </div>
 
-                    <div id="hiddenCheckboxes" style="display: none;">
-                        <% allForums.forEach(f => { %>
-                            <input type="checkbox" name="forumIds" value="<%= f.id %>" data-name="<%= f.title.toLowerCase() %>" id="check-<%= f.id %>">
-                        <% }) %>
-                    </div>
-                </div>
                 <!-- Hidden List of Tags -->
                 <div id="tag-data" style="display:none;" data-forums="<%= JSON.stringify(allForums) %>"></div>
 
+                
                 <label>3. Description</label>
                 <textarea name="content" rows="4" placeholder="Detailed description..." required></textarea>
 
@@ -511,6 +609,16 @@
     const tagDropdown = document.getElementById('tagDropdown');
     const hiddenCheckboxes = document.getElementById('hiddenCheckboxes');
 
+    const helper = (name) => {
+        return name.replace(".", "").trim().replaceAll(" ", "_").toLowerCase();
+    }
+
+    // Define which headers MUST have a selection
+    const MANDATORY_HEADERS = [ "channel", "no. of people", "orientation", "level","sex positions", "finishing", "age" ,"emotions", "act", "ethnicity"];
+
+    const mandatoryContainer = document.getElementById('mandatory-groups');
+
+
     function formatTagName(str) {
         return str.split('/').map(part => {
             let trimmedPart = part.trim();
@@ -531,35 +639,76 @@
 
     // --- Add Tag Function ---
     function addTag(tag) {
-        if (selectedTagIds.has(tag.id.toString())) return;
+        const idStr = tag.id.toString();
+
+        if (selectedTagIds.has(idStr)) return;
+        selectedTagIds.add(idStr);
         
-        selectedTagIds.add(tag.id.toString());
-        
-        // Find or create hidden checkbox
-        let cb = document.getElementById(`check-${tag.id}`);
+        // 1. Hidden Form Input
+        let cb = document.getElementById(`check-${idStr}`);
         if (!cb) {
-             cb = document.createElement('input');
-             cb.type = 'checkbox';
-             cb.name = 'forumIds';
-             cb.value = tag.id;
-             cb.id = `check-${tag.id}`;
-             hiddenCheckboxes.appendChild(cb);
+            cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.name = 'forumIds';
+            cb.value = tag.id;
+            cb.id = `check-${idStr}`;
+            hiddenCheckboxes.appendChild(cb);
         }
         cb.checked = true;
 
+        // 2. Create Visible Pill
         const pill = document.createElement('div');
         pill.className = 'tag-pill';
-        pill.innerHTML = `${tag.title} <span onclick="removeTag('${tag.id}', this)">&times;</span>`;
+        pill.classList.add(helper(tag.header));
+        pill.dataset.id = idStr;
+        pill.innerHTML = `
+            ${tag.title} 
+            <span onclick="removeTag('${tag.id}', this)">&times;</span>
+        `;
         pillContainer.appendChild(pill);
+
+        // 3. UI Sync: Check the dropdown box if it exists
+        const dropdownCb = document.querySelector(`.dropdown-item-label input[data-id="${idStr}"]`);
+        if (dropdownCb) {
+            dropdownCb.checked = true;
+            updateDropdownLabel(dropdownCb.closest('.custom-dropdown'));
+        }
     }
 
-    // --- Remove Tag Function ---
+    // Remove Tag (Pill + Uncheck Dropdown + Uncheck Hidden)
     window.removeTag = (id, el) => {
-        selectedTagIds.delete(id.toString());
-        const cb = document.getElementById(`check-${id}`);
+        const idStr = id.toString();
+        selectedTagIds.delete(idStr);
+        
+        // Uncheck hidden submission input
+        const cb = document.getElementById(`check-${idStr}`);
         if (cb) cb.checked = false;
-        el.parentElement.remove();
+        
+        // Uncheck checkbox inside the dropdown menu
+        const dropdownCb = document.querySelector(`.dropdown-item-label input[data-id="${idStr}"]`);
+        if (dropdownCb) {
+            dropdownCb.checked = false;
+            updateDropdownLabel(dropdownCb.closest('.custom-dropdown'));
+        }
+
+        const pill = pillContainer.querySelector(`.tag-pill[data-id="${idStr}"]`);
+        if (pill) pill.remove();
     };
+
+
+    function updateDropdownLabel(container) {
+        const count = container.querySelectorAll('input:checked').length;
+        const label = container.querySelector('.selected-count');
+        const headerLabel = container.querySelector('label').innerText.replace(' *', '');
+        
+        if (count > 0) {
+            label.innerText = `${count} Selected`;
+            label.style.color = "var(--accent)";
+        } else {
+            label.innerText = `Select ${headerLabel.toLowerCase()}...`;
+            label.style.color = "#888";
+        }
+    }
 
     // --- FEATURE: Auto-check from Title ---
     titleInput.addEventListener('input', (e) => {
@@ -568,13 +717,54 @@
 
         allTags.forEach(tag => {
             const tagName = tag.title.toLowerCase();
-            // Only auto-add if it's a whole word to avoid accidental tags
             const regex = new RegExp(`\\b${tagName}\\b`, 'i');
             if (regex.test(text)) {
                 addTag(tag);
             }
         });
     });
+
+    function setupMandatoryCategories() {
+        mandatoryContainer.innerHTML = '';
+        MANDATORY_HEADERS.forEach(headerName => {
+            const groupTags = allTags.filter(t => t.header.toLowerCase() === headerName);
+            if (groupTags.length === 0) return;
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'custom-dropdown';
+            wrapper.innerHTML = `
+                <label style="margin-bottom:5px; color:var(--accent); display:block; font-size:0.65rem; text-transform:uppercase;">${headerName} *</label>
+                <div class="dropdown-trigger" onclick="toggleDropdown(this)">
+                    <span class="selected-count">Select ${headerName}...</span>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="dropdown-menu">
+                    ${groupTags.map(tag => `
+                        <label class="dropdown-item-label">
+                            <input style="margin: 0;" type="checkbox" data-id="${tag.id}" data-title="${tag.title}" data-header="${tag.header}" onchange="syncSelection(this)">
+                            <span style="margin-left: 10px;" >${tag.title}</span>
+                        </label>
+                    `).join('')}
+                </div>
+            `;
+            mandatoryContainer.appendChild(wrapper);
+        });
+    }
+
+    // Opens/Closes the custom menus
+    window.toggleDropdown = (el) => {
+        const parent = el.parentElement;
+        const wasOpen = parent.classList.contains('active');
+        document.querySelectorAll('.custom-dropdown').forEach(d => d.classList.remove('active'));
+        if (!wasOpen) parent.classList.add('active');
+    };
+
+    // When a checkbox in the dropdown is clicked
+    window.syncSelection = (checkbox) => {
+        const tag = { id: checkbox.dataset.id, title: checkbox.dataset.title, header: checkbox.dataset.header };
+        checkbox.checked ? addTag(tag) : removeTag(tag.id);
+    };
+
 
     // --- FEATURE: Search & Dropdown ---
     tagSearchInput.addEventListener('input', (e) => {
@@ -589,9 +779,18 @@
             return;
         }
 
-        const matches = allTags.filter(t => t.title.toLowerCase().includes(searchVal));
-        
-        matches.slice(0, 20).forEach(match => { // Limit to 20 results for speed
+        const matches = allTags.filter(t => {
+            const titleMatch = t.title.toLowerCase().includes(searchVal);
+            const headerMatch = t.header.toLowerCase();
+            
+            const isMandatory = MANDATORY_HEADERS.includes(headerMatch);
+            const isAlreadySelected = selectedTagIds.has(t.id.toString());
+            
+            // Only show if: Matches text AND (is NOT mandatory) AND (is NOT already picked)
+            return titleMatch  && !isAlreadySelected;
+        });
+
+        matches.slice(0, 15).forEach(match => { // Limit to 15 results for speed
             const div = document.createElement('div');
             div.className = 'dropdown-item'; // Uses your CSS
             div.style = "padding: 10px; cursor: pointer; border-bottom: 1px solid #222; font-size: 0.8rem;";
@@ -645,10 +844,15 @@
         }
     }
 
-    // Close dropdown on click outside
+    // Close menus when clicking outside
     document.addEventListener('click', (e) => {
-        if (!e.target.closest('.search-wrapper')) tagDropdown.style.display = 'none';
+        if (!e.target.closest('.custom-dropdown')) {
+            document.querySelectorAll('.custom-dropdown').forEach(d => d.classList.remove('active'));
+        }
     });
+    
+    // Initialize on load
+    setupMandatoryCategories();
 </script>
 
 <script>
