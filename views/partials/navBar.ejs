@@ -574,69 +574,6 @@
     }
 </style>
 
-<!-- User Badges -->
-<style>
-    .badge {
-        font-size: 0.65rem;
-        padding: 3px 8px;
-        border-radius: 4px;
-        text-transform: uppercase;
-        font-weight: 800;
-        display: inline-flex;
-        align-items: center;
-        margin-left: 4px;
-    }
-
-    .badge-noob { background: #2a2a2a; color: #888; border: 1px solid #444; }
-
-    .badge-contributor { background: #1e3a2f; color: #4ade80; border: 1px solid #14532d; } 
-
-    .badge-regular { background: #1e293b; color: #38bdf8; border: 1px solid #1e40af; } 
-
-    .badge-elder {
-        background: #4a2d0f;
-        color: #fb923c;
-        border: 1px solid #7c2d12;
-        box-shadow: 0 0 5px rgba(124, 45, 18, 0.3);
-    }
-
-    .badge-elite { 
-        background: linear-gradient(135deg, #f93742 0%, #991b1b 100%); 
-        color: white; 
-    }
-
-    .badge-expert { 
-        background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%); 
-        color: white;
-        box-shadow: 0 0 10px rgba(168, 85, 247, 0.4);
-    }
-
-    .badge-legend { 
-        background: linear-gradient(135deg, #f59e0b 0%, #78350f 100%); 
-        color: var(--white);
-        border: 1px solid #fde047;
-        box-shadow: 0 0 15px rgba(245, 158, 11, 0.5);
-        animation: pulse 2s infinite;
-    }
-
-    .badge-god {
-        background: linear-gradient(135deg, #111 0%, #F93742 50%, #111 100%);
-        background-size: 200% auto;
-        color: var(--white);
-        border: 1px solid #f93742;
-        box-shadow: 0 0 15px rgba(249, 55, 66, 0.6);
-        animation: godFlare 3s linear infinite;
-        text-shadow: 0 0 5px #000;
-    }
-
-    @keyframes godFlare {
-        0% { background-position: 0% center; }
-        50% { background-position: 100% center; }
-        100% { background-position: 0% center; }
-    }
-
-</style>
-
 <!-- Password Change Popup Modal -->
 <style>
     .fx-modal-overlay {
@@ -792,6 +729,80 @@
     }
 </style>
 
+<!-- Badge CSS -->
+<style>
+.badge {
+    position: relative;
+    padding: 8px 24px;
+    font-size: 0.8rem;
+    font-weight: 950;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    color: #fff;
+    background: linear-gradient(135deg, #1a1a1a 0%, #000 100%);
+    border-radius: 2px;
+    box-shadow: 
+        inset 0 1px 1px rgba(255,255,255,0.3), 
+        0 5px 15px rgba(0,0,0,0.8),
+        0 0 0 1px #333;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.badge::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -150%;
+    width: 100%; height: 100%;
+    background: linear-gradient(
+        90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.2) 50%, 
+        transparent
+    );
+    transform: skewX(-20deg);
+    animation: metal-shimmer 6s infinite;
+}
+
+@keyframes metal-shimmer {
+    0% { left: -150%; }
+    20% { left: 150%; }
+    100% { left: 150%; }
+}
+
+@keyframes flow-blood {
+    from { background-position: 200% 0; }
+    to { background-position: -200% 0; }
+}
+
+@keyframes flow-blood-reverse {
+    from { background-position: -200% 20%; }
+    to { background-position: 200% 80%; }
+}
+
+@keyframes ember-pulse {
+    0%, 100% { filter: saturate(1) brightness(1) contrast(1); }
+    45% { filter: saturate(1.8) brightness(1.2) contrast(1.1); }
+    50% { filter: saturate(3) brightness(1.4) contrast(1.2); }  
+    55% { filter: saturate(2) brightness(1.2) contrast(1.1); }
+}
+
+@keyframes magma-flow {
+    0% { left: -100%; }
+    30% { left: 100%; }
+    100% { left: 100%; }
+}
+
+@keyframes outcast-hum {
+    0%, 100% { filter: brightness(2) saturate(1); }
+    50% { filter: brightness(0.5) saturate(0.5); }
+}
+</style>
+
+
 <nav class="main-navbar">
     <div class="nav-container">
         <a href="/" class="logo">Forum<span>X</span></a>
@@ -817,14 +828,14 @@
                 <% 
                     // 1. MASTER CONFIG (Sorted high to low)
                     const ranks = [
-                        { min: 2000, label: 'God', class: 'god', icon: '🐦‍🔥' },
-                        { min: 1000, label: 'Legend', class: 'legend', icon: '👑' },
-                        { min: 500,  label: 'Expert', class: 'expert', icon: '💎' },
-                        { min: 250,  label: 'Elite', class: 'elite', icon: '🔥' },
-                        { min: 100,  label: 'Elder', class: 'elder', icon: '🔶' },
-                        { min: 50,   label: 'Regular', class: 'regular', icon: '🛡️' },
-                        { min: 10,   label: 'Member', class: 'contributor', icon: '📜' },
-                        { min: 0,    label: 'Novice', class: 'noob', icon: '🌱' }
+                        { min: 2000, label: 'God', class: 'god', icon: '✦' },
+                        { min: 1000, label: 'Lucifer', class: 'legend', icon: '𖤐' },
+                        { min: 500,  label: 'Leviathan', class: 'expert', icon: '◈' },
+                        { min: 250,  label: 'Archdemon', class: 'elite', icon: '▲' },
+                        { min: 100,  label: 'Viper', class: 'elder', icon: '🐍' },
+                        { min: 50,   label: 'Sinner', class: 'regular', icon: '🔥' },
+                        { min: 10,   label: 'Outcast', class: 'contributor', icon: '⛓' },
+                        { min: 0,    label: 'Angel', class: 'noob', icon: '○' }
                     ];
 
                     // 2. FIND CURRENT RANK
@@ -850,6 +861,165 @@
                             <div class="pulse-indicator" title="Live Session Active"></div>
                             <strong style="letter-spacing: 1px;"><a style="color: var(--white); text-decoration: none;" href="/user/<%= user.id %>" ><%= user.username %></a></strong>
                             
+                            <% if (currentRank.class == "god") { %>
+                                <style>
+                                    .badge-god {
+                                            background: linear-gradient(135deg, #fff 0%, #fccd4d 50%, #f8b500 51%, #fff 100%);
+                                            background-size: 200% 100%;
+                                            color: #432c00;
+                                            font-size: 0.9rem;
+                                            padding: 12px 35px;
+                                            /* Divine Diamond Cut: Sets it apart from all the slants below it */
+                                            clip-path: polygon(15% 0%, 85% 0%, 100% 50%, 85% 100%, 15% 100%, 0% 50%);
+                                            border: none;
+                                            /* Layered Aura: White heat inside, Gold radiance outside */
+                                            box-shadow: 
+                                                0 0 30px #fff, 
+                                                0 0 60px rgba(250, 188, 0, 0.6), 
+                                                inset 0 0 15px #fff;
+                                            animation: god-supernova 4s infinite ease-in-out;
+                                        }
+
+
+                                        @keyframes god-supernova {
+                                            0%, 100% { filter: brightness(1) contrast(1.2); transform: scale(1.1); }
+                                            50% { filter: brightness(1.6) contrast(1.5); transform: scale(1.15); }
+                                        }
+                                </style>
+                            <% } else if (currentRank.class == "legend") { %>
+                                <style>
+                                    .badge-legend {
+                                        background: linear-gradient(135deg, #300 0%, #900 45%, #f00 50%, #900 55%, #300 100%);
+                                        background-size: 200% 100%;
+                                        color: #fff;
+                                        padding: 16px 50px;
+                                        clip-path: polygon(10% 15%, 90% 30%, 85% 100%, 25% 90%); 
+                                        border: 1px solid #600;
+                                        animation: flow-blood 4s infinite linear reverse;
+                                        box-shadow: 0 0 20px rgba(255, 0, 0, 0.5), inset 0 0 10px #000;
+                                    }
+                                </style>
+                            <% } else if (currentRank.class == "expert") { %>
+                                <style>
+                                    .badge-expert {
+                                        background: linear-gradient(160deg, #001 0%, #002e5c 40%, #00d4ff 50%, #002e5c 60%, #001 100%);
+                                        background-size: 200% 100%;
+                                        color: #fff;
+                                        font-size: 0.85rem;
+                                        padding: 10px 28px;
+                                        border: 1px solid #00d4ff;
+                                        /* "The Fin" - Massive, sweeping pressure shape */
+                                        clip-path: polygon(15% 0%, 100% 25%, 85% 100%, 0% 75%);
+                                        box-shadow: 
+                                            0 0 25px rgba(0, 212, 255, 0.6), 
+                                            inset 0 0 20px #000;
+                                        filter: drop-shadow(0 0 12px #00d4ff);
+                                        animation: flow-blood-reverse 4s infinite linear reverse;
+                                    }
+                                </style>
+                            <% } else if (currentRank.class == "elite") { %>
+                                <style>
+                                    .badge-elite {
+                                        background: linear-gradient(135deg, #2d0a1a 0%, #880381 100%);
+                                        color: #f9b3ff; /* Pale pinkish-white for a "bone" look */
+                                        background-size: 200% 100%;
+                                        border: 1px solid #7d1b8a;
+                                        box-shadow: 
+                                        inset 0 0 15px #000, 
+                                        0 4px 10px rgba(0,0,0,0.8);
+                                        clip-path: polygon(0% 15%, 100% 0%, 85% 85%, 15% 100%); /* Jagged/Serrated shape */
+                                        animation: flow-blood 3s infinite linear; /* Faster than Lucifer but darker */
+                                    }
+                                </style>    
+                            <% } else if (currentRank.class == "elder") { %>
+                                <style>
+                                    .badge-elder {
+    background: linear-gradient(135deg, #020 0%, #050 45%, #0f0 50%, #050 55%, #020 100%);
+    background-size: 200% 100%;
+    color: rgb(170, 255, 170);
+    border: 1px solid #010;
+
+    box-shadow: 
+    inset 0 0 15px #000, 
+    0 4px 10px rgba(0,0,0,0.8);
+    clip-path: polygon(0% 25%, 90% 0%, 85% 100%, 15% 80%); 
+    filter: sepia(0.1);
+    animation: flow-blood-reverse 4s infinite linear;
+}
+                                </style>
+                            <% } else if (currentRank.class == "regular") { %>
+                                <style>
+.badge-regular {
+    background: linear-gradient(135deg, #1a0a00 0%, #3a1a00 50%, #000 100%);
+    color: #ff9650;
+    font-weight: 950;
+    letter-spacing: 2px;
+    padding: 10px 28px;
+    clip-path: polygon(0% 0%, 100% 0%, 95% 100%, 0% 85%); 
+    border: 1px solid #ff4400;
+    border-bottom: 3px solid #ff2200; 
+    box-shadow: 
+        0 0 15px rgba(255, 68, 0, 0.3), 
+        inset 0 0 12px rgba(255, 68, 0, 0.2),
+        inset 0 0 20px #000;
+
+    animation: ember-pulse 3s infinite ease-in-out;
+}
+.badge-regular::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(
+        90deg, 
+        transparent, 
+        rgba(255, 68, 0, 0.15), 
+        transparent
+    );
+    animation: magma-flow 8s infinite linear;
+}
+
+
+                                </style>
+                            <% } else if (currentRank.class == "contributor") { %>
+                                <style>
+                                    .badge-contributor {
+                                        background: linear-gradient(135deg, #161a25 0%, #090a0f 100%);
+                                        color: #6a769e; /* Muted, "Dead" blue */
+                                        font-weight: 950;
+                                        letter-spacing: 3px;
+                                        padding: 10px 32px;
+                                        clip-path: polygon(15% 0%, 100% 0%, 100% 75%, 50% 100%, 0% 75%, 0% 15%);
+                                        border-right: 2px solid #2a2e45;
+                                        border-bottom: 2px solid #2a2e45;
+                                        box-shadow: 
+                                            inset 0 0 20px #000, 
+                                            0 10px 20px rgba(0,0,0,0.9);
+
+                                        animation: outcast-hum 5s infinite ease-in-out;
+                                    }
+                                    .badge-contributor::before {
+                                        content: '';
+                                        position: absolute;
+                                        inset: 0;
+                                        background: linear-gradient(
+                                            45deg, 
+                                            transparent 45%, 
+                                            rgba(255,255,255,0.03) 50%, 
+                                            transparent 55%
+                                        );
+                                        background-size: 5px 5px; /* Creates a subtle "brushed metal" texture */
+                                        opacity: 0.3;
+                                    }
+
+
+                                </style>
+                            <% } else if (currentRank.class == "noob") { %>
+                                <style>
+                                    .badge-noob { background: transparent; color: #707070; border: 1px dashed #333; clip-path: none; }
+                                </style>
+                            <% } %>
+
                             <span class="badge badge-<%= currentRank.class %>">
                                 <%= currentRank.icon %> <%= currentRank.label %>
                             </span>
