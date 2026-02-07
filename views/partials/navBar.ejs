@@ -759,6 +759,7 @@
     overflow: hidden;
     margin-left: 10px;
     margin-right: 5px;
+    cursor: default;
 }
 
 .badge::before {
@@ -773,7 +774,7 @@
         transparent
     );
     transform: skewX(-20deg);
-    animation: metal-shimmer 6s infinite;
+    /* animation: metal-shimmer 6s infinite; */
 }
 
 @keyframes metal-shimmer {
@@ -809,6 +810,15 @@
     0%, 100% { filter: brightness(2) saturate(1); }
     50% { filter: brightness(0.5) saturate(0.5); }
 }
+
+@keyframes cosmic-drift {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+}
+
+
+
+
 </style>
 
 
@@ -837,17 +847,21 @@
                 <% 
                     // 1. MASTER CONFIG (Sorted high to low)
                     const ranks = [
-                        { min: 10000, label: 'God', class: 'god', icon: '✦' },
-                        { min: 5000, label: 'Lucifer', class: 'legend', icon: '𖤐' },
-                        { min: 1000,  label: 'Leviathan', class: 'expert', icon: '◈' },
-                        { min: 250,  label: 'Archdemon', class: 'elite', icon: '▲' },
-                        { min: 100,  label: 'Viper', class: 'elder', icon: '' },
-                        { min: 50,   label: 'Sinner', class: 'regular', icon: '🔥' },
-                        { min: 10,   label: 'Outcast', class: 'contributor', icon: '⛓' },
-                        { min: 0,    label: 'BlackEye', class: 'noob', icon: '○' }
+                        { min: 10000, label: 'Death', class: 'death', icon: '∞' },
+                        { min: 8000, label: 'God', class: 'god', icon: '✦' },
+                        { min: 7000, label: 'Lucifer', class: 'lucifer', icon: '𖤐' },
+                        { min: 5500, label: 'Raphael', class: 'archangel', icon: 'ϟ' },
+                        { min: 4000,  label: 'Lilith', class: 'lilith', icon: '▲' },
+                        { min: 3000,  label: 'Azazel', class: 'prince', icon: '◈' },
+                        { min: 2000,  label: 'Leviathan', class: 'levi', icon: '⬢' },
+                        { min: 1000,  label: 'Alastair', class: 'torturer', icon: '†' },
+                        { min: 250,  label: 'Crowley', class: 'crowley', icon: '⚖' },
+                        { min: 100,   label: 'Hellhounds', class: "beast", icon: '' },
+                        { min: 0,    label: 'BlackEye', class: 'noob', icon: '⦿' }
                     ];
 
-                    const userPoint = user.postCount;
+                    <!-- const userPoint = user.postCount * 10; -->
+                    const userPoint = 10001;
 
                     // 2. FIND CURRENT RANK
                     let currentRank = ranks.find(r => userPoint >= r.min);
@@ -866,34 +880,84 @@
                 %>
 
                 <div class="dropdown-content" id="settingsDropdown">
-                    <% if (currentRank.class == "god") { %>
+                    <% if (currentRank.class == "death") { %>
                         <style>
-                            .badge-god {
-                                    background: linear-gradient(135deg, #fff 0%, #fccd4d 50%, #f8b500 51%, #fff 100%);
-                                    background-size: 200% 100%;
-                                    color: #432c00;
-                                    font-size: 0.75rem;
-                                    padding: 12px 35px;
-                                    /* Divine Diamond Cut: Sets it apart from all the slants below it */
-                                    clip-path: polygon(15% 0%, 85% 0%, 100% 50%, 85% 100%, 15% 100%, 0% 50%);
-                                    border: none;
-                                    /* Layered Aura: White heat inside, Gold radiance outside */
-                                    box-shadow: 
-                                        0 0 30px #fff, 
-                                        0 0 60px rgba(250, 188, 0, 0.6), 
-                                        inset 0 0 15px #fff;
-                                    animation: god-supernova 4s infinite ease-in-out;
-                                    font-weight: 900;
+                            .badge-death {
+                                background: linear-gradient(135deg, #000 0%, #1a0033 45%, #4b0082 50%, #1a0033 55%, #000 100%);
+                                background-size: 200% 100%;
+                                color: #f3e1ff; /* Ghostly violet */
+                                font-weight: 400 !important;
+                                letter-spacing: 8px;
+                                padding: 12px 40px;
+                                clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%); /* Solid block of darkness */
+                                border: 1px solid #2e004d;
+                                box-shadow: 0 0 30px rgba(75, 0, 130, 0.5), inset 0 0 20px #000;
+                                animation: cosmic-drift 8s infinite linear,  death-sweep 6s infinite ease-in-out;
+                                text-transform: uppercase;
+                            }
+                            @keyframes death-sweep {
+                                0%, 100% { filter: grayscale(0.2) brightness(1); letter-spacing: 8px; }
+                                50% { 
+                                    filter: grayscale(1) brightness(1.8); 
+                                    letter-spacing: 10px;
+                                    text-shadow: 0 0 20px #fff, 0 0 40px #4b0082;
                                 }
-
-                                @keyframes god-supernova {
-                                    0%, 100% { filter: brightness(1) contrast(1.2); transform: scale(1.1); }
-                                    50% { filter: brightness(1.5) contrast(1.5); transform: scale(1.15); }
-                                }
+                            }
                         </style>
-                    <% } else if (currentRank.class == "legend") { %>
+                    <% } else if (currentRank.class == "god") { %>
+                       <style>
+                            .badge-god {
+                                background: linear-gradient(135deg, #fff 0%, #fccd4d 50%, #f8b500 51%, #fff 100%);
+                                background-size: 200% 100%;
+                                color: #432c00;
+                                font-size: 0.75rem;
+                                padding: 12px 35px;
+                                clip-path: polygon(15% 0%, 85% 0%, 100% 50%, 85% 100%, 15% 100%, 0% 50%);
+                                border: none;
+                                font-weight: 900;
+
+                                display: inline-block;
+                                transform: perspective(500px) rotateX(10deg) rotateY(-5deg) scale(1.1);
+                                
+                                box-shadow: 
+                                    2px 2px 0px #b8860b, 
+                                    4px 4px 0px #8b6508,
+                                    0 0 30px #fff, 
+                                    0 0 60px rgba(250, 188, 0, 0.4);
+
+                                animation: god-3d-float 8s infinite ease-in-out, god-outward-glow 4s infinite;
+                            }
+
+                            /* Floating 3D motion */
+                            @keyframes god-3d-float {
+                                0%, 100% { 
+                                    transform: perspective(500px) rotateX(10deg) rotateY(-5deg) scale(1.1); 
+                                    filter: brightness(1);
+                                }
+                                50% { 
+                                    /* Subtle tilt change as it scales */
+                                    transform: perspective(500px) rotateX(15deg) rotateY(5deg) scale(1.15); 
+                                    filter: brightness(1.2);
+                                }
+                            }
+
+                            @keyframes god-outward-glow {
+                                0%, 10%, 20%, 100% { 
+                                    box-shadow: 2px 2px 0px #b8860b, 4px 4px 0px #8b6508, 0 0 30px #fff, 0 0 60px rgba(250, 188, 0, 0.4);
+                                }
+                                /* THE POP: The 3D shadows expand with the light */
+                                12%, 16% { 
+                                    box-shadow: 4px 4px 0px #fff, 8px 8px 30px #fff, 0 0 120px 40px rgba(255, 255, 255, 0.8);
+                                    filter: brightness(2);
+                                }
+                                14% {
+                                    box-shadow: 2px 2px 0px #fff, 0 0 80px 20px rgba(250, 188, 0, 1);
+                                }
+                            }
+                        </style>
+                    <% } else if (currentRank.class == "lucifer") { %>
                         <style>
-                            .badge-legend {
+                            .badge-lucifer {
                                 background-size: 200% 100%;
                                 padding: 20px 50px 12px 50px;
                                 clip-path: polygon(10% 15%, 90% 30%, 85% 100%, 25% 90%); 
@@ -905,8 +969,31 @@
                                 color: #ff4d00;
                                 box-shadow: 0 0 15px rgba(255, 0, 0, 0.7), inset 0 0 10px #7b0000;
                                 animation: hellfire 3s infinite alternate;
+                                position: relative;
+                                overflow: hidden; 
                             }
 
+                            .badge-lucifer::before {
+                                content: '';
+                                position: absolute;
+                                inset: 0;
+                                background: radial-gradient(circle, #fff 0%, #ff4d00 50%, transparent 70%);
+                                opacity: 0;
+                                mix-blend-mode: overlay;
+                                pointer-events: none;
+                                animation: lava-pop 5s infinite;
+                            }
+
+                            @keyframes lava-pop {
+                                0%, 15%, 25%, 60%, 70%, 100% { opacity: 0; transform: scale(0.5); }
+                                18% { opacity: 1; transform: scale(1.2); }
+                                20% { opacity: 0; }
+                                62% { opacity: 1; transform: scale(1.5); }
+                                64% { opacity: 0; }
+                                66% { opacity: 0.8; transform: scale(1.1); }
+                                68% { opacity: 0; }
+                            }
+                            
                             @keyframes hellfire {
                                 0% {
                                     box-shadow: 0 0 10px #ff0000, inset 0 0 5px #ff0000;
@@ -919,9 +1006,92 @@
                             }
 
                         </style>
-                    <% } else if (currentRank.class == "expert") { %>
+                    <% } else if (currentRank.class == "archangel") { %>
                         <style>
-                            .badge-expert {
+                            .badge-archangel {
+                                background: linear-gradient(145deg, #001 0%, #001d6d 30%, #002ca3 50%, #001d6d 80%, #001 100%);
+                                background-size: 200% 100%;
+                                color: #fff;
+                                font-weight: 400;
+                                padding: 10px 35px;
+                                clip-path: polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%);
+                                border: 1px solid #005e9c;
+                                box-shadow: 0 0 25px rgba(0, 212, 255, 0.7), inset 0 0 15px #000;
+                                text-shadow: 0 0 10px #00bfff, 0 0 20px #fff;
+                                animation: cosmic-drift 3s infinite linear, lightning-strike 2s infinite;
+                            }
+                            @keyframes lightning-strike {
+                                0%, 10%, 80%, 100% { filter: brightness(1) contrast(1); }
+                                1%, 5% { filter: brightness(4) contrast(1.5) saturate(0); }
+                                3%, 7% { filter: brightness(3) contrast(2) saturate(2); }
+                            }
+                            
+                        </style>
+                    <% } else if (currentRank.class == "lilith") { %>
+                        <style>
+                            .badge-lilith {
+                                background: linear-gradient(135deg, #1a000d 0%, #4a001a 35%, #880336 50%, #4a001a 85%, #1a000d 100%);
+                                background-size: 200% 100%;
+                                color: #ffd4d6; 
+                                font-weight: 950;
+                                letter-spacing: 5px;
+                                padding: 10px 30px;
+                                font-size: 0.95rem;
+                                font-weight: 400;
+                                clip-path: polygon(0% 15%, 100% 0%, 85% 85%, 15% 100%); 
+                                border-top: 1px solid rgba(255, 255, 255, 0.4);
+                                border-bottom: 2px solid #8a1b46;
+                                box-shadow: 
+                                    0 8px 15px rgba(0,0,0,0.9), 
+                                    inset 0 0 20px #000,
+                                    0 0 15px rgba(138, 27, 70, 0.5);
+
+                                    animation: 
+                                    flow-blood 6s infinite linear, 
+                                    lilith-radiance 6s infinite ease-in-out;
+                                
+                                text-shadow: 0 0 8px rgba(255, 8, 8, 0.6), 0 0 15px rgba(255, 179, 204, 0.4);
+                                position: relative;
+                                overflow: hidden;
+                            }
+
+                            @keyframes lilith-radiance {
+                                0%, 100% { filter: brightness(1) contrast(1); }
+                                50% { filter: brightness(1.3) contrast(1.2); }
+                            }
+
+                        </style> 
+                    <% } else if (currentRank.class == "prince") { %>
+                        <style>
+                            .badge-prince {
+                                /* background: linear-gradient(135deg, #020 0%, #050 45%, #0f0 50%, #050 55%, #020 100%); */
+                                /* color: rgb(170, 255, 170); */
+                                
+                                background: linear-gradient(135deg, 
+                                #000000 0%,    
+                                #1a1500 45%, 
+                                #ffcc00 50%,  
+                                #1a1500 55%, 
+                                #000000 100%  
+                                );
+                                color: #fff2b3;    
+                                text-shadow: 0 0 5px rgba(255, 204, 0, 0.6);
+
+                                border: 1px solid #010;
+                                background-size: 200% 100%;
+                                box-shadow: 
+                                inset 0 0 15px #000, 
+                                0 4px 10px rgba(0,0,0,0.8);
+                                clip-path: polygon(0% 25%, 90% 0%, 85% 100%, 15% 80%); 
+                                filter: sepia(0.1);
+                                animation: flow-blood-reverse 5s infinite linear;
+                                font-size: 1rem;
+                            }
+
+                        </style>
+                    <% } else if (currentRank.class == "levi") { %>
+                        <style>
+                            .badge-levi {
                                 background: linear-gradient(160deg, #001 0%, #002e5c 40%, #00d4ff 50%, #002e5c 60%, #001 100%);
                                 background-size: 200% 100%;
                                 color: #fff;
@@ -937,105 +1107,129 @@
                                 animation: flow-blood-reverse 4s infinite linear reverse;
                             }
                         </style>
-                    <% } else if (currentRank.class == "elite") { %>
+                    <% } else if (currentRank.class == "torturer") { %>
                         <style>
-                            .badge-elite {
-                                background: linear-gradient(135deg, #2d0a1a 0%, #880381 100%);
-                                color: #f9b3ff; /* Pale pinkish-white for a "bone" look */
-                                background-size: 200% 100%;
-                                border: 1px solid #7d1b8a;
+                            .badge-torturer {
+                                /* Blood-soaked leather texture */
+                                background: radial-gradient(circle at center, #4a0000 0%, #1a0000 70%, #000 100%);
+                                color: #ffcccc; 
+                                font-weight: 900;
+                                letter-spacing: 4px;
+                                padding: 12px 35px;
+                                
+                                clip-path: polygon(5% 0%, 95% 2%, 100% 50%, 95% 98%, 5% 100%, 0% 50%);
+                                border: 1px solid #700;
                                 box-shadow: 
-                                inset 0 0 15px #000, 
-                                0 4px 10px rgba(0,0,0,0.8);
-                                clip-path: polygon(0% 15%, 100% 0%, 85% 85%, 15% 100%); /* Jagged/Serrated shape */
-                                animation: flow-blood 3s infinite linear; /* Faster than Lucifer but darker */
-                                font-size: 0.7rem;
-                            }
-                        </style>    
-                    <% } else if (currentRank.class == "elder") { %>
-                        <style>
-                            .badge-elder {
-                                background: linear-gradient(135deg, #020 0%, #050 45%, #0f0 50%, #050 55%, #020 100%);
-                                background-size: 200% 100%;
-                                color: rgb(170, 255, 170);
-                                border: 1px solid #010;
+                                    0 0 15px rgba(255, 0, 0, 0.4),
+                                    inset 0 0 25px #000;
 
-                                box-shadow: 
-                                inset 0 0 15px #000, 
-                                0 4px 10px rgba(0,0,0,0.8);
-                                clip-path: polygon(0% 25%, 90% 0%, 85% 100%, 15% 80%); 
-                                filter: sepia(0.1);
-                                animation: flow-blood-reverse 4s infinite linear;
+                                animation: torturer-throb 4s infinite ease-in-out;
+                                text-shadow: 0 0 8px #f00;
+                                font-size: 0.85rem;
                             }
-                        </style>
-                    <% } else if (currentRank.class == "regular") { %>
-                        <style>
-                            .badge-regular {
-                                background: linear-gradient(135deg, #1a0a00 0%, #3a1a00 50%, #000 100%);
-                                color: #ff9650;
-                                font-weight: 950;
-                                letter-spacing: 2px;
-                                padding: 10px 28px;
-                                clip-path: polygon(0% 0%, 100% 0%, 95% 100%, 0% 85%); 
-                                border: 1px solid #ff4400;
-                                border-bottom: 3px solid #ff2200; 
-                                box-shadow: 
-                                0 0 15px rgba(255, 68, 0, 0.3), 
-                                inset 0 0 12px rgba(255, 68, 0, 0.2),
-                                inset 0 0 20px #000;
-                                animation: ember-pulse 3s infinite ease-in-out;
-                                font-size: 0.7rem;
+
+                            @keyframes torturer-throb {
+                                0%, 100% { 
+                                    filter: brightness(1) contrast(1.2);
+                                    transform: scale(1);
+                                }
+                                50% { 
+                                    filter: brightness(0.7) contrast(1.5);
+                                    transform: scale(0.98); /* Slight contraction like a muscle */
+                                    color: #ff0000;
+                                }
                             }
-                            .badge-regular::after {
+
+                            /* Adding the "White Eye" signature: A pale glow on the text */
+                            .badge-torturer::before {
                                 content: '';
                                 position: absolute;
-                                top: 0; left: -100%;
+                                top: 0; left: 0;
                                 width: 100%; height: 100%;
-                                background: linear-gradient(
-                                    90deg, 
-                                    transparent, 
-                                    rgba(255, 68, 0, 0.15), 
-                                    transparent
-                                );
-                                animation: magma-flow 8s infinite linear;
+                                background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+                                animation: metal-shimmer 3s infinite;
                             }
                         </style>
-                    <% } else if (currentRank.class == "contributor") { %>
+                    <% } else if (currentRank.class == "crowley") { %>
                         <style>
-                            .badge-contributor {
-                                background: linear-gradient(135deg, #161a25 0%, #090a0f 100%);
-                                color: #6a769e; /* Muted, "Dead" blue */
-                                font-weight: 950;
-                                letter-spacing: 3px;
-                                padding: 10px 32px;
-                                clip-path: polygon(15% 0%, 100% 0%, 100% 75%, 50% 100%, 0% 75%, 0% 15%);
-                                border-right: 2px solid #2a2e45;
-                                border-bottom: 2px solid #2a2e45;
-                                box-shadow: 
-                                    inset 0 0 20px #000, 
-                                    0 10px 20px rgba(0,0,0,0.9);
-                                font-size: 0.65rem;
-                                animation: outcast-hum 5s infinite ease-in-out;
+                            .badge-crowley {
+                                background: linear-gradient(135deg, #1a0000 0%, #4a0000 45%, #ff0000 50%, #4a0000 55%, #1a0000 100%);
+                                background-size: 200% 100%;
+                                color: #ff5858; 
+                                font-weight: 900;
+                                padding: 11px 38px;
+                                clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%);
+                                border: 1px solid #800;
+                                box-shadow: 0 0 20px rgba(255, 0, 0, 0.5), inset 0 0 15px #000;
+                                animation: flow-blood 5s infinite linear;
                             }
-                            .badge-contributor::before {
-                                content: '';
-                                position: absolute;
-                                inset: 0;
-                                background: linear-gradient(
-                                    45deg, 
-                                    transparent 45%, 
-                                    rgba(255,255,255,0.03) 50%, 
-                                    transparent 55%
-                                );
-                                background-size: 5px 5px; /* Creates a subtle "brushed metal" texture */
-                                opacity: 0.3;
+                            /* The Red Eye glow in the corner */
+                            .badge-crowley::after {
+                                content: ''; position: absolute; top: 5px; right: 10px;
+                                width: 5px; height: 5px; background: #f00; border-radius: 50%;
+                                box-shadow: 0 0 12px #f00;
                             }
-
-
                         </style>
+                    <% } else if (currentRank.class == "beast") { %>
+                        <style>
+                        .badge-beast {
+                            /* The "Black Smoke" Body */
+                            background: linear-gradient(135deg, #000 0%, #150000 50%, #000 100%);
+                            color: #eee;
+                            font-weight: 950;
+                            letter-spacing: 5px;
+                            padding: 12px 30px;
+
+                            /* THE CLAW SHAPE: Aggressive, triple-pointed jagged edges */
+                            clip-path: polygon(
+                                0% 20%, 5% 0%, 95% 10%, 100% 20%, 
+                                90% 45%, 100% 60%, 90% 75%, 100% 100%, 
+                                5% 90%, 0% 100%, 10% 50%
+                            );
+
+                            /* The "Fresh Wound" Glow */
+                            border-left: 3px solid #600;
+                            box-shadow: 
+                                -5px 0 15px #f00, 
+                                inset 0 0 20px #000;
+
+                            /* Animation: The "Predator Pant" (Heavy, rhythmic pulsing) */
+                            animation: hound-hunt 1.5s infinite cubic-bezier(0.45, 0.05, 0.55, 0.95);
+                            text-shadow: 2px 2px 4px #000;
+                            position: relative;
+                        }
+
+                        @keyframes hound-hunt {
+                            0%, 100% { 
+                                transform: scale(1) skewX(0deg); 
+                                filter: brightness(1) saturate(1.2); 
+                            }
+                            50% { 
+                                transform: scale(1.05) skewX(-2deg); 
+                                filter: brightness(1.5) saturate(2);
+                                /* The color "flushes" like blood rushing to the surface */
+                                background: #2a0000; 
+                            }
+                        }
+
+                        /* The "Shadow Teeth" effect: subtle dark moving streaks */
+                        .badge-beast::before {
+                            content: '';
+                            position: absolute;
+                            inset: 0;
+                            background: repeating-linear-gradient(
+                                45deg,
+                                transparent,
+                                transparent 10px,
+                                rgba(0, 0, 0, 0.5) 10px,
+                                rgba(0, 0, 0, 0.5) 20px
+                            );
+                            opacity: 0.3;
+                        }
+                    </style>
                     <% } else if (currentRank.class == "noob") { %>
                         <style>
-                            .badge-noob { background: transparent; color: #707070; border: 1px dashed #333; clip-path: none; font-size: 0.6rem; }
+                            .badge-noob { background: transparent; color: #9c9c9c; border: 1px dashed #333; clip-path: none; font-size: 0.7rem; font-weight: 900; }
                         </style>
                     <% } %>
 
