@@ -883,27 +883,41 @@
                                         0 0 60px rgba(250, 188, 0, 0.6), 
                                         inset 0 0 15px #fff;
                                     animation: god-supernova 4s infinite ease-in-out;
+                                    font-weight: 900;
                                 }
-
 
                                 @keyframes god-supernova {
                                     0%, 100% { filter: brightness(1) contrast(1.2); transform: scale(1.1); }
-                                    50% { filter: brightness(1.6) contrast(1.5); transform: scale(1.15); }
+                                    50% { filter: brightness(1.5) contrast(1.5); transform: scale(1.15); }
                                 }
                         </style>
                     <% } else if (currentRank.class == "legend") { %>
                         <style>
                             .badge-legend {
-                                background: linear-gradient(135deg, #300 0%, #900 45%, #f00 50%, #900 55%, #300 100%);
                                 background-size: 200% 100%;
-                                color: #fff;
-                                padding: 16px 30px;
+                                padding: 20px 50px 12px 50px;
                                 clip-path: polygon(10% 15%, 90% 30%, 85% 100%, 25% 90%); 
                                 border: 1px solid #600;
-                                animation: flow-blood 4s infinite linear reverse;
-                                box-shadow: 0 0 20px rgba(255, 0, 0, 0.5), inset 0 0 10px #000;
                                 font-size: 0.75rem;
+                                
+                                text-shadow: 0 0 8px #ff4d00;
+                                background: #000;
+                                color: #ff4d00;
+                                box-shadow: 0 0 15px rgba(255, 0, 0, 0.7), inset 0 0 10px #7b0000;
+                                animation: hellfire 3s infinite alternate;
                             }
+
+                            @keyframes hellfire {
+                                0% {
+                                    box-shadow: 0 0 10px #ff0000, inset 0 0 5px #ff0000;
+                                    filter: brightness(0.9);
+                                }
+                                100% {
+                                    box-shadow: 0 0 30px #ff4d00, inset 0 0 10px #ff4d00;
+                                    filter: brightness(2.2);
+                                }
+                            }
+
                         </style>
                     <% } else if (currentRank.class == "expert") { %>
                         <style>
