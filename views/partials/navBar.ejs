@@ -289,7 +289,7 @@
 
     /* Dropdown specific cleanup */
     .user-info { position: relative; padding: 12px 16px; border-bottom: 1px solid var(--border-color); }
-    .user-info small { color: var(--text-dim); display: block; font-size: 0.65rem; }
+    .user-info small { color: var(--text-dim); display: block; font-size: 0.75rem; }
 
     .dropdown-section-title {
         padding: 12px 16px 4px;
@@ -860,7 +860,8 @@
                         { min: 0,    label: 'BlackEyed', class: 'noob', icon: '⦿' }
                     ];
 
-                    const userPoint = user.postCount * 10;
+                    const multipler = 10;
+                    const userPoint = user.postCount * multipler;
 
                     // 2. FIND CURRENT RANK
                     let currentRank = ranks.find(r => userPoint >= r.min);
@@ -1244,11 +1245,12 @@
                             </div>
                         </div>
                         
-                        <small>SIGNED IN AS</small>
+                        <small style="margin-top: 20px;">SIGNED IN AS</small>
                         <div style="display: flex; align-items: center; gap: 10px; position: relative;">
                             <div class="pulse-indicator" title="Live Session Active"></div>
-                            <strong style="letter-spacing: 1px;"><a style="color: var(--white); text-decoration: none;" href="/user/<%= user.id %>" ><%= user.username %></a></strong>
+                            <strong style="letter-spacing: 1px;"><a style="color: var(--white); text-decoration: none; font-size: 1.5rem;" href="/user/<%= user.id %>" ><%= user.username %></a></strong>
                         </div>
+                        <p style="margin: 20px 0 5px 0; font-size: 0.9rem; color: var(--text-dim); opacity: 0.9;"><span style="font-size: 0.8rem;">Points: </span> <%= userPoint %> <span style="color: var(--accent);">𖤐</span></p>
 
                         <div class="badge-tooltip">
                             <div class="tooltip-title">System Hierarchy</div>
@@ -1270,7 +1272,7 @@
                             </div>
                         </div>
 
-                        <div class="user-progress-container" style="padding: 10px 0; margin-top: 6px;">
+                        <div class="user-progress-container" style="padding: 10px 0; margin-top: 2px;">
                             <div style="display: flex; justify-content: space-between; font-size: 0.6rem; color: #888; margin-bottom: 6px; text-transform: uppercase; font-weight: 900;">
                                 <span>Next Phase: <%= nextRank ? nextRank.label : 'N/A' %></span>
                                 <span><%= Math.floor(progress) %>%</span>
@@ -1280,6 +1282,7 @@
                                 <div class="progress-bar-fill" style="--p:<%= progress %>%; height: 100%; transition: width 1s cubic-bezier(0.22, 1, 0.36, 1); width: var(--p); "></div>
                             </div>
                         </div>
+
                     </div>
                     
                     
