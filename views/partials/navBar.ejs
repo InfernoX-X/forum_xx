@@ -860,8 +860,7 @@
                         { min: 0,    label: 'BlackEye', class: 'noob', icon: '⦿' }
                     ];
 
-                    <!-- const userPoint = user.postCount * 10; -->
-                    const userPoint = 10001;
+                    const userPoint = user.postCount * 10;
 
                     // 2. FIND CURRENT RANK
                     let currentRank = ranks.find(r => userPoint >= r.min);
