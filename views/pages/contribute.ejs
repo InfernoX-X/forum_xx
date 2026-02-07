@@ -158,6 +158,66 @@
             background: var(--color) !important;
         }
 
+        #pillContainer .locations {
+            --color: rgb(34, 110, 145); /* Deep Cyan/Blue */
+            background: var(--color) !important;
+            color: #ffffff;
+        }
+
+        #pillContainer .scenario {
+            --color: rgb(150, 75, 0); /* Burnt Orange/Brown */
+            background: var(--color) !important;
+            color: #ffffff;
+        }
+
+        #pillContainer .fetish {
+            --color: rgb(128, 0, 128); /* Deep Purple */
+            background: var(--color) !important;
+            color: #ffffff;
+        }
+
+        #pillContainer .actions {
+            --color: rgb(165, 42, 42); /* Deep Red/Brown */
+            background: var(--color) !important;
+            color: #ffffff;
+        }
+
+        #pillContainer .relationship {
+            --color: rgb(180, 50, 120); /* Deep Pink/Magenta */
+            background: var(--color) !important;
+            color: #ffffff;
+        }
+
+        #pillContainer .profession {
+            --color: rgb(46, 139, 87); /* Sea Green */
+            background: var(--color) !important;
+            color: #ffffff;
+        }
+
+        #pillContainer .body_and_features {
+            --color: rgb(107, 142, 35); /* Olive Drab */
+            background: var(--color) !important;
+            color: #ffffff;
+        }
+
+        #pillContainer .toys {
+            --color: rgb(184, 134, 11); /* Dark Goldenrod */
+            background: var(--color) !important;
+            color: #ffffff;
+        }
+
+        #pillContainer .dress {
+            --color: rgb(70, 130, 180); /* Steel Blue */
+            background: var(--color) !important;
+            color: #ffffff;
+        }
+
+        #pillContainer .other {
+            --color: rgb(100, 100, 100); /* Mid-tone Grey */
+            background: var(--color) !important;
+            color: #ffffff;
+        }
+
         .tag-pill span {
             cursor: pointer;
             font-weight: bold;
@@ -421,8 +481,6 @@
         </div>
     </div>
 
-
-
     <div class="contribute-grid">
         
         <section class="card">
@@ -488,6 +546,7 @@
         </section>
 
     </div>
+    
 </div>
 
 <script>
@@ -614,7 +673,7 @@
     }
 
     // Define which headers MUST have a selection
-    const MANDATORY_HEADERS = [ "channel", "no. of people", "orientation", "level","sex positions", "finishing", "age" ,"emotions", "act", "ethnicity"];
+    const MANDATORY_HEADERS = [ "channel", "no. of people", "orientation", "age","ethnicity","locations","act", "emotions","scenario", "fetish", "actions", "sex positions", "finishing" ,"relationship", "profession", "body and features", "toys", "dress", "other"];
 
     const mandatoryContainer = document.getElementById('mandatory-groups');
 
