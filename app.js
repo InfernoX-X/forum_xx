@@ -47,6 +47,7 @@ const setupRoutes = (app) => {
 
   // User
   app.use('/',verifyToken,getUserInfo, require('./routes/main'));
+  app.use('/',verifyToken,getUserInfo, require('./routes/api'));
   app.use('/forum',verifyToken,getUserInfo, require('./routes/forum'));
 }
 

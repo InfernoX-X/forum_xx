@@ -4,6 +4,7 @@ const router = express.Router();
 const db = require('../db');
 const multer = require("multer");
 const sharp = require('sharp');
+const { createNotification } = require('../utils/noti.js');
 
 async function compressImage(buffer) {
     const originalSize = buffer.length;
@@ -119,7 +120,7 @@ router.post('/post/:id/comment', async (req, res) => {
     try {
         const postId = req.params.id;
         const { comment } = req.body;
-        const userId = res.userInfo.id; // Assuming res.userInfo contains the logged-in user
+        const senderId = res.userInfo.id; 
 
         if (!comment || comment.trim() === "") {
             return res.redirect('back');
@@ -127,10 +128,23 @@ router.post('/post/:id/comment', async (req, res) => {
 
         await db.execute(
             `INSERT INTO comments (post_id, user_id, content) VALUES (?, ?, ?)`,
-            [postId, userId, comment.trim()]
+            [postId, senderId, comment.trim()]
+        );
+        
+        // 2. Find the recipient (the person who wrote the post)
+        const [post] = await db.execute(
+            `SELECT user_id FROM posts WHERE id = ?`, 
+            [postId]
         );
 
-        res.redirect('back'); // Refresh the page to show the new comment
+        if (post.length > 0) {
+            const recipientId = post[0].user_id;
+
+            const msg = `${res.userInfo.username}: commented on your post "${comment.substring(0, 12)}..."`;
+            await createNotification(recipientId, senderId, 'comment', postId, msg);
+        }
+
+        res.redirect('back');
     } catch (err) {
         console.error("Error saving comment:", err);
         res.status(500).send('Failed to post comment');

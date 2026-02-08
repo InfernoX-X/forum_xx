@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
+const { createNotification } = require('../utils/noti.js');
 
 
 function timeAgo(date) {
@@ -470,6 +471,7 @@ router.get('/requests', async (req, res) => {
         res.status(500).send("Error");
     }
 });
+
 // Create Request
 router.post('/requests/create', async (req, res) => {
     try {
@@ -502,6 +504,19 @@ router.post('/requests/fulfill/:requestId', async (req, res) => {
              WHERE id = ?`,
             [postId, res.userInfo.id, requestId]
         );
+
+        const [post] = await db.execute(
+            `SELECT user_id, fulfilled_post_id as post_id FROM content_requests WHERE id = ?`, 
+            [requestId]
+        );
+
+        if (post.length > 0) {
+            const recipientId = post[0].user_id;
+
+            const msg = `${res.userInfo.username} has found content that you asked in Request Section, Please Check and Approve it!`;
+            await createNotification(recipientId, res.userInfo.id, 'rq_pending', post[0].post_id, msg);
+        }
+
         res.redirect('/requests?filter=pending');
     } catch (err) {
         console.error(err);
@@ -520,14 +535,24 @@ router.post('/requests/finish/:requestId', async (req, res) => {
             "UPDATE content_requests SET status = 'finished' WHERE id = ? AND user_id = ?",
             [requestId, userId]
         );
+
+        const [post] = await db.execute(
+            `SELECT fulfilled_by_id as recipient FROM content_requests WHERE id = ?`, 
+            [requestId]
+        );
+
+        if (post.length > 0) {
+            const recipientId = post[0].recipient;
+
+            const msg = `Congratulations, ${res.userInfo.username} Approved the answer you given in his Content Request!`;
+            await createNotification(recipientId, userId, 'rq_finish', null, msg);
+        }
+
         res.redirect('/requests');
     } catch (err) {
         res.status(500).send("Error finishing request");
     }
 });
-
-
-
 
 
 
