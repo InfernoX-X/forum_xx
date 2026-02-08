@@ -267,24 +267,26 @@
 <body>
 
     <div class="container">
-        <div class="sidebar-leaderboard">
-            <div class="sidebar-header">
-                TOP CONTRIBUTORS
-            </div>
-            <div class="leaderboard-content">
-                <% if (topContributors.length > 0) { %>
-                    <% topContributors.forEach((contributor, index) => { %>
-                        <div class="contributor-item">
-                            <span class="rank">#<%= index + 1 %></span>
-                            <span class="name"><%= contributor.username %></span>
-                            <span class="count"><%= contributor.post_count %> pts</span>
-                        </div>
-                    <% }) %>
-                <% } else { %>
-                    <div style="font-size: 0.7rem; color: var(--text-muted); padding: 10px;">No activity yet</div>
-                <% } %>
-            </div>
-        </div>
+        <% if (user && user.isAdmin == 1) { %>
+            <div class="sidebar-leaderboard">
+                <div class="sidebar-header">
+                    TOP CONTRIBUTORS
+                </div>
+                <div class="leaderboard-content">
+                    <% if (topContributors.length > 0) { %>
+                        <% topContributors.forEach((contributor, index) => { %>
+                            <div class="contributor-item">
+                                <span class="rank">#<%= index + 1 %></span>
+                                <span class="name"><%= contributor.username %></span>
+                                <span class="count"><%= contributor.post_count %> pts</span>
+                            </div>
+                        <% }) %>
+                    <% } else { %>
+                        <div style="font-size: 0.7rem; color: var(--text-muted); padding: 10px;">No activity yet</div>
+                    <% } %>
+                </div>
+            </div>                
+        <% } %>
 
         <% forums.forEach(header => { %>
             <div class="category-section" id="cat-<%= header.name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-').toLowerCase() %>">
