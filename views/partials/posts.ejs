@@ -543,42 +543,32 @@
         if (!container) return;
         
         container.innerHTML = '';
-        
-        // Get currently active IDs to pre-check boxes
         const activePills = document.querySelectorAll(`#tag-container-${postId} .tag-pill`);
-        const activeIds = Array.from(activePills).map(p => p.dataset.id);
+        const activeIds = Array.from(activePills).map(p => p.dataset.id.toString());
 
         MANDATORY_HEADERS.forEach(headerName => {
             const groupTags = allTags.filter(t => t.header.toLowerCase() === headerName);
             if (groupTags.length === 0) return;
 
-            // Calculate how many are currently selected for this specific group
-            const selectedInGroupCount = groupTags.filter(t => activeIds.includes(t.id.toString())).length;
-
             const wrapper = document.createElement('div');
             wrapper.className = 'custom-dropdown-static';
-            wrapper.style.position = 'relative'; // Crucial for absolute positioning of menu
+            wrapper.dataset.header = headerName; // Store header for easy lookup
+            wrapper.style.position = 'relative';
             
             wrapper.innerHTML = `
                 <label style="margin-bottom:5px; color:var(--accent); display:block; font-size:0.65rem; text-transform:uppercase;">${headerName}</label>
                 <div class="dropdown-trigger" 
                     style="background:#111; border:1px solid #333; padding:8px; border-radius:4px; cursor:pointer; font-size:0.75rem; display:flex; justify-content:space-between; align-items:center;">
-                    <span class="selected-text" style="max-width: 80%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                        ${selectedInGroupCount > 0 ? `Selected (${selectedInGroupCount})` : 'Select...'}
-                    </span>
+                    <span class="selected-text" style="max-width: 80%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Select...</span>
                     <span style="font-size: 8px;">▼</span>
                 </div>
-                <div class="dropdown-menu-edit" style="display:none; background:#1a1a1a; border:1px solid var(--accent); max-height:200px; overflow-y:auto; position:absolute; z-index:100; width:100%; box-shadow: 0 4px 15px rgba(0,0,0,0.5); border-radius: 4px; margin-top: 2px;">
-                    ${groupTags.map(tag => {
-                        const checked = activeIds.includes(tag.id.toString()) ? 'checked' : '';
-                        return `
-                        <label style="display:flex; align-items:center; padding:10px; gap:10px; cursor:pointer; font-size:0.75rem; border-bottom:1px solid #222; transition: background 0.2s;">
-                            <input type="checkbox" value="${tag.id}" data-title="${tag.title}" data-header="${headerName}" ${checked} 
-                                style="accent-color: var(--accent);"
-                                onchange="syncEditSelection(this, '${postId}')">
-                            <span class="tag-label-text">${tag.title}</span>
-                        </label>`;
-                    }).join('')}
+                <div class="dropdown-menu-edit" style="display:none; background:#1a1a1a; border:1px solid var(--accent); max-height:250px; overflow-y:auto; position:absolute; z-index:100; width:100%; box-shadow: 0 4px 15px rgba(0,0,0,0.5); border-radius: 4px; margin-top: 2px;">
+                    <div style="padding: 5px; border-bottom: 1px solid #333; position: sticky; top: 0; background: #1a1a1a; z-index:10;">
+                        <input type="text" placeholder="Filter ${headerName}..." 
+                            style="width: 100%; background: #000; border: 1px solid #444; color: #fff; padding: 5px; font-size: 0.7rem; border-radius: 3px;"
+                            oninput="filterDropdownOptions(this)">
+                    </div>
+                    <div class="options-container"></div>
                 </div>
             `;
             
@@ -588,22 +578,74 @@
             trigger.onclick = (e) => {
                 e.stopPropagation();
                 const isVisible = menu.style.display === 'block';
-                // Close all other open dropdowns first
                 document.querySelectorAll('.dropdown-menu-edit').forEach(m => m.style.display = 'none');
                 menu.style.display = isVisible ? 'none' : 'block';
+                if (!isVisible) menu.querySelector('input').focus();
             };
 
             container.appendChild(wrapper);
+            // Initial render of options for this group
+            renderDropdownOptions(wrapper, postId, activeIds);
+        });
+    }
+
+    function renderDropdownOptions(wrapper, postId, activeIds) {
+        const headerName = wrapper.dataset.header;
+        const container = wrapper.querySelector('.options-container');
+        const groupTags = allTags.filter(t => t.header.toLowerCase() === headerName);
+        
+        // Sort: Selected items first, then alphabetically
+        const sortedTags = [...groupTags].sort((a, b) => {
+            const aSel = activeIds.includes(a.id.toString());
+            const bSel = activeIds.includes(b.id.toString());
+            if (aSel && !bSel) return -1;
+            if (!aSel && bSel) return 1;
+            return a.title.localeCompare(b.title);
+        });
+
+        container.innerHTML = sortedTags.map(tag => {
+            const checked = activeIds.includes(tag.id.toString()) ? 'checked' : '';
+            return `
+                <label class="option-item" style="display:flex; align-items:center; padding:10px; gap:10px; cursor:pointer; font-size:0.75rem; border-bottom:1px solid #222; ${checked ? 'background: rgba(var(--accent-rgb), 0.1);' : ''}">
+                    <input type="checkbox" value="${tag.id}" data-title="${tag.title}" data-header="${headerName}" ${checked} 
+                        style="accent-color: var(--accent);"
+                        onchange="syncEditSelection(this, '${postId}')">
+                    <span class="tag-label-text" style="${checked ? 'color: var(--accent); font-weight: bold;' : ''}">${tag.title}</span>
+                </label>`;
+        }).join('');
+
+        // Update the trigger text
+        const count = groupTags.filter(t => activeIds.includes(t.id.toString())).length;
+        const textSpan = wrapper.querySelector('.selected-text');
+        textSpan.innerText = count > 0 ? `Selected (${count})` : 'Select...';
+        textSpan.style.color = count > 0 ? 'var(--accent)' : '#fff';
+    }
+
+    function updateDropdownUI(postId) {
+        const tagContainer = document.getElementById(`tag-container-${postId}`);
+        const activeIds = Array.from(tagContainer.querySelectorAll('.tag-pill')).map(p => p.dataset.id.toString());
+
+        document.querySelectorAll(`#mandatory-groups-${postId} .custom-dropdown-static`).forEach(wrapper => {
+            renderDropdownOptions(wrapper, postId, activeIds);
+        });
+    }
+
+    // Filter inside a specific dropdown
+    function filterDropdownOptions(input) {
+        const val = input.value.toLowerCase();
+        const options = input.closest('.dropdown-menu-edit').querySelectorAll('.option-item');
+        options.forEach(opt => {
+            const text = opt.querySelector('.tag-label-text').innerText.toLowerCase();
+            opt.style.display = text.includes(val) ? 'flex' : 'none';
         });
     }
 
     function syncEditSelection(checkbox, postId) {
         const id = checkbox.value;
         const title = checkbox.dataset.title;
-        const header = checkbox.dataset.header;
         const tagContainer = document.getElementById(`tag-container-${postId}`);
 
-        // 1. Update the Active Tag Pills
+        // 1. Update Pills
         if (checkbox.checked) {
             if (!tagContainer.querySelector(`[data-id="${id}"]`)) {
                 const pill = document.createElement('div');
@@ -617,23 +659,14 @@
             if (pill) pill.remove();
         }
 
-        // 2. Update the "Selected (X)" count in the button trigger
-        const parentWrapper = checkbox.closest('.custom-dropdown-static');
-        const allCheckboxesInGroup = parentWrapper.querySelectorAll('input[type="checkbox"]');
-        const checkedCount = Array.from(allCheckboxesInGroup).filter(c => c.checked).length;
-        
-        const textSpan = parentWrapper.querySelector('.selected-text');
-        textSpan.innerText = checkedCount > 0 ? `Selected (${checkedCount})` : 'Select...';
-        
-        // Optional: Highlight the label color if something is selected
-        textSpan.style.color = checkedCount > 0 ? 'var(--accent)' : '#fff';
+        // 2. Refresh ALL dropdown counters & checkbox states for this ID
+        // This handles the case where a search added a mandatory tag
+        updateDropdownUI(postId);
     }
 
     function removeEditTag(span, postId, id) {
         span.parentElement.remove();
-        // Uncheck in the mandatory grid if it exists there
-        const cb = document.querySelector(`#mandatory-groups-${postId} input[value="${id}"]`);
-        if (cb) cb.checked = false;
+        updateDropdownUI(postId);
     }
 
     function handleSearch(input, postId) {
@@ -643,15 +676,14 @@
         
         if (val.length < 1) { dropdown.style.display = 'none'; return; }
 
-        const matches = allTags.filter(t => 
-            t.title.toLowerCase().includes(val) && 
-            !MANDATORY_HEADERS.includes(t.header.toLowerCase())
-        );
+        // Removed the filter that excluded mandatory headers so they show in search too
+        const matches = allTags.filter(t => t.title.toLowerCase().includes(val));
 
-        matches.slice(0, 10).forEach(match => {
+        matches.slice(0, 15).forEach(match => {
             const div = document.createElement('div');
             div.className = 'dropdown-item';
-            div.innerHTML = `${match.title} <small style="float:right; opacity:0.5;">${match.header}</small>`;
+            div.style = "padding: 8px; cursor: pointer; border-bottom: 1px solid #222; font-size: 0.8rem;";
+            div.innerHTML = `${match.title} <small style="float:right; opacity:0.5; color:var(--accent);">${match.header}</small>`;
             div.onclick = () => {
                 syncEditSelection({checked: true, value: match.id, dataset: {title: match.title}}, postId);
                 input.value = '';
@@ -668,6 +700,7 @@
             document.querySelectorAll('.dropdown-menu-edit').forEach(m => m.style.display = 'none');
         }
     });
+
 
     function previewNewImages(input, postId) {
         const previewContainer = document.getElementById(`preview-container-${postId}`);
