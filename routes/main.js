@@ -85,7 +85,7 @@ router.get('/user/:id', async (req, res) => {
         const totalPages = Math.ceil(totalPosts / limit);
 
         const [posts] = await db.execute(`
-            SELECT p.*, u.username, 
+            SELECT p.*, u.username, u.id as userId, 
             GROUP_CONCAT(DISTINCT f.title) as categories,
             GROUP_CONCAT(DISTINCT f.id) as forum_ids,
             (SELECT GROUP_CONCAT(image_url ORDER BY id ASC) FROM post_images WHERE post_id = p.id) as all_images,

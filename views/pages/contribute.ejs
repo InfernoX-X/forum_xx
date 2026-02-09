@@ -304,7 +304,7 @@
             background: #181818;
             border: 1px solid #333;
             z-index: 9999;
-            max-height: 200px;
+            max-height: 250px;
             overflow-y: auto;
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
             border-radius: 4px;
@@ -336,6 +336,10 @@
         .dropdown-trigger .arrow { font-size: 0.5rem; transition: transform 0.2s; }
         .custom-dropdown.active .arrow { transform: rotate(180deg); }
 
+        .dropdown-search-wrapper input:focus {
+            outline: none;
+            border-color: var(--accent) !important;
+        }
     </style>
 
     <style>
@@ -807,14 +811,18 @@
         });
     });
 
+    // 1. Modified setup function to include a search bar and unique IDs
     function setupMandatoryCategories() {
         mandatoryContainer.innerHTML = '';
         MANDATORY_HEADERS.forEach(headerName => {
             const groupTags = allTags.filter(t => t.header.toLowerCase() === headerName);
             if (groupTags.length === 0) return;
 
+            const headerId = helper(headerName);
             const wrapper = document.createElement('div');
             wrapper.className = 'custom-dropdown';
+            wrapper.id = `dropdown-${headerId}`;
+            
             wrapper.innerHTML = `
                 <label style="margin-bottom:5px; color:var(--accent); display:block; font-size:0.65rem; text-transform:uppercase;">${headerName} *</label>
                 <div class="dropdown-trigger" onclick="toggleDropdown(this)">
@@ -822,17 +830,58 @@
                     <span class="arrow">▼</span>
                 </div>
                 <div class="dropdown-menu">
-                    ${groupTags.map(tag => `
-                        <label class="dropdown-item-label">
-                            <input style="margin: 0;" type="checkbox" data-id="${tag.id}" data-title="${tag.title}" data-header="${tag.header}" onchange="syncSelection(this)">
-                            <span style="margin-left: 10px;" >${tag.title}</span>
-                        </label>
-                    `).join('')}
+                    <div class="dropdown-search-wrapper" style="padding: 10px; position: sticky; top: 0; background: #111; z-index: 10;">
+                        <input type="text" 
+                            placeholder="Search ${headerName}..." 
+                            style="width: 100%; padding: 5px; font-size: 0.8rem; background: #222; border: 1px solid #444; color: white;"
+                            onkeyup="filterDropdown(this)">
+                    </div>
+                    <div class="items-container">
+                        ${renderDropdownItems(groupTags)}
+                    </div>
                 </div>
             `;
             mandatoryContainer.appendChild(wrapper);
         });
     }
+
+    // 2. New helper to render items (Sorted: Selected first, then Alphabetical)
+    function renderDropdownItems(tags) {
+        return tags
+            .sort((a, b) => {
+                const aSel = selectedTagIds.has(a.id.toString());
+                const bSel = selectedTagIds.has(b.id.toString());
+                if (aSel === bSel) return a.title.localeCompare(b.title);
+                return aSel ? -1 : 1;
+            })
+            .map(tag => {
+                const isChecked = selectedTagIds.has(tag.id.toString()) ? 'checked' : '';
+                return `
+                    <label class="dropdown-item-label" data-title="${tag.title.toLowerCase()}">
+                        <input style="margin: 0;" type="checkbox" 
+                            data-id="${tag.id}" 
+                            data-title="${tag.title}" 
+                            data-header="${tag.header}" 
+                            ${isChecked}
+                            onchange="syncSelection(this)">
+                        <span style="margin-left: 10px;">${tag.title}</span>
+                    </label>
+                `;
+            }).join('');
+    }
+
+    // 3. Search filter logic
+    window.filterDropdown = (input) => {
+        const filter = input.value.toLowerCase();
+        const container = input.closest('.dropdown-menu').querySelector('.items-container');
+        const labels = container.querySelectorAll('.dropdown-item-label');
+
+        labels.forEach(label => {
+            const text = label.getAttribute('data-title');
+            label.style.display = text.includes(filter) ? "flex" : "none";
+        });
+    };
+
 
     // Opens/Closes the custom menus
     window.toggleDropdown = (el) => {
@@ -844,8 +893,35 @@
 
     // When a checkbox in the dropdown is clicked
     window.syncSelection = (checkbox) => {
-        const tag = { id: checkbox.dataset.id, title: checkbox.dataset.title, header: checkbox.dataset.header };
-        checkbox.checked ? addTag(tag) : removeTag(tag.id);
+        const tag = { 
+            id: checkbox.dataset.id, 
+            title: checkbox.dataset.title, 
+            header: checkbox.dataset.header 
+        };
+        
+        // 1. Add or Remove the tag
+        if (checkbox.checked) {
+            addTag(tag);
+        } else {
+            removeTag(tag.id);
+        }
+
+        // 2. Locate the dropdown and the search input
+        const dropdownWrapper = checkbox.closest('.custom-dropdown');
+        const searchInput = dropdownWrapper.querySelector('.dropdown-search-wrapper input');
+        const itemsContainer = dropdownWrapper.querySelector('.items-container');
+
+        // 3. CLEAR the search text so user can type the next one immediately
+        if (searchInput) {
+            searchInput.value = '';
+        }
+
+        // 4. Re-render the items (this moves the selected one to the top and resets visibility)
+        const headerName = tag.header.toLowerCase();
+        const groupTags = allTags.filter(t => t.header.toLowerCase() === headerName);
+        
+        itemsContainer.innerHTML = renderDropdownItems(groupTags);
+        updateDropdownLabel(dropdownWrapper);
     };
 
 

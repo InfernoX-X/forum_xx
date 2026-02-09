@@ -30,27 +30,7 @@ function verifyToken(req, res, next) {
   }
 }
 
-function isAdmin(req, res, next) {
-  const token = req.cookies?.token;
-  if (!token) {
-    return res.redirect('/login');
-  }
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
-    if(decoded.userId === 1){
-      req.user = decoded;
-      next();
-    }
-    else{
-      return res.redirect("/")
-    }
-
-  } catch (err) {
-    return res.redirect('/');
-  }
-}
 
 // Middleware to check if the user is already logged in and redirect to home
 function redirectIfAuthenticated(req, res, next) {
@@ -68,4 +48,4 @@ function redirectIfAuthenticated(req, res, next) {
   }
 }
 
-module.exports = {generateJwtToken,verifyToken,isAdmin,redirectIfAuthenticated}
+module.exports = {generateJwtToken,verifyToken,redirectIfAuthenticated}
