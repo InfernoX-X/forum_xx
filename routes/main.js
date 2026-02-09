@@ -20,7 +20,7 @@ function timeAgo(date) {
     return Math.floor(seconds) + " seconds ago";
 }
 
-// Main Page Route
+// Index Page
 router.get('/', async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
@@ -69,6 +69,7 @@ router.get('/', async (req, res) => {
     }
 });
 
+// View User Page 
 router.get('/user/:id', async (req, res) => {
     try {
         const userId = req.params.id;
@@ -120,6 +121,7 @@ router.get('/user/:id', async (req, res) => {
     }
 });
 
+// Get Drafts (only admins)
 router.get('/drafts', async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
@@ -173,7 +175,7 @@ router.get('/drafts', async (req, res) => {
     }
 });
 
-// Search
+// Search Page
 router.get('/search', async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
@@ -317,7 +319,7 @@ router.get('/contribute', async (req, res) => {
     }
 });
 
-// Categorues 
+// Categories Page
 router.get('/categories', async (req, res) => {
     try {
         const query = `
@@ -401,25 +403,7 @@ router.get('/categories', async (req, res) => {
     }
 });
 
-// Create New Tag Inline 
-router.post('/forum/create-api-tag', async (req, res) => {
-  const userId = res.userInfo.id;
-  const { title, header, bio } = req.body;
-
-  try {
-    const [result] = await db.execute(
-      `INSERT INTO forums (user_id, title, header, bio) VALUES (?, ?, ?, ?)`,
-      [userId, title, header, bio]
-    );
-    
-    // Return the new tag so the frontend can use the ID immediately
-    res.json({ id: result.insertId, title, header });
-  } catch (err) {
-    res.status(500).json({ error: "Failed to create tag" });
-  }
-});
-
-// Requests
+// Requests Page
 router.get('/requests', async (req, res) => {
     try {
         const filter = req.query.filter || ''; // '', 'open', 'pending', 'finished', 'mine'
@@ -472,7 +456,7 @@ router.get('/requests', async (req, res) => {
     }
 });
 
-// Create Request
+// Request Create
 router.post('/requests/create', async (req, res) => {
     try {
         const { message } = req.body;
@@ -484,7 +468,7 @@ router.post('/requests/create', async (req, res) => {
     }
 });
 
-// Contributor submits the finished post URL
+// Request Contributor submits the finished post URL
 router.post('/requests/fulfill/:requestId', async (req, res) => {
     let { postId } = req.body;
     const requestId = req.params.requestId;
@@ -524,7 +508,7 @@ router.post('/requests/fulfill/:requestId', async (req, res) => {
     }
 });
 
-// Requester clicks "FINISH"
+// Requester clicks "FINISH" / Close the request
 router.post('/requests/finish/:requestId', async (req, res) => {
     const requestId = req.params.requestId;
     const userId = res.userInfo.id;
@@ -554,56 +538,6 @@ router.post('/requests/finish/:requestId', async (req, res) => {
     }
 });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// READ : Create New Tag (Not Using, 100% not sure, that's why not delete)
-router.post('/forum/create', async (req, res) => {
-  const userId = req.user.userId;
-  const { title, header, bio } = req.body;
-
-  if (!title || !header) {
-    return res.status(400).json({ message: 'All fields are required' });
-  }
-
-  const query = `
-    INSERT INTO forums (user_id,title,header,bio) VALUES (?, ?, ?, ?)
-  `;
-
-  try {
-    const [result] = await db.execute(query, [userId,title,header,bio]);
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Error at creating forum' });
-    }
-
-    res.redirect('/contribute');
-  } catch (err) {
-    console.error('Error at creating forum:', err);
-    res.status(500).json({ message: 'Error creating forum' });
-  }
-
-});
 
 
 module.exports = router;

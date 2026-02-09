@@ -532,7 +532,6 @@
 
 
 <script>
-    // Global data from the backend
     const tagStore = document.getElementById('tag-data-store');
     const allTags = JSON.parse(tagStore.getAttribute('data-tags'));
 
@@ -694,13 +693,11 @@
         dropdown.style.display = 'block';
     }
 
-    // Add this to your existing <script>
     window.addEventListener('click', (e) => {
         if (!e.target.closest('.custom-dropdown-static')) {
             document.querySelectorAll('.dropdown-menu-edit').forEach(m => m.style.display = 'none');
         }
     });
-
 
     function previewNewImages(input, postId) {
         const previewContainer = document.getElementById(`preview-container-${postId}`);

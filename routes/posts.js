@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////// Imports and base setup ///////////////////////////////////////////////////////
 const express = require('express');
 const router = express.Router();
-const db = require('../db');
+const db = require('../db.js');
 const multer = require("multer");
 const sharp = require('sharp');
 const { createNotification } = require('../utils/noti.js');
@@ -151,7 +151,7 @@ router.post('/post/:id/comment', async (req, res) => {
     }
 });
 
-// CREATE NEW
+// CREATE NEW POST
 router.post('/posts/create', upload.array('images', 5), async (req, res) => {
     const connection = await db.getConnection();
     try {
@@ -240,7 +240,7 @@ router.post('/posts/create', upload.array('images', 5), async (req, res) => {
     }
 });
 
-// Edit Photos
+// Edit PHOTOS
 router.post('/posts/edit-image/:imageId', upload.single('image'), async (req, res) => {
     const { imageId } = req.params;
     const userId = res.userInfo.id;
@@ -288,7 +288,7 @@ router.post('/posts/edit-image/:imageId', upload.single('image'), async (req, re
     }
 });
 
-// Adding Photo
+// ADD PHOTOS
 router.post('/posts/add-images/:id', upload.array('images', 5), async (req, res) => {
     const postId = req.params.id;
     const userId = res.userInfo.id;
@@ -361,7 +361,7 @@ router.post('/posts/add-images/:id', upload.array('images', 5), async (req, res)
     }
 });
 
-// Edit POST
+// EDIT POST
 router.post('/posts/edit/:id', async (req, res) => {
     const postId = req.params.id;
     const { title, content, url, forumIds, draft } = req.body;

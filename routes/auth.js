@@ -5,7 +5,7 @@ const { verifyToken, generateJwtToken, redirectIfAuthenticated } = require('../u
 const bcrypt = require("bcrypt");
 
 // ------------------- Server Side -------------------
-// Register
+// Register UI
 router.post('/register', async (req, res) => {
   let { username, email, password } = req.body;
 
@@ -59,7 +59,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Login
+// Login UI
 router.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
@@ -104,7 +104,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Update Password
+// Update Password Logic
 router.post('/update-password',verifyToken, async (req, res) => {
   const { currentPassword, newPassword, confirmPassword } = req.body;
   
@@ -155,17 +155,17 @@ router.post('/update-password',verifyToken, async (req, res) => {
 });
 
 // ------------------- Client Side -------------------
-// Login
+// Login Logic
 router.get('/login', redirectIfAuthenticated, (req, res) => {
   res.render('auth/login');
 });
 
-// Register
+// Register Logic
 router.get('/register', redirectIfAuthenticated, (req, res) => {
   res.render('auth/register');
 });
 
-// Logout
+// Logout Logic
 router.get('/logout', verifyToken, async (req, res) => {
   res.clearCookie('token'); // This removes the cookie
   res.redirect('/login');   // Redirect to login page

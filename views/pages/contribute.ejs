@@ -549,6 +549,7 @@
     
 </div>
 
+<!-- Guide Modal -->
 <script>
     function validateMedia() {
         const fileInput = document.getElementById('post-images');
@@ -655,8 +656,31 @@
     // Attach listener to URL input as well
     document.getElementById('urlInput').addEventListener('input', updatePreviews);
 
+    // --- AUTO-OPEN LOGIC ---
+    window.addEventListener('load', () => {
+        // Check if the user has seen the guide before using localStorage
+        const hasSeenGuide = localStorage.getItem('hasSeenPostingBlueprint');
+
+        if (!hasSeenGuide) {
+            // Show the modal
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+
+            // Mark as seen when they click "Get Started"
+            closeBtn.addEventListener('click', () => {
+                localStorage.setItem('hasSeenPostingBlueprint', 'true');
+            });
+            
+            // Also mark as seen if they just close the X
+            closeX.addEventListener('click', () => {
+                localStorage.setItem('hasSeenPostingBlueprint', 'true');
+            });
+        }
+    });
+
 </script>
 
+<!-- Tags -->
 <script>
     const tagDataEl = document.getElementById('tag-data');
     const allTags = JSON.parse(tagDataEl.getAttribute('data-forums') || '[]');
@@ -881,7 +905,7 @@
         tagSearchInput.value = "Creating...";
         
         try {
-            const response = await fetch('/forum/create-api-tag', {
+            const response = await fetch('/api/create-tag', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
@@ -914,29 +938,6 @@
     setupMandatoryCategories();
 </script>
 
-<script>
-    // --- AUTO-OPEN LOGIC ---
-    window.addEventListener('load', () => {
-        // Check if the user has seen the guide before using localStorage
-        const hasSeenGuide = localStorage.getItem('hasSeenPostingBlueprint');
-
-        if (!hasSeenGuide) {
-            // Show the modal
-            modal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-
-            // Mark as seen when they click "Get Started"
-            closeBtn.addEventListener('click', () => {
-                localStorage.setItem('hasSeenPostingBlueprint', 'true');
-            });
-            
-            // Also mark as seen if they just close the X
-            closeX.addEventListener('click', () => {
-                localStorage.setItem('hasSeenPostingBlueprint', 'true');
-            });
-        }
-    });
-</script>
 
 </body>
 </html>
