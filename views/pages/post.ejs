@@ -70,6 +70,7 @@
         /* Author/Channel Bar */
         .author-bar {
             display: flex;
+            flex-direction: row-reverse;
             align-items: center;
             justify-content: space-between;
             padding-bottom: 20px;
@@ -353,8 +354,112 @@
             margin-top: 8px;
         }
     </style>
+    <style>
+        :root {
+            --vote-bg: #2a2a2a;
+            --vote-hover: #333333;
+        }
+
+        .vote-pill {
+            display: inline-flex;
+            align-items: center;
+            background: var(--vote-bg);
+            border-radius: 20px;
+            border: 1px solid #444;
+            overflow: hidden;
+            height: 36px;
+        }
+
+        .vote-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0 12px;
+            height: 100%;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: #eee;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .vote-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: none;
+            stroke: white;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .upvote:hover { background: rgba(113, 147, 255, 0.1); color: var(--vote_up); }
+        .downvote:hover { background: rgba(255, 69, 0, 0.1); color: var(--vote_down); }
+
+        .upvote.active {
+            color: var(--vote_up) !important;
+        }
+        .upvote.active svg {
+            fill: var(--vote_up) !important;
+            stroke: var(--vote_up) !important;
+        }
+
+        .downvote.active {
+            color: var(--vote_down) !important;
+        }
+        .downvote.active svg {
+            fill: var(--vote_down) !important;
+            stroke: var(--vote_down) !important;
+        }
+
+        .vote-divider {
+            width: 1px;
+            height: 16px;
+            background: #444;
+        }
+
+        .vote-btn:active svg {
+            transform: scale(1.2);
+        }
+
+        .rec-thumb-box { position: relative; }
+        .rec-score-badge {
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            background: rgba(0, 0, 0, 0.7);
+            color: var(--accent);
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .up-count.active { color: var(--vote_up) !important; }
+        .down-count.active { color: var(--vote_down) !important; }
+
+        .vote-btn {
+            transition: transform 0.1s ease;
+        }
+        .vote-btn:active {
+            transform: scale(1.2);
+        }
+    </style>
 <body>
+
 <%- include("../partials/navBar") %>
+
+<% 
+    const formatCount = (num) => {
+        if (!num || num < 1000) return num || 0;
+        const units = ['k', 'M', 'B'];
+        let i = -1;
+        while (num >= 1000) { num /= 1000; i++; }
+        return num.toFixed(1).replace(/\.0$/, '') + units[i];
+    }
+%>
 
 <div class="main-wrapper">
     <div class="left-column">
@@ -386,6 +491,28 @@
             </a></h1>
             
             <div class="author-bar">
+                <div class="vote-pill" id="post-<%= post.id %>">
+                    <button class="upvote vote-btn upvote <%= post.userVote === 1 ? 'active' : '' %>" 
+                            onclick="handleVote('<%= post.id %>', 1)" 
+                            title="Upvote">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 4l-8 8h5v8h6v-8h5z" />
+                        </svg>
+                        <span class="vote-count up-count"><%= formatCount(post.upvotes) %></span>
+                    </button>
+
+                    <div class="vote-divider"></div>
+
+                    <button class="downvote vote-btn downvote <%= post.userVote === -1 ? 'active' : '' %>" 
+                            onclick="handleVote('<%= post.id %>', -1)" 
+                            title="Downvote">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 20l8-8h-5V4H9v8H4z" />
+                        </svg>
+                        <span class="vote-count down-count"><%= formatCount(post.downvotes) %></span>
+                    </button>
+                </div>
+
                 <div class="author-info">
                     <div class="author-details">
                         <div style="color: var(--accent);"><a style="color: var(--accent); text-decoration: none;" href="/user/<%= post.userId %>"><%= post.username %></a></div>
@@ -464,6 +591,9 @@
                     <a href="/forum/post/<%= rec.id %>" class="rec-item">
                         <div class="rec-thumb-box">
                             <img src="<%= rec.thumb %>" alt="">
+                            <div class="rec-score-badge">
+                                ★ <%= formatCount(rec.net_score) %>
+                            </div>
                         </div>
                         <div class="rec-details">
                             <div class="rec-title"><%= rec.title %></div>
@@ -514,6 +644,69 @@
         });
         initializeImageGallery("popUpClass");
     }
+</script>
+
+<script>
+        function formatCount(num) {
+            if (num < 1000) return num.toString();
+            
+            const units = ['k', 'M', 'B', 'T'];
+            let unitIndex = -1;
+            let value = num;
+
+            while (value >= 1000 && unitIndex < units.length - 1) {
+                value /= 1000;
+                unitIndex++;
+            }
+
+            // toFixed(1) gives us 1 decimal place (e.g. 1.2M)
+            // replace(/\.0$/, '') removes the .0 if it's a whole number (e.g. 1M instead of 1.0M)
+            return value.toFixed(1).replace(/\.0$/, '') + units[unitIndex];
+        }
+
+        async function handleVote(postId, voteType) {
+            try {
+                const response = await fetch('/forum/posts/vote', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ postId, voteType })
+                });
+
+                const data = await response.json();
+
+                if (response.status === 401 || response.status === 403) {
+                    alert("Please login to vote!");
+                    return;
+                }
+
+                const postContainer = document.getElementById(`post-${postId}`);
+                const upBtn = postContainer.querySelector('.upvote');
+                const downBtn = postContainer.querySelector('.downvote');
+                const upCount = upBtn.querySelector('.up-count');
+                const downCount = downBtn.querySelector('.down-count');
+
+                // 1. Update numbers
+                upCount.innerText = formatCount(data.upvotes);
+                downCount.innerText = formatCount(data.downvotes);
+
+                // 2. Clear active states from both buttons
+                upBtn.classList.remove('active');
+                downBtn.classList.remove('active');
+
+                // 3. Add active state to the clicked button if not removed
+                if (data.message !== "Vote removed") {
+                    if (voteType === 1) {
+                        upBtn.classList.add('active');
+                    } else if (voteType === -1) {
+                        downBtn.classList.add('active');
+                    }
+                }
+
+            } catch (err) {
+                console.error("Voting failed:", err);
+            }
+        }
+
 </script>
 
 </body>

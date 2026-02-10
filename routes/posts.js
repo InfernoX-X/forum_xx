@@ -60,19 +60,24 @@ function timeAgo(date) {
 router.get('/post/:id', async (req, res) => {
     try {
         const postId = req.params.id;
+        const currentUserId = res.userInfo ? res.userInfo.id : 0;
 
         // 1. Fetch Post Data
         const [rows] = await db.execute(`
-            SELECT p.*, u.username,u.id as userId, 
-                   GROUP_CONCAT(f.title) AS categories,
-                   GROUP_CONCAT(DISTINCT f.id) AS forum_id_list
+            SELECT p.*, u.username, u.id as userId, 
+                   GROUP_CONCAT(DISTINCT f.title) AS categories,
+                   GROUP_CONCAT(DISTINCT f.id) AS forum_id_list,
+                   -- New Vote Fields
+                   (SELECT COUNT(*) FROM post_votes WHERE post_id = p.id AND vote_type = 1) as upvotes,
+                   (SELECT COUNT(*) FROM post_votes WHERE post_id = p.id AND vote_type = -1) as downvotes,
+                   (SELECT vote_type FROM post_votes WHERE post_id = p.id AND user_id = ? LIMIT 1) as userVote
             FROM posts p
             JOIN users u ON p.user_id = u.id
             LEFT JOIN post_categories pc ON p.id = pc.post_id
             LEFT JOIN forums f ON pc.forum_id = f.id
             WHERE p.id = ? AND p.deleted = 0
             GROUP BY p.id
-        `, [postId]);
+        `, [currentUserId, postId]);
 
         if (rows.length === 0) return res.redirect("/");
         const post = rows[0];
@@ -87,18 +92,21 @@ router.get('/post/:id', async (req, res) => {
 
         // We look for posts that share the same forum_ids, excluding the current post
         const forumIds = post.forum_id_list ? post.forum_id_list.split(',') : [];
-        
         let recommended = [];
+
         if (forumIds.length > 0) {
             [recommended] = await db.query(`
                 SELECT p.id, p.title, p.created_at, 
                     COUNT(pc.forum_id) AS shared_tag_count,
+                    -- Calculate Net Score for ranking
+                    COALESCE((SELECT SUM(vote_type) FROM post_votes WHERE post_id = p.id), 0) as net_score,
                     (SELECT image_url FROM post_images WHERE post_id = p.id LIMIT 1) as thumb
                 FROM posts p
                 JOIN post_categories pc ON p.id = pc.post_id
-                WHERE pc.forum_id IN (?) AND p.id != ?
+                WHERE pc.forum_id IN (?) AND p.id != ? AND p.deleted = 0
                 GROUP BY p.id
-                ORDER BY shared_tag_count DESC, p.created_at DESC
+                -- RANKING LOGIC: Prioritize high shared tags, then high scores, then newest
+                ORDER BY shared_tag_count DESC, net_score DESC, p.created_at DESC
                 LIMIT 8
             `, [forumIds, postId]);
         }
@@ -417,6 +425,77 @@ router.post('/posts/edit/:id', async (req, res) => {
         conn.release();
     }
 });
+
+// VOTE POST
+router.post('/posts/vote', async (req, res) => {
+    const { postId, voteType } = req.body; // voteType is 1 or -1
+    const userId = res.userInfo.id; 
+    
+    if (![1, -1].includes(Number(voteType))) {
+        return res.status(400).json({ error: "Invalid vote type" });
+    }
+
+    const connection = await db.getConnection();
+    try {
+        await connection.beginTransaction();
+
+        // 1. Check if user already voted
+        const [existing] = await connection.execute(
+            'SELECT vote_type FROM post_votes WHERE user_id = ? AND post_id = ?',
+            [userId, postId]
+        );
+
+        let message = "";
+
+        if (existing.length > 0) {
+            if (existing[0].vote_type === Number(voteType)) {
+                // Same button clicked again -> Remove vote
+                await connection.execute(
+                    'DELETE FROM post_votes WHERE user_id = ? AND post_id = ?',
+                    [userId, postId]
+                );
+                message = "Vote removed";
+            } else {
+                // Opposite button clicked -> Switch vote
+                await connection.execute(
+                    'UPDATE post_votes SET vote_type = ? WHERE user_id = ? AND post_id = ?',
+                    [voteType, userId, postId]
+                );
+                message = "Vote updated";
+            }
+        } else {
+            // New vote
+            await connection.execute(
+                'INSERT INTO post_votes (user_id, post_id, vote_type) VALUES (?, ?, ?)',
+                [userId, postId, voteType]
+            );
+            message = "Vote recorded";
+        }
+
+        // 2. Get the updated net score to send back to UI
+        const [counts] = await connection.execute(`
+            SELECT 
+                (SELECT COUNT(*) FROM post_votes WHERE post_id = ? AND vote_type = 1) as upvotes,
+                (SELECT COUNT(*) FROM post_votes WHERE post_id = ? AND vote_type = -1) as downvotes
+        `, [postId, postId]);
+
+        await connection.commit();
+        
+        res.json({ 
+            message, 
+            upvotes: counts[0].upvotes, 
+            downvotes: counts[0].downvotes
+        });
+
+    } catch (err) {
+        await connection.rollback();
+        console.error("Voting error:", err);
+        res.status(500).json({ error: "Internal Server Error" });
+    } finally {
+        connection.release();
+    }
+});
+
 
 module.exports = router;    
 
