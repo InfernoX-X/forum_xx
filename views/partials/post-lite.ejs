@@ -1,0 +1,113 @@
+<style>
+    /* Container for the lite posts */
+    .post-lite-card {
+        background: var(--surface-elevated) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: var(--radius) !important;
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .post-lite-card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(249, 55, 66, 0.4) !important; /* Subtle accent glow */
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Image Wrapper to prevent overflow during zoom */
+    .post-lite-thumb-wrapper {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 16/9;
+        overflow: hidden;
+        background: #000;
+    }
+
+    .post-lite-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0.85;
+        transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+    }
+
+    .post-lite-card:hover img {
+        transform: scale(1.08);
+        opacity: 1;
+    }
+
+    /* Content Area */
+    .post-lite-content {
+        padding: 14px;
+        background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.2) 100%);
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .post-lite-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        line-height: 1.4;
+        color: var(--text-main);
+        margin-bottom: 12px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        height: 2.8rem; /* Keeps cards aligned even with short titles */
+        text-decoration: none;
+    }
+
+    /* Remove Button Styling */
+    .btn-remove-lite {
+        background: rgba(255, 68, 68, 0.1);
+        color: #ff4444;
+        border: 1px solid rgba(255, 68, 68, 0.2);
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-remove-lite:hover {
+        background: #ff4444;
+        color: white;
+        border-color: #ff4444;
+    }
+</style>
+
+<div class="post-lite-card" id="lite-post-<%= post.id %>">
+    <a href="/forum/post/<%= post.id %>" class="post-lite-thumb-wrapper">
+        <img src="<%= post.thumbnail || '/img/default-thumb.jpg' %>" alt="<%= post.title %>" loading="lazy">
+        
+        <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); opacity: 0; transition: 0.3s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0'">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="white" style="filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));">
+                <path d="M8 5v14l11-7z"/>
+            </svg>
+        </div>
+    </a>
+
+    <div class="post-lite-content">
+        <a href="/forum/post/<%= post.id %>" class="post-lite-title"><%= post.title %></a>
+        
+        <% if (typeof isSharedView === 'undefined' || !isSharedView) { %>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto;">
+                <button class="btn-remove-lite" onclick="removeFromPlaylist('<%= post.id %>', '<%= playlistId %>')">
+                    REMOVE
+                </button>
+            </div>
+        <% } %>
+
+    </div>
+</div>
+

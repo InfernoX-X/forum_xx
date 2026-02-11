@@ -185,6 +185,24 @@
     .btn-edit:hover { background: #007BFF; }
 
     
+    /* Action Btns */
+    .act-btn-mini {
+        padding: 0;         
+        border: none;       
+        cursor: pointer;
+        overflow: hidden;
+        width: 40px; height: 30px; display: flex; align-items: center; justify-content: center;
+        border-radius: 3px;
+    }
+
+    .act-btn-mini a {
+        display: flex;      
+        width: 100%;
+        height: 100%;
+        align-items: center;
+        justify-content: center;
+    }
+
 </style>
 
 <style>
@@ -371,7 +389,7 @@
     .vote-group {
         display: flex;
         align-items: center;
-        background: #1a1a1a; /* Slightly darker than btn-mini */
+        background: #1a1a1a; /* Slightly darker than */
         border: 1px solid #333;
         border-radius: 6px;
         padding: 2px;
@@ -518,12 +536,28 @@
                         </div>
                     </div>
                     
-                    <button class="btn-mini btn-info" style="display: flex; align-items: center;justify-content: center;">
-                        <a href="<%= post.url %>" target="_blank" style="color:var(--white); text-decoration: none;">Video</a>
+                    <button class="act-btn-mini btn-info">
+                        <a href="<%= post.url %>" target="_blank" style="color:var(--white); text-decoration: none;">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="white">
+                                <path d="M8 5v14l11-7z"></path>
+                            </svg>
+                        </a>
+                    </button>
+
+                    <button class="act-btn-mini" onclick="openPlaylistModal('<%= post.id %>')" style="background: #333; ">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="white" stroke-width="2.5">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
                     </button>
 
                     <% if (user && (user.id === post.user_id || user.isAdmin == 1)) { %>
-                        <button class="btn-mini btn-edit hide-editBtn" onclick="openEditModal('<%= post.id %>')">Edit</button>
+                        <button class="act-btn-mini btn-edit hide-editBtn" onclick="openEditModal('<%= post.id %>')">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                        </button>
                     <% } %>
                 </div>
             </div>
@@ -651,6 +685,21 @@
 
 <div id="tag-data-store" data-tags='<%- JSON.stringify(allForums).replace(/'/g, "&#39;") %>'></div>
 
+<div id="playlist-modal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 400px;">
+        <span class="close-modal" onclick="closeModal('playlist-modal')">&times;</span>
+        <h2 style="color:var(--accent); margin-bottom:20px; font-size:1.2rem;">Save to Playlist</h2>
+        
+        <div style="margin-bottom: 20px; display: flex; gap: 8px;">
+            <input type="text" id="new-playlist-name" class="edit-field" style="margin-bottom:0;" placeholder="New playlist name...">
+            <button onclick="createNewPlaylist()" class="btn-mini" style="background:var(--accent); width: 60px; height: 42px;">ADD</button>
+        </div>
+
+        <label>Your Playlists</label>
+        <div id="playlist-items-container" style="max-height: 300px; overflow-y: auto; margin-top: 10px;">
+            </div>
+    </div>
+</div>
 
 <script>
     const tagStore = document.getElementById('tag-data-store');
@@ -984,4 +1033,95 @@
 }
 </script>
 
+<script>
+let currentPlaylistPostId = null;
 
+async function openPlaylistModal(postId) {
+    currentPlaylistPostId = postId;
+    const modal = document.getElementById('playlist-modal');
+    const container = document.getElementById('playlist-items-container');
+    
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    container.innerHTML = '<div style="color:var(--text-muted); padding:20px; text-align:center;">Checking playlists...</div>';
+
+    try {
+        // Notice we send the postId here!
+        const response = await fetch(`/api/my-playlists?postId=${postId}`);
+        const playlists = await response.json();
+
+        if (playlists.length === 0) {
+            container.innerHTML = '<div style="color:#666; text-align:center; padding:20px;">No playlists yet.</div>';
+        } else {
+            container.innerHTML = playlists.map(list => {
+                const saved = list.is_saved > 0;
+                return `
+                <div class="playlist-row" onclick="togglePlaylistItem(${list.id}, ${postId}, this)" 
+                     style="display:flex; align-items:center; justify-content:space-between; padding:12px; 
+                            background:#161616; border:1px solid ${saved ? 'var(--accent)' : '#333'}; 
+                            border-radius:6px; margin-bottom:8px; cursor:pointer; transition:all 0.2s;">
+                    <span style="font-weight:600; font-size:0.9rem; color: ${saved ? 'var(--white)' : 'var(--text-muted)'}">${list.name}</span>
+                    <span class="status-icon" style="color:${saved ? 'var(--accent)' : '#555'}; font-size:0.8rem; font-weight:bold;">
+                        ${saved ? '✓ SAVED' : 'ADD'}
+                    </span>
+                </div>
+                `;
+            }).join('');
+        }
+    } catch (err) {
+        container.innerHTML = '<div style="color:red; text-align:center;">Error loading.</div>';
+    }
+}
+
+async function createNewPlaylist() {
+    const input = document.getElementById('new-playlist-name');
+    const name = input.value.trim();
+    if (!name) return;
+
+    try {
+        const response = await fetch('/api/playlists/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, postId: currentPlaylistPostId })
+        });
+
+        if (response.ok) {
+            input.value = '';
+            // Refresh the list
+            openPlaylistModal(currentPlaylistPostId);
+        }
+    } catch (err) {
+        alert("Error creating playlist");
+    }
+}
+
+async function togglePlaylistItem(playlistId, postId, element) {
+    const icon = element.querySelector('.status-icon');
+    const title = element.querySelector('span');
+    
+    try {
+        const response = await fetch('/api/playlists/toggle-item', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ playlistId, postId })
+        });
+        const data = await response.json();
+        
+        if (data.status === 'added') {
+            element.style.borderColor = 'var(--accent)';
+            element.style.background = 'rgba(255, 170, 0, 0.05)'; // subtle tint
+            icon.innerText = '✓ SAVED';
+            icon.style.color = 'var(--accent)';
+            title.style.color = 'var(--white)';
+        } else {
+            element.style.borderColor = '#333';
+            element.style.background = '#161616';
+            icon.innerText = 'ADD';
+            icon.style.color = '#555';
+            title.style.color = 'var(--text-muted)';
+        }
+    } catch (err) {
+        console.error("Toggle failed");
+    }
+}
+</script>

@@ -62,54 +62,69 @@ router.get('/post/:id', async (req, res) => {
         const postId = req.params.id;
         const currentUserId = res.userInfo ? res.userInfo.id : 0;
 
+        const excludeHeaders = ['channel', 'Age', 'Ethnicity', 'Orientation', 'Level'];
+        const excludeTags = ['Solo / 1 Person', 'Duo / 2 People', 'Indoor', 'Pussy', 'Ass', 'Tits', 'Consensual / Willing', 'Black Hair', 'Brunette'];
+
         // 1. Fetch Post Data
         const [rows] = await db.execute(`
             SELECT p.*, u.username, u.id as userId, 
-                   GROUP_CONCAT(DISTINCT f.title) AS categories,
-                   GROUP_CONCAT(DISTINCT f.id) AS forum_id_list,
-                   -- New Vote Fields
-                   (SELECT COUNT(*) FROM post_votes WHERE post_id = p.id AND vote_type = 1) as upvotes,
-                   (SELECT COUNT(*) FROM post_votes WHERE post_id = p.id AND vote_type = -1) as downvotes,
-                   (SELECT vote_type FROM post_votes WHERE post_id = p.id AND user_id = ? LIMIT 1) as userVote
+                GROUP_CONCAT(DISTINCT f.title) AS categories,
+                GROUP_CONCAT(DISTINCT CASE 
+                        WHEN f.header NOT IN (${excludeHeaders.map(() => '?').join(',')}) 
+                        AND f.title NOT IN (${excludeTags.map(() => '?').join(',')}) 
+                        THEN f.id 
+                        ELSE NULL 
+                END) AS valid_recommendation_ids,
+                (SELECT COUNT(*) FROM post_votes WHERE post_id = p.id AND vote_type = 1) as upvotes,
+                (SELECT COUNT(*) FROM post_votes WHERE post_id = p.id AND vote_type = -1) as downvotes,
+                -- THIS ? must match currentUserId in the array below
+                (SELECT vote_type FROM post_votes WHERE post_id = p.id AND user_id = ? LIMIT 1) as userVote
             FROM posts p
             JOIN users u ON p.user_id = u.id
             LEFT JOIN post_categories pc ON p.id = pc.post_id
             LEFT JOIN forums f ON pc.forum_id = f.id
             WHERE p.id = ? AND p.deleted = 0
             GROUP BY p.id
-        `, [currentUserId, postId]);
+        `, [...excludeHeaders, ...excludeTags, currentUserId, postId]);  
 
         if (rows.length === 0) return res.redirect("/");
         const post = rows[0];
 
-        // 2. Fetch Images & Comments  
+        // 2. Recommendations with Personalized Filter
+        const validIds = post.valid_recommendation_ids ? post.valid_recommendation_ids.split(',') : [];
+        let recommended = [];
+
+        if (validIds.length > 0) {
+            [recommended] = await db.query(`
+                SELECT p.id, p.title, p.created_at, 
+                    COUNT(pc.forum_id) AS shared_tag_count,
+                    COALESCE((SELECT SUM(vote_type) FROM post_votes WHERE post_id = p.id), 0) as net_score,
+                    (SELECT image_url FROM post_images WHERE post_id = p.id LIMIT 1) as thumb
+                FROM posts p
+                JOIN post_categories pc ON p.id = pc.post_id
+                
+                LEFT JOIN post_votes pv_filter ON p.id = pv_filter.post_id 
+                    AND pv_filter.user_id = ? 
+                    AND pv_filter.vote_type = -1
+
+                WHERE pc.forum_id IN (?) 
+                AND p.id != ? 
+                AND p.deleted = 0
+                AND pv_filter.post_id IS NULL
+                
+                GROUP BY p.id
+                ORDER BY shared_tag_count DESC, net_score DESC
+                LIMIT 8
+            `, [Number(currentUserId), validIds, postId]); 
+        }
+
+        // 3. Fetch Images & Comments 
         const [images] = await db.execute(`SELECT * FROM post_images WHERE post_id = ?`, [postId]);
         const [comments] = await db.execute(`
             SELECT c.*, u.username, u.id as userId FROM comments c 
             JOIN users u ON c.user_id = u.id 
             WHERE c.post_id = ? ORDER BY c.created_at DESC
         `, [postId]);
-
-        // We look for posts that share the same forum_ids, excluding the current post
-        const forumIds = post.forum_id_list ? post.forum_id_list.split(',') : [];
-        let recommended = [];
-
-        if (forumIds.length > 0) {
-            [recommended] = await db.query(`
-                SELECT p.id, p.title, p.created_at, 
-                    COUNT(pc.forum_id) AS shared_tag_count,
-                    -- Calculate Net Score for ranking
-                    COALESCE((SELECT SUM(vote_type) FROM post_votes WHERE post_id = p.id), 0) as net_score,
-                    (SELECT image_url FROM post_images WHERE post_id = p.id LIMIT 1) as thumb
-                FROM posts p
-                JOIN post_categories pc ON p.id = pc.post_id
-                WHERE pc.forum_id IN (?) AND p.id != ? AND p.deleted = 0
-                GROUP BY p.id
-                -- RANKING LOGIC: Prioritize high shared tags, then high scores, then newest
-                ORDER BY shared_tag_count DESC, net_score DESC, p.created_at DESC
-                LIMIT 8
-            `, [forumIds, postId]);
-        }
 
         res.render('pages/post', { 
             post, images, comments, recommended,

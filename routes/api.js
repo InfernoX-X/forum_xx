@@ -83,6 +83,138 @@ router.post('/notifications/clear-all', async (req, res) => {
 });
 
 
+// View user's playlists (for the "Add to Playlist" dropdown)
+router.get('/my-playlists', async (req, res) => {
+    const userId = res.userInfo?.id;
+    const { postId } = req.query;
+
+    if (!res.userInfo) return res.status(401).json({ error: "Login required" });
+    
+    try {
+        const [lists] = await db.execute(`
+            SELECT p.id, p.name, 
+            (SELECT COUNT(*) FROM playlist_items WHERE playlist_id = p.id AND post_id = ?) as is_saved
+            FROM playlists p 
+            WHERE p.user_id = ? 
+            ORDER BY p.name ASC
+        `, [postId, userId]);
+        
+        res.json(lists);
+    } catch (err) {
+        res.status(500).json({ error: "Database error" });
+    }
+});
+
+// Create a new playlist and immediately add the current post to it
+router.post('/playlists/create', async (req, res) => {
+    const { name, postId } = req.body;
+    const userId = res.userInfo?.id;
+
+    if (!userId || !name) return res.status(400).send("Missing data");
+
+    try {
+        const [result] = await db.execute(
+            'INSERT INTO playlists (user_id, name) VALUES (?, ?)', 
+            [userId, name]
+        );
+        const newPlaylistId = result.insertId;
+
+        if (postId) {
+            await db.execute(
+                'INSERT INTO playlist_items (playlist_id, post_id) VALUES (?, ?)', 
+                [newPlaylistId, postId]
+            );
+        }
+        res.json({ success: true, playlistId: newPlaylistId });
+    } catch (err) {
+        res.status(500).send("Error creating playlist");
+    }
+});
+
+// Add/Remove Toggle Post in Playlist
+router.post('/playlists/toggle-item', async (req, res) => {
+    const { playlistId, postId } = req.body;
+    const userId = res.userInfo?.id;
+
+    try {
+        // Security check: Does this user own this playlist?
+        const [ownerCheck] = await db.execute(
+            'SELECT id FROM playlists WHERE id = ? AND user_id = ?', 
+            [playlistId, userId]
+        );
+        if (ownerCheck.length === 0) return res.status(403).send("Unauthorized");
+
+        // Check if item exists
+        const [existing] = await db.execute(
+            'SELECT id FROM playlist_items WHERE playlist_id = ? AND post_id = ?',
+            [playlistId, postId]
+        );
+
+        if (existing.length > 0) {
+            await db.execute('DELETE FROM playlist_items WHERE id = ?', [existing[0].id]);
+            return res.json({ status: 'removed' });
+        } else {
+            await db.execute(
+                'INSERT INTO playlist_items (playlist_id, post_id) VALUES (?, ?)',
+                [playlistId, postId]
+            );
+            return res.json({ status: 'added' });
+        }
+    } catch (err) {
+        res.status(500).send("Error toggling playlist item");
+    }
+});
+
+// Rename Playlist
+router.post('/playlists/rename', async (req, res) => {
+    const { playlistId, newName } = req.body;
+    const userId = res.userInfo?.id;
+
+    try {
+        await db.execute(
+            'UPDATE playlists SET name = ? WHERE id = ? AND user_id = ?',
+            [newName, playlistId, userId]
+        );
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: "Rename failed" });
+    }
+});
+
+// Toggle Public/Private
+router.post('/playlists/toggle-privacy', async (req, res) => {
+    const { playlistId } = req.body;
+    const userId = res.userInfo?.id;
+
+    try {
+        await db.execute(`
+            UPDATE playlists 
+            SET is_public = NOT is_public 
+            WHERE id = ? AND user_id = ?
+        `, [playlistId, userId]);
+        
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).send("Error");
+    }
+});
+
+// Delete Playlist
+router.post('/playlists/delete/:id', async (req, res) => {
+    const userId = res.userInfo?.id;
+    const playlistId = req.params.id;
+
+    try {
+        // Only delete if the user owns it
+        await db.execute('DELETE FROM playlists WHERE id = ? AND user_id = ?', [playlistId, userId]);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: "Failed to delete" });
+    }
+});
+
+
+
 // Create New Tag Inline 
 router.post('/create-tag', async (req, res) => {
   const userId = res.userInfo.id;

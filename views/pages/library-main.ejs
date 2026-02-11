@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> My Library | <%= siteTitle %></title>
+    <%- include("../partials/variables") %>
+    <style>
+        body {
+    background: var(--bg);
+    color: var(--text-main);
+    font-family: var(--font-family);
+}
+
+/* Header Styling */
+.library-header {
+    background: linear-gradient(to bottom, var(--nav-bg), var(--bg));
+    padding: 40px 20px !important;
+    border-bottom: 1px solid var(--border) !important;
+}
+
+.library-header h1 {
+    font-weight: 800;
+    letter-spacing: -1px;
+}
+
+/* Playlist Folder Cards (Main Page) */
+.playlist-grid {
+    padding: 20px 0;
+}
+
+.playlist-card {
+    transition: transform 0.2s ease;
+}
+
+.playlist-card:hover {
+    transform: translateY(-2px);
+}
+
+.playlist-card:hover .folder-preview {
+    transform: translateY(-5px);
+    border-color: var(--accent) !important;
+}
+
+.playlist-card:hover .folder-preview::before {
+    background: var(--accent);
+}
+
+.playlist-card:hover img {
+    opacity: 0.9 !important; /* Brighten image on hover */
+}
+
+.folder-preview {
+    position: relative;
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    transition: border-color 0.2s;
+}
+
+/* The "Tab" on top of the folder */
+.folder-preview::before {
+    content: "";
+    position: absolute;
+    top: -8px;
+    left: 12px;
+    width: 35%;
+    height: 12px;
+    background: var(--border);
+    border-radius: 6px 6px 0 0;
+    z-index: 0;
+}
+
+/* Action Buttons */
+.btn-mini {
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    font-family: var(--font-family);
+    font-weight: 600;
+    font-size: 0.75rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: opacity 0.2s;
+}
+
+.btn-mini:hover {
+    opacity: 0.8;
+}
+
+
+#new-name-input {
+    outline: none;
+    font-family: var(--font-family);
+}
+
+/* Folder styling */
+.folder-preview {
+    position: relative;
+    transition: all 0.3s ease;
+    border: 1px solid var(--border) !important;
+    background: var(--surface-elevated) !important;
+}
+
+/* The Folder Tab effect */
+.folder-preview::before {
+    content: "";
+    position: absolute;
+    top: -6px;
+    left: 10px;
+    width: 35%;
+    height: 10px;
+    background: var(--border);
+    border-radius: 4px 4px 0 0;
+    z-index: -1;
+    transition: background 0.3s ease;
+}
+
+    </style>
+</head>
+
+<%- include("../partials/navBar") %>
+
+<div class="library-container" style="padding: 20px; max-width: 1200px; margin: 0 auto;">
+    <h1 style="color: var(--white); margin-bottom: 20px; margin-top: 6px; font-weight: 800;">My Library</h1>
+
+    <div class="playlist-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px;">
+        <% lists.forEach(list => { %>
+            <a href="/my-library/<%= list.id %>" class="playlist-card" style="text-decoration: none;">
+                <div class="folder-preview" style="aspect-ratio: 2; border-radius: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                    <% if (list.cover_img) { %>
+                        <img src="<%= list.cover_img %>" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.7;">
+                    <% } else { %>
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="1.5">
+                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                    <% } %>
+                    
+                    <div style="position: absolute; bottom: 12px; right: 12px; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; color: var(--accent); font-weight: 700; border: 1px solid rgba(255,255,255,0.1);">
+                        <%= list.item_count %> ITEMS
+                    </div>
+                </div>
+                <h3 style="margin-top: 15px; font-size: 1rem; color: var(--text-main); font-weight: 600;"><%= list.name %></h3>
+            </a>
+        <% }) %>
+    </div>
+</div>

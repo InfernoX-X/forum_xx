@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Playlist | <%= siteTitle %></title>
+    <%- include("../partials/variables") %>
+    <style>
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: var(--font-family);
+        }
+
+        /* Header Styling */
+        .library-header {
+            background: linear-gradient(to bottom, var(--nav-bg), var(--bg));
+            padding: 40px 20px !important;
+            border-bottom: 1px solid var(--border) !important;
+        }
+
+        .library-header h1 {
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        /* Playlist Folder Cards (Main Page) */
+        .playlist-grid {
+            padding: 20px 0;
+        }
+
+        .playlist-card {
+            transition: transform 0.2s ease;
+        }
+
+        .playlist-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .folder-preview {
+            position: relative;
+            background: var(--surface-elevated);
+            border: 1px solid var(--border);
+            transition: border-color 0.2s;
+        }
+
+        /* The "Tab" on top of the folder */
+        .folder-preview::before {
+            content: "";
+            position: absolute;
+            top: -8px;
+            left: 12px;
+            width: 35%;
+            height: 12px;
+            background: var(--border);
+            border-radius: 6px 6px 0 0;
+            z-index: 0;
+        }
+
+        .playlist-card:hover .folder-preview {
+            border-color: var(--accent);
+        }
+
+        /* Action Buttons */
+        .btn-mini {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            font-family: var(--font-family);
+            font-weight: 600;
+            font-size: 0.75rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: opacity 0.2s;
+        }
+
+        .btn-mini:hover {
+            opacity: 0.8;
+        }
+
+        /* Lite Post Card Styling (Detail Page) */
+        .post-lite-card {
+            background: var(--surface-elevated) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: var(--radius) !important;
+            transition: all 0.3s ease;
+        }
+
+        .post-lite-card:hover {
+            border-color: var(--accent) !important;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .post-lite-card img {
+            transition: transform 0.5s ease;
+        }
+
+        .post-lite-card:hover img {
+            transform: scale(1.05);
+        }
+
+        #new-name-input {
+            outline: none;
+            font-family: var(--font-family);
+        }
+        .switch_ {
+            position: relative;
+            display: inline-block;
+            width: 34px;
+            height: 20px;
+        }
+
+        /* Hide default HTML checkbox */
+        .switch_ input { opacity: 0; width: 0; height: 0; }
+
+        /* The slider */
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #333;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px; width: 14px;
+            left: 3px; bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider { background-color: var(--accent); }
+        input:checked + .slider:before { transform: translateX(14px); }
+    </style>
+</head>
+
+
+<%- include("../partials/navBar") %>
+
+<div class="library-header">
+    <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: flex-end;">
+        <div>
+            <a href="/my-library" style="color: var(--accent); text-decoration: none; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">← Back to Library</a>
+            <h1 id="playlist-title" style="color: #fff; margin-top: 10px; font-size: 2.5rem;"><%= playlistName %></h1>
+            <div style="margin-top: 20px;">
+                <button onclick="copyLink('<%= playlistId %>')" class="btn-mini" style="background: var(--surface-elevated); border: 1px solid var(--border); color: var(--text-main);">
+                    COPY LINK TO SHARE
+                </button>
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <div style="display: flex; align-items: center; gap: 10px; background: var(--surface-elevated); padding: 5px 15px; border-radius: 20px; border: 1px solid var(--border);">
+                <span style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Public</span>
+                <label class="switch_">
+                    <input type="checkbox" id="privacy-toggle" <%= (locals.playlist && playlist.is_public) ? 'checked' : '' %> onchange="togglePrivacy('<%= playlistId %>')">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            <button onclick="toggleRename()" class="btn-mini" style="background: var(--surface-elevated); color: var(--text-main); border: 1px solid var(--border);">Rename</button>
+            <button onclick="deletePlaylist('<%= playlistId %>')" class="btn-mini" style="background: rgba(249, 55, 66, 0.1); color: var(--accent); border: 1px solid rgba(249, 55, 66, 0.2);">Delete Playlist</button>
+        </div>
+    </div>
+    
+    <div id="rename-box" style="display: none; max-width: 1200px; margin: 20px auto 0 auto; gap: 10px; align-items: center;">
+        <input type="text" id="new-name-input" value="<%= playlistName %>" style="background: var(--cx-input-bg); border: 1px solid var(--accent); color: #fff; padding: 10px 15px; border-radius: 8px; width: 300px;">
+        <button onclick="saveNewName('<%= playlistId %>')" class="btn-mini" style="background: var(--accent); color: white; height: 40px;">Update Name</button>
+    </div>
+</div>
+
+<div class="posts-grid" style="max-width: 1400px; margin: 40px auto; padding: 0 20px;">
+    <% if (posts.length === 0) { %>
+        <div style="text-align: center; padding: 100px 0;">
+             <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="1" style="margin-bottom: 20px;">
+                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+             </svg>
+             <p style="color: var(--text-dim); font-size: 1.1rem;">This playlist is currently empty.</p>
+             <a href="/forum" style="color: var(--accent); text-decoration: none; font-size: 0.9rem; margin-top: 10px; display: inline-block;">Browse posts to add some!</a>
+        </div>
+    <% } else { %>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px;">
+            <% posts.forEach(post => { %>
+                <%- include("../partials/post-lite", { post: post, playlistId: playlistId }) %>
+            <% }) %>
+        </div>
+    <% } %>
+</div>
+
+<%- include("../partials/notification") %>
+
+
+<script>
+    function copyLink(id) {
+        const fullUrl = window.location.origin + '/playlist/view/' + id;
+        
+        navigator.clipboard.writeText(fullUrl).then(() => {
+            const toast = document.getElementById("share-toast");
+            toast.innerText = "Link copied to clipboard!";
+            toast.className = "show";
+            
+            setTimeout(() => { 
+                toast.className = toast.className.replace("show", ""); 
+            }, 3000);
+        }).catch(err => {
+            console.error('Could not copy text: ', err);
+        });
+    }
+
+    async function togglePrivacy(playlistId) {
+        const resp = await fetch('/api/playlists/toggle-privacy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ playlistId })
+        });
+        if (resp.ok) {
+            // Optional: Show a toast notification "Playlist is now Public"
+        }
+    }
+
+    async function removeFromPlaylist(postId, playlistId) {
+        if (!confirm('Remove this post from the playlist?')) return;
+
+        // Standardized to /api
+        const resp = await fetch('/api/playlists/toggle-item', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ playlistId, postId })
+        });
+
+        if (resp.ok) {
+            const el = document.getElementById(`lite-post-${postId}`);
+            if(el) {
+                el.style.opacity = '0';
+                setTimeout(() => el.remove(), 300);
+            }
+        }
+    }
+
+    function toggleRename() {
+        const box = document.getElementById('rename-box');
+        box.style.display = box.style.display === 'none' ? 'flex' : 'none';
+    }
+
+    async function saveNewName(playlistId) {
+        const newName = document.getElementById('new-name-input').value;
+        const resp = await fetch(`/api/playlists/rename`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ playlistId, newName })
+        });
+
+        if (resp.ok) {
+            document.getElementById('playlist-title').innerText = newName;
+            toggleRename();
+        }
+    }
+
+    async function deletePlaylist(playlistId) {
+        if (!confirm('Are you sure? This will delete the entire folder!')) return;
+        
+        const resp = await fetch(`/api/playlists/delete/${playlistId}`, { method: 'POST' });
+        if (resp.ok) window.location.href = '/my-library';
+    }
+
+
+    let offset = 12; 
+    let loading = false;
+    let hasMore = true;
+
+    window.onscroll = function() {
+        // If we are near the bottom of the page (within 200px)
+        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 200) {
+            if (!loading && hasMore) {
+                loadMorePosts();
+            }
+        }
+    };
+
+    async function loadMorePosts() {
+        loading = true;
+        const playlistId = '<%= playlistId %>';
+        
+        try {
+            // Fetch only JSON
+            const response = await fetch(`/my-library/${playlistId}?offset=${offset}`, {
+                headers: { 'Accept': 'application/json' }
+            });
+            const data = await response.json();
+
+            if (data.posts.length > 0) {
+                const grid = document.querySelector('.posts-grid > div');
+                
+                data.posts.forEach(post => {
+                    const html = `
+                        <div class="post-lite-card" id="lite-post-${post.id}">
+                            <a href="/forum/post/${post.id}" class="post-lite-thumb-wrapper">
+                                <img src="${post.thumbnail || '/img/default-thumb.jpg'}" loading="lazy">
+                            </a>
+                            <div class="post-lite-content">
+                                <h4 class="post-lite-title">${post.title}</h4>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="color: var(--text-muted); font-size: 0.75rem;">@${post.username}</span>
+                                    <button class="btn-remove-lite" onclick="removeFromPlaylist('${post.id}', '${playlistId}')">REMOVE</button>
+                                </div>
+                            </div>
+                        </div>`;
+                    grid.insertAdjacentHTML('beforeend', html);
+                });
+
+                offset += 12;
+                if (data.posts.length < 12) hasMore = false; // No more posts to load
+            } else {
+                hasMore = false;
+            }
+        } catch (err) {
+            console.error("Infinite scroll error:", err);
+        } finally {
+            loading = false;
+        }
+    }
+
+</script>

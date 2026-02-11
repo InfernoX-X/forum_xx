@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require('../db');
 const { verifyToken, generateJwtToken, redirectIfAuthenticated } = require('../utils/verify');
 const bcrypt = require("bcrypt");
+const getUserInfo = require('../middleware/getUserInfo');
 
 // ------------------- Server Side -------------------
 // Register UI
@@ -152,6 +153,62 @@ router.post('/update-password',verifyToken, async (req, res) => {
     res.redirect('/?status=error');
     console.error('Password update error:', err);
   }
+});
+
+
+// GET: View the tool (Admin Protected)
+router.get('/admin/reset-tool',verifyToken, getUserInfo, async (req, res) => {
+    // Basic Admin Check (Adjust based on your auth middleware)
+    if (!res.userInfo || res.userInfo.isAdmin !== 1) {
+        return res.redirect('/');
+    }
+    
+    const query = (req.query.q || '').trim();
+    let foundUser = null;
+
+    if (query) {
+        try {
+            const [users] = await db.execute(
+                'SELECT id, username, email FROM users WHERE username = ? OR email = ?', 
+                [query, query]
+            );
+            foundUser = users[0] || null;
+        } catch (err) {
+            console.error("Search error:", err);
+        }
+    }
+
+    res.render('pages/admin-reset', { 
+        user: res.userInfo, 
+        foundUser, 
+        query,
+    });
+});
+
+// POST: Perform the reset
+router.post('/admin/manual-reset',verifyToken,getUserInfo, async (req, res) => {
+    if (!res.userInfo || res.userInfo.isAdmin !== 1) return res.status(403).send("Unauthorized");
+
+    const { userId, newPassword } = req.body;
+
+    if (!newPassword || newPassword.length < 7) {
+        return res.send('<script>alert("Password too short!"); history.back();</script>');
+    }
+
+    try {
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await db.execute('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, userId]);
+        
+        res.send(`
+            <script>
+                alert("Success! Password for User ID ${userId} has been updated.");
+                window.location = "/admin/reset-tool";
+            </script>
+        `);
+    } catch (err) {
+        console.error("Admin reset error:", err);
+        res.status(500).send("Server error during password reset.");
+    }
 });
 
 // ------------------- Client Side -------------------

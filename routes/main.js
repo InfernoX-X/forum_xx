@@ -427,6 +427,125 @@ router.get('/categories', async (req, res) => {
     }
 });
 
+// Libaray
+router.get('/my-library/:id?', async (req, res) => {
+    const userId = res.userInfo?.id;
+    const playlistId = req.params.id;
+    
+    // Pagination logic
+    const limit = 12;
+    const offset = parseInt(req.query.offset) || 0; // Use offset instead of page for easier JS math
+
+    if (!userId) return res.redirect('/login');
+
+    try {
+        if (playlistId) {
+            // VIEW A SINGLE PLAYLIST
+            const [playlistInfo] = await db.execute(
+                'SELECT * FROM playlists WHERE id = ? AND user_id = ?', 
+                [playlistId, userId]
+            );
+            
+            if (playlistInfo.length === 0) return res.status(404).send("Playlist not found");
+
+            const [posts] = await db.execute(`
+                SELECT p.*, u.username, 
+                (SELECT image_url FROM post_images WHERE post_id = p.id LIMIT 1) as thumbnail
+                FROM playlist_items pi
+                JOIN posts p ON pi.post_id = p.id
+                JOIN users u ON p.user_id = u.id
+                WHERE pi.playlist_id = ?
+                ORDER BY pi.id DESC
+                LIMIT ${limit} OFFSET ${offset} 
+            `, [playlistId]);
+
+            // --- SMART PART START ---
+            // If request wants JSON, just send the posts (for Load More / Infinite Scroll)
+            if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+                return res.json({ posts });
+            }
+            // --- SMART PART END ---
+
+            res.render('pages/library-detail', { 
+                playlist: playlistInfo[0],
+                playlistName: playlistInfo[0].name, 
+                playlistId: playlistId,
+                posts, 
+                user: res.userInfo,
+                timeAgo
+            });
+        } else {
+            // VIEW ALL PLAYLISTS (Keep as is)
+            const [lists] = await db.execute(`
+                SELECT p.*, 
+                (SELECT COUNT(*) FROM playlist_items WHERE playlist_id = p.id) as item_count,
+                (
+                    SELECT pimg.image_url 
+                    FROM playlist_items pi 
+                    JOIN post_images pimg ON pi.post_id = pimg.post_id 
+                    WHERE pi.playlist_id = p.id 
+                    ORDER BY pi.id DESC
+                    LIMIT 1
+                ) as cover_img
+                FROM playlists p
+                WHERE p.user_id = ?
+                ORDER BY p.created_at DESC
+            `, [userId]);
+
+            res.render('pages/library-main', { lists, user: res.userInfo });
+        }
+    } catch (err) {
+        console.log(err);
+        res.status(500).send("Error loading library");
+    }
+});
+
+// Share Public Playlist
+router.get('/playlist/view/:id', async (req, res) => {
+    const playlistId = req.params.id;
+    const viewerId = res.userInfo?.id; // To check if the viewer happens to be the owner
+
+    try {
+        // 1. Get playlist info and owner details
+        const [playlistInfo] = await db.execute(`
+            SELECT p.*, u.username as owner_name 
+            FROM playlists p 
+            JOIN users u ON p.user_id = u.id 
+            WHERE p.id = ?
+        `, [playlistId]);
+
+        if (playlistInfo.length === 0) return res.status(404).send("Playlist not found");
+        
+        const playlist = playlistInfo[0];
+
+        // 2. Privacy Check: If private, only owner can see
+        if (playlist.is_public === 0 && playlist.user_id !== viewerId) {
+            return res.status(403).send("This playlist is private");
+        }
+
+        // 3. Get posts for this playlist
+        const [posts] = await db.execute(`
+            SELECT p.*, u.username, 
+            (SELECT image_url FROM post_images WHERE post_id = p.id LIMIT 1) as thumbnail
+            FROM playlist_items pi
+            JOIN posts p ON pi.post_id = p.id
+            JOIN users u ON p.user_id = u.id
+            WHERE pi.playlist_id = ?
+            ORDER BY pi.id DESC
+        `, [playlistId]);
+
+        res.render('pages/library-view-shared', { 
+            playlist, 
+            posts, 
+            isOwner: playlist.user_id === viewerId,
+            user: res.userInfo,
+            timeAgo
+        });
+    } catch (err) {
+        res.status(500).send("Error loading shared playlist");
+    }
+});
+
 // Requests Page
 router.get('/requests', async (req, res) => {
     try {

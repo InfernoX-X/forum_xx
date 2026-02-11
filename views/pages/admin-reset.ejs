@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><% siteTitle %></title>
+    <%- include("../partials/variables") %>
+</head>
+<body>
+    <style>
+    body {
+        background-color: var(--bg);
+        color: var(--text-main);
+        font-family: var(--font-family);
+        line-height: 1.6;
+    }
+
+    .main-wrapper {
+        min-height: 100vh;
+        padding: 40px 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    /* 2. Your Existing Component Styles */
+    .description-card {
+        background: var(--surface-elevated);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        width: 100%; /* Ensures it fills max-width properly */
+    }
+
+    /* Styling the inputs to match your site's dark theme */
+    .comment-input {
+        width: 100%;
+        background: var(--input-bg);
+        border: 1px solid var(--border);
+        color: var(--text-main);
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-family: var(--font-family);
+        outline: none;
+        transition: border-color 0.2s;
+    }
+
+    .comment-input:focus {
+        border-color: var(--accent);
+    }
+
+    /* The primary buttons (Search/Copy/Reset) */
+    .submit-comment {
+        background: var(--accent);
+        color: var(--white);
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: var(--font-family);
+        transition: background 0.2s, transform 0.1s;
+        white-space: nowrap;
+    }
+
+    .submit-comment:hover {
+        background: var(--accent-hover);
+    }
+
+    .submit-comment:active {
+        transform: scale(0.98);
+    }
+
+    /* Specific styling for the Search query text */
+    label {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        font-family: var(--font-family);
+    }
+
+    /* HR line styling */
+    hr {
+        border: 0;
+        border-top: 1px solid var(--border);
+        margin: 25px 0;
+    }
+</style>
+
+    <%- include("../partials/navBar") %>
+
+
+<div class="main-wrapper">
+    <div class="description-card" style="max-width: 600px; margin: 40px auto;">
+        <h2 style="margin-bottom: 10px;">Admin Account Recovery</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px;">
+            Search for a user to manually overwrite their password.
+        </p>
+        
+        <form action="/admin/reset-tool" method="GET" style="margin-bottom: 30px;">
+            <div style="display: flex; gap: 10px;">
+                <input type="text" name="q" value="<%= query %>" placeholder="Username or Email..." class="comment-input" required>
+                <button type="submit" class="submit-comment">Search</button>
+            </div>
+        </form>
+
+        <% if (foundUser) { %>
+            <div style="background: var(--surface); padding: 25px; border-radius: 12px; border: 1px solid var(--accent);">
+                <div style="margin-bottom: 20px;">
+                    <span style="color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase;">User Details</span>
+                    <h3 style="margin-top: 5px;"><%= foundUser.username %></h3>
+                    <p style="font-size: 0.9rem;"><%= foundUser.email %></p>
+                </div>
+                
+                <form action="/admin/manual-reset" method="POST">
+                    <input type="hidden" name="userId" value="<%= foundUser.id %>">
+                    
+                    <label style="display:block; margin-bottom: 8px; font-weight: bold;">New Password:</label>
+                    <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+                        <input type="text" id="newPassInput" name="newPassword" placeholder="Enter new password..." class="comment-input" required>
+                        <button type="button" class="submit-comment" onclick="copyPassword()" style="background: var(--border); color: white;">
+                            Copy
+                        </button>
+                    </div>
+                    
+                    <button type="submit" class="submit-comment" style="width: 100%; background: #e74c3c; font-weight: bold;">
+                        UPDATE PASSWORD
+                    </button>
+                </form>
+            </div>
+        <% } else if (query) { %>
+            <div style="text-align: center; padding: 20px; color: #e74c3c;">
+                No user found matching "<%= query %>"
+            </div>
+        <% } %>
+    </div>
+</div>
+
+<script>
+function copyPassword() {
+    const copyText = document.getElementById("newPassInput");
+    if (!copyText.value) return alert("Type a password first!");
+    
+    copyText.select();
+    copyText.setSelectionRange(0, 99999); // For mobile devices
+    navigator.clipboard.writeText(copyText.value);
+    
+    alert("Copied to clipboard: " + copyText.value);
+}
+</script>
+</body>
+</html>

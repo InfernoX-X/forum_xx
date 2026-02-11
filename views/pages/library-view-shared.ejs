@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Playlist | <%= siteTitle %></title>
+    <%- include("../partials/variables") %>
+    <style>
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: var(--font-family);
+        }
+
+        /* Header Styling */
+        .library-header {
+            background: linear-gradient(to bottom, var(--nav-bg), var(--bg));
+            padding: 40px 20px !important;
+            border-bottom: 1px solid var(--border) !important;
+        }
+
+        .library-header h1 {
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        /* Playlist Folder Cards (Main Page) */
+        .playlist-grid {
+            padding: 20px 0;
+        }
+
+        .playlist-card {
+            transition: transform 0.2s ease;
+        }
+
+        .playlist-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .folder-preview {
+            position: relative;
+            background: var(--surface-elevated);
+            border: 1px solid var(--border);
+            transition: border-color 0.2s;
+        }
+
+        /* The "Tab" on top of the folder */
+        .folder-preview::before {
+            content: "";
+            position: absolute;
+            top: -8px;
+            left: 12px;
+            width: 35%;
+            height: 12px;
+            background: var(--border);
+            border-radius: 6px 6px 0 0;
+            z-index: 0;
+        }
+
+        .playlist-card:hover .folder-preview {
+            border-color: var(--accent);
+        }
+
+        /* Action Buttons */
+        .btn-mini {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            font-family: var(--font-family);
+            font-weight: 600;
+            font-size: 0.75rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: opacity 0.2s;
+        }
+
+        .btn-mini:hover {
+            opacity: 0.8;
+        }
+
+        /* Lite Post Card Styling (Detail Page) */
+        .post-lite-card {
+            background: var(--surface-elevated) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: var(--radius) !important;
+            transition: all 0.3s ease;
+        }
+
+        .post-lite-card:hover {
+            border-color: var(--accent) !important;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .post-lite-card img {
+            transition: transform 0.5s ease;
+        }
+
+        .post-lite-card:hover img {
+            transform: scale(1.05);
+        }
+
+        #new-name-input {
+            outline: none;
+            font-family: var(--font-family);
+        }
+        .switch_ {
+            position: relative;
+            display: inline-block;
+            width: 34px;
+            height: 20px;
+        }
+
+        /* Hide default HTML checkbox */
+        .switch_ input { opacity: 0; width: 0; height: 0; }
+
+        /* The slider */
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #333;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px; width: 14px;
+            left: 3px; bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider { background-color: var(--accent); }
+        input:checked + .slider:before { transform: translateX(14px); }
+    </style>
+</head>
+
+
+<%- include("../partials/navBar") %>
+
+<div class="library-header" style="padding: 60px 20px; background: linear-gradient(to bottom, #161616, var(--bg)); text-align: center;">
+    <span style="color: var(--accent); font-weight: 800; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px;">Community Playlist</span>
+    <h1 style="font-size: 3rem; margin: 10px 0; color: #fff;"><%= playlist.name %></h1>
+    <p style="color: var(--text-muted);">Curated by <strong>@<%= playlist.owner_name %></strong></p>
+    
+    <div style="margin-top: 20px;">
+        <button onclick="copyLink()" class="btn-mini" style="background: var(--surface-elevated); border: 1px solid var(--border); color: var(--text-main);">
+            COPY LINK TO SHARE
+        </button>
+    </div>
+</div>
+
+<div class="posts-grid" style="max-width: 1400px; margin: 0 auto; padding: 40px 20px;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px;">
+        <% posts.forEach(post => { %>
+            <%- include("../partials/post-lite", { post: post, playlistId: playlist.id, isSharedView: true }) %>
+        <% }) %>
+    </div>
+    
+</div>
+
+<script>
+    let offset = 12;
+    let loading = false;
+    // We cast to string then compare to avoid linter "Expression Expected" errors
+    let hasMore = "<%= posts.length >= 12 %>" === "true";
+    const playlistId = '<%= playlist.id %>';
+
+    window.onscroll = function() {
+        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 300) {
+            if (!loading && hasMore) {
+                loadMore();
+            }
+        }
+    };
+
+    async function loadMore() {
+        loading = true;
+        const loader = document.getElementById('loading-sentinel');
+        if (loader) loader.style.display = 'flex';
+        
+        try {
+            const response = await fetch(`/playlist/view/${playlistId}?offset=${offset}`, {
+                headers: { 'Accept': 'application/json' }
+            });
+            const data = await response.json();
+
+            if (data.posts && data.posts.length > 0) {
+                const grid = document.querySelector('.posts-grid > div');
+                data.posts.forEach(post => {
+                    // Create the element properly
+                    const postHTML = `
+                        <div class="post-lite-card">
+                            <a href="/forum/post/${post.id}" class="post-lite-thumb-wrapper">
+                                <img src="${post.thumbnail || '/img/default-thumb.jpg'}" loading="lazy">
+                            </a>
+                            <div class="post-lite-content">
+                                <h4 class="post-lite-title">${post.title}</h4>
+                                <span style="color: var(--text-muted); font-size: 0.75rem;">@${post.username}</span>
+                            </div>
+                        </div>`;
+                    grid.insertAdjacentHTML('beforeend', postHTML);
+                });
+
+                offset += 12;
+                if (data.posts.length < 12) hasMore = false;
+            } else {
+                hasMore = false;
+            }
+        } catch (err) {
+            console.error("Pagination error:", err);
+        } finally {
+            loading = false;
+            if (loader) loader.style.display = 'none';
+        }
+    }
+
+    function copyLink() {
+        navigator.clipboard.writeText(window.location.href);
+        alert("Link copied to clipboard!");
+    }
+</script>
