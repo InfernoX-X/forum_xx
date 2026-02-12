@@ -289,7 +289,7 @@
         font-family: inherit;
     }
 
-    .modal-overlay label { font-size: 0.75rem; color: var(--accent); font-weight: 700; text-transform: uppercase; margin-bottom: 5px; display: block; }
+    .modal-overlay label { font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-bottom: 5px; display: block; }
 
     .tag-pill, .dropdown-item {
         text-transform: capitalize;
@@ -574,8 +574,8 @@
                         <label>1. Update Categories</label>
                         <div class="tag-system" style="background: #161616; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                             
-                            <div id="mandatory-groups-<%= post.id %>" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-                                </div>
+                            <div id="mandatory-groups-<%= post.id %>" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+                            </div>
 
                             <label style="font-size: 0.6rem; opacity: 0.7; color: var(--accent);">Active Tags</label>
                             <div id="tag-container-<%= post.id %>" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 10px;">
@@ -651,7 +651,7 @@
 
                     <div style="margin-top: 25px; padding-top: 20px; border-top: 1px dashed #333;">
                         <% if (currentImgCount < 5) { %>
-                            <label style="color: var(--accent); margin-bottom: 10px;">
+                            <label style="color: var(--text-muted); margin-bottom: 10px;">
                                 ➕ Add More Images (<%= 5 - currentImgCount %> slots left, more images won't upload even if shows here!)
                             </label>
                             
@@ -705,8 +705,29 @@
     const tagStore = document.getElementById('tag-data-store');
     const allTags = JSON.parse(tagStore.getAttribute('data-tags'));
 
-    const MANDATORY_HEADERS = [ "channel", "no. of people", "orientation", "age","ethnicity","locations","act", "emotions","scenario", "fetish", "actions", "sex positions", "finishing" ,"relationship", "profession", "body and features", "toys", "dress", "other"];
-
+    const TAG_SECTIONS = [
+        {
+            name: "General Info",
+            headers: ["channel", "no. of people", "orientation", "relationship", "locations"]
+        },
+        {
+            name: "Physical Characteristics",
+            headers: ["age", "ethnicity", "body and features", "dress"]
+        },
+        {
+            name: "Context & Vibe",
+            headers: ["act", "emotions", "scenario", "fetish"]
+        },
+        {
+            name: "The Actions",
+            headers: ["actions", "sex positions", "finishing"]
+        },
+        {
+            name: "Other Details",
+            headers: ["toys", "profession", "other"]
+        }
+    ];
+    
     function setupPostMandatory(postId) {
         const container = document.getElementById(`mandatory-groups-${postId}`);
         if (!container) return;
@@ -715,46 +736,62 @@
         const activePills = document.querySelectorAll(`#tag-container-${postId} .tag-pill`);
         const activeIds = Array.from(activePills).map(p => p.dataset.id.toString());
 
-        MANDATORY_HEADERS.forEach(headerName => {
-            const groupTags = allTags.filter(t => t.header.toLowerCase() === headerName);
-            if (groupTags.length === 0) return;
-
-            const wrapper = document.createElement('div');
-            wrapper.className = 'custom-dropdown-static';
-            wrapper.dataset.header = headerName; // Store header for easy lookup
-            wrapper.style.position = 'relative';
+        // Loop through sections instead of a flat array
+        TAG_SECTIONS.forEach(section => {
+            // Create Section Container
+            const sectionWrapper = document.createElement('div');
+            sectionWrapper.className = 'edit-tag-section';
+            sectionWrapper.style = "grid-column: 1 / -1; margin-bottom: 10px; border-bottom: 1px solid #222; padding-bottom: 10px;";
             
-            wrapper.innerHTML = `
-                <label style="margin-bottom:5px; color:var(--accent); display:block; font-size:0.65rem; text-transform:uppercase;">${headerName}</label>
-                <div class="dropdown-trigger" 
-                    style="background:#111; border:1px solid #333; padding:8px; border-radius:4px; cursor:pointer; font-size:0.75rem; display:flex; justify-content:space-between; align-items:center;">
-                    <span class="selected-text" style="max-width: 80%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Select...</span>
-                    <span style="font-size: 8px;">▼</span>
-                </div>
-                <div class="dropdown-menu-edit" style="display:none; background:#1a1a1a; border:1px solid var(--accent); max-height:250px; overflow-y:auto; position:absolute; z-index:100; width:100%; box-shadow: 0 4px 15px rgba(0,0,0,0.5); border-radius: 4px; margin-top: 2px;">
-                    <div style="padding: 5px; border-bottom: 1px solid #333; position: sticky; top: 0; background: #1a1a1a; z-index:10;">
-                        <input type="text" placeholder="Filter ${headerName}..." 
-                            style="width: 100%; background: #000; border: 1px solid #444; color: #fff; padding: 5px; font-size: 0.7rem; border-radius: 3px;"
-                            oninput="filterDropdownOptions(this)">
-                    </div>
-                    <div class="options-container"></div>
-                </div>
+            sectionWrapper.innerHTML = `
+                <h5 style="color: rgb(233,233,233); font-size: 0.9rem; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px;">${section.name}</h5>
+                <div class="section-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; border-radius: 8px; background: rgb(10, 10, 10); margin-bottom: 6px;"></div>
             `;
-            
-            const trigger = wrapper.querySelector('.dropdown-trigger');
-            const menu = wrapper.querySelector('.dropdown-menu-edit');
-            
-            trigger.onclick = (e) => {
-                e.stopPropagation();
-                const isVisible = menu.style.display === 'block';
-                document.querySelectorAll('.dropdown-menu-edit').forEach(m => m.style.display = 'none');
-                menu.style.display = isVisible ? 'none' : 'block';
-                if (!isVisible) menu.querySelector('input').focus();
-            };
 
-            container.appendChild(wrapper);
-            // Initial render of options for this group
-            renderDropdownOptions(wrapper, postId, activeIds);
+            const grid = sectionWrapper.querySelector('.section-grid');
+
+            section.headers.forEach(headerName => {
+                const groupTags = allTags.filter(t => t.header.toLowerCase() === headerName);
+                if (groupTags.length === 0) return;
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'custom-dropdown-static';
+                wrapper.dataset.header = headerName;
+                wrapper.style.position = 'relative';
+                
+                wrapper.innerHTML = `
+                    <label style="margin-bottom:3px; color:var(--accent); display:block; font-size:0.75rem; text-transform:uppercase; opacity: 0.8;">${headerName}</label>
+                    <div class="dropdown-trigger"  
+                        style="background:#0a0a0a; border:1px solid #333; padding:6px; margin-bottom: 5px; border-radius:4px; cursor:pointer; font-size:0.8rem; display:flex; justify-content:space-between; align-items:center;">
+                        <span class="selected-text" style="max-width: 80%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Select...</span>
+                        <span style="font-size: 8px;">▼</span>
+                    </div>
+                    <div class="dropdown-menu-edit" style="display:none; background:#1a1a1a; border:1px solid var(--accent); max-height:250px; overflow-y:auto; position:absolute; z-index:100; width:100%; box-shadow: 0 4px 15px rgba(0,0,0,0.5); border-radius: 4px; margin-top: 2px;">
+                        <div style="padding: 5px; border-bottom: 1px solid #333; position: sticky; top: 0; background: #1a1a1a; z-index:10;">
+                            <input type="text" placeholder="Filter ${headerName}..." 
+                                style="width: 100%; background: #000; border: 1px solid #444; color: #fff; padding: 5px; font-size: 0.8rem; border-radius: 3px;"
+                                oninput="filterDropdownOptions(this)">
+                        </div>
+                        <div class="options-container"></div>
+                    </div>
+                `;
+                
+                const trigger = wrapper.querySelector('.dropdown-trigger');
+                const menu = wrapper.querySelector('.dropdown-menu-edit');
+                
+                trigger.onclick = (e) => {
+                    e.stopPropagation();
+                    const isVisible = menu.style.display === 'block';
+                    document.querySelectorAll('.dropdown-menu-edit').forEach(m => m.style.display = 'none');
+                    menu.style.display = isVisible ? 'none' : 'block';
+                    if (!isVisible) menu.querySelector('input').focus();
+                };
+
+                grid.appendChild(wrapper);
+                renderDropdownOptions(wrapper, postId, activeIds);
+            });
+
+            container.appendChild(sectionWrapper);
         });
     }
 
@@ -787,7 +824,7 @@
         const count = groupTags.filter(t => activeIds.includes(t.id.toString())).length;
         const textSpan = wrapper.querySelector('.selected-text');
         textSpan.innerText = count > 0 ? `Selected (${count})` : 'Select...';
-        textSpan.style.color = count > 0 ? 'var(--accent)' : '#fff';
+        textSpan.style.color = count > 0 ? 'var(--text-muted)' : 'var(--text-muted)';
     }
 
     function updateDropdownUI(postId) {

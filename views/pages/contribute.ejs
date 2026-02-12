@@ -709,8 +709,30 @@
         return name.replace(".", "").trim().replaceAll(" ", "_").toLowerCase();
     }
 
-    // Define which headers MUST have a selection
-    const MANDATORY_HEADERS = [ "channel", "no. of people", "orientation", "age","ethnicity","locations","act", "emotions","scenario", "fetish", "actions", "sex positions", "finishing" ,"relationship", "profession", "body and features", "toys", "dress", "other"];
+    const TAG_SECTIONS = [
+        {
+            name: "General Info",
+            headers: ["channel", "no. of people", "orientation", "relationship", "locations"]
+        },
+        {
+            name: "Physical Characteristics",
+            headers: ["age", "ethnicity", "body and features", "dress"]
+        },
+        {
+            name: "Context & Vibe",
+            headers: ["act", "emotions", "scenario", "fetish"]
+        },
+        {
+            name: "The Actions",
+            headers: ["actions", "sex positions", "finishing"]
+        },
+        {
+            name: "Other Details",
+            headers: ["toys", "profession", "other"]
+        }
+    ];
+
+    const allMandatoryHeaders = TAG_SECTIONS.flatMap(s => s.headers);
 
     const mandatoryContainer = document.getElementById('mandatory-groups');
 
@@ -823,37 +845,58 @@
     // 1. Modified setup function to include a search bar and unique IDs
     function setupMandatoryCategories() {
         mandatoryContainer.innerHTML = '';
-        MANDATORY_HEADERS.forEach(headerName => {
-            const groupTags = allTags.filter(t => t.header.toLowerCase() === headerName);
-            if (groupTags.length === 0) return;
 
-            const headerId = helper(headerName);
-            const wrapper = document.createElement('div');
-            wrapper.className = 'custom-dropdown';
-            wrapper.id = `dropdown-${headerId}`;
+        TAG_SECTIONS.forEach(section => {
+            // Create a container for the section
+            const sectionDiv = document.createElement('div');
+            sectionDiv.className = 'tag-section-group';
+            sectionDiv.style = "margin-bottom: 25px; border: 1px solid #222; padding: 15px; border-radius: 8px; background: #0a0a0a;";
             
-            wrapper.innerHTML = `
-                <label style="margin-bottom:5px; color:var(--accent); display:block; font-size:0.65rem; text-transform:uppercase;">${headerName} *</label>
-                <div class="dropdown-trigger" onclick="toggleDropdown(this)">
-                    <span class="selected-count">Select ${headerName}...</span>
-                    <span class="arrow">▼</span>
-                </div>
-                <div class="dropdown-menu">
-                    <div class="dropdown-search-wrapper" style="padding: 10px; position: sticky; top: 0; background: #111; z-index: 10;">
-                        <input type="text" 
-                            placeholder="Search ${headerName}..." 
-                            style="width: 100%; padding: 5px; font-size: 0.8rem; background: #222; border: 1px solid #444; color: white;"
-                            onkeyup="filterDropdown(this)">
+            // Add Section Header
+            const sectionTitle = document.createElement('h4');
+            sectionTitle.style = "color: #eee; margin-top: 0; margin-bottom: 15px; font-size: 0.9rem; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 5px;";
+            sectionTitle.innerText = section.name;
+            sectionDiv.appendChild(sectionTitle);
+
+            // Grid for the dropdowns inside the section
+            const gridDiv = document.createElement('div');
+            gridDiv.style = "display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;";
+
+            section.headers.forEach(headerName => {
+                const groupTags = allTags.filter(t => t.header.toLowerCase() === headerName);
+                if (groupTags.length === 0) return;
+
+                const headerId = helper(headerName);
+                const wrapper = document.createElement('div');
+                wrapper.className = 'custom-dropdown';
+                wrapper.id = `dropdown-${headerId}`;
+                
+                wrapper.innerHTML = `
+                    <label style="margin-bottom:5px; color:var(--accent); display:block; font-size:0.65rem; text-transform:uppercase;">${headerName} *</label>
+                    <div class="dropdown-trigger" onclick="toggleDropdown(this)">
+                        <span class="selected-count">Select ${headerName}...</span>
+                        <span class="arrow">▼</span>
                     </div>
-                    <div class="items-container">
-                        ${renderDropdownItems(groupTags)}
+                    <div class="dropdown-menu">
+                        <div class="dropdown-search-wrapper" style="padding: 10px; position: sticky; top: 0; background: #111; z-index: 10;">
+                            <input type="text" 
+                                placeholder="Search ${headerName}..." 
+                                style="width: 100%; padding: 5px; font-size: 0.8rem; background: #222; border: 1px solid #444; color: white;"
+                                onkeyup="filterDropdown(this)">
+                        </div>
+                        <div class="items-container">
+                            ${renderDropdownItems(groupTags)}
+                        </div>
                     </div>
-                </div>
-            `;
-            mandatoryContainer.appendChild(wrapper);
+                `;
+                gridDiv.appendChild(wrapper);
+            });
+
+            sectionDiv.appendChild(gridDiv);
+            mandatoryContainer.appendChild(sectionDiv);
         });
     }
-
+    
     // 2. New helper to render items (Sorted: Selected first, then Alphabetical)
     function renderDropdownItems(tags) {
         return tags
@@ -951,7 +994,7 @@
             const titleMatch = t.title.toLowerCase().includes(searchVal);
             const headerMatch = t.header.toLowerCase();
             
-            const isMandatory = MANDATORY_HEADERS.includes(headerMatch);
+            const isMandatory = allMandatoryHeaders.includes(headerMatch);
             const isAlreadySelected = selectedTagIds.has(t.id.toString());
             
             // Only show if: Matches text AND (is NOT mandatory) AND (is NOT already picked)
