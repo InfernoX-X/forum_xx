@@ -708,11 +708,11 @@
     const TAG_SECTIONS = [
         {
             name: "General Info",
-            headers: ["channel", "no. of people", "orientation", "relationship", "locations"]
+            headers: ["channel", "no. of people", "orientation","group dynamic", "relationship and roles", "locations"]
         },
         {
             name: "Physical Characteristics",
-            headers: ["age", "ethnicity", "body and features", "dress"]
+            headers: ['age and gaps', "ethnicity", "body and features", "dress"]
         },
         {
             name: "Context & Vibe",
@@ -724,7 +724,7 @@
         },
         {
             name: "Other Details",
-            headers: ["toys", "profession", "other"]
+            headers: ["toys", "other"]
         }
     ];
     
@@ -806,6 +806,13 @@
             const bSel = activeIds.includes(b.id.toString());
             if (aSel && !bSel) return -1;
             if (!aSel && bSel) return 1;
+
+            // If you want 1, 2, 3 order, use (a.order - b.order)
+            if (b.order_by !== a.order_by) {
+                return a.order_by - b.order_by; 
+            }
+
+            // 3. Fallback to alphabetical if order is the same
             return a.title.localeCompare(b.title);
         });
 

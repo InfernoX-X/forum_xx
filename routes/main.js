@@ -57,7 +57,7 @@ router.get('/', async (req, res) => {
             [currentUserId, limit.toString(), offset.toString()] // Pass currentUserId first
         );
             
-        const [allForums] = await db.execute(`SELECT id, title, header FROM forums ORDER BY header DESC, title ASC`);
+        const [allForums] = await db.execute(`SELECT id, title, header, order_by FROM forums ORDER BY header ASC, order_by ASC, title ASC`);
 
         res.render('index', { 
             posts,
@@ -114,7 +114,7 @@ router.get('/user/:id', async (req, res) => {
             [currentUserId, userId, limit.toString(), offset.toString()] // currentUserId first for the subquery
         );
             
-        const [allForums] = await db.execute(`SELECT id, title, header FROM forums ORDER BY header DESC, title ASC`);
+        const [allForums] = await db.execute(`SELECT id, title, header FROM forums ORDER BY header DESC, order_by ASC, title ASC`);
 
         const profileUsername = posts.length > 0 ? posts[0].username : "User";
 
@@ -157,7 +157,7 @@ router.get('/drafts', async (req, res) => {
         const [posts] = await db.execute(`
             SELECT p.*, u.username, 
             GROUP_CONCAT(DISTINCT f.title) as categories,
-            GROUP_CONCAT(DISTINCT f.id) as forum_ids,.
+            GROUP_CONCAT(DISTINCT f.id) as forum_ids,
                 -- Voting Subqueries
             (SELECT COUNT(*) FROM post_votes WHERE post_id = p.id AND vote_type = 1) as upvotes,
             (SELECT COUNT(*) FROM post_votes WHERE post_id = p.id AND vote_type = -1) as downvotes,
@@ -176,7 +176,7 @@ router.get('/drafts', async (req, res) => {
         ORDER BY p.created_at DESC
         LIMIT ? OFFSET ?`, [currentUserId, limit.toString(), offset.toString()]);
             
-        const [allForums] = await db.execute(`SELECT id, title, header FROM forums ORDER BY title ASC`);
+        const [allForums] = await db.execute(`SELECT id, title, header, order_by FROM forums ORDER BY title ASC, order_by ASC`);
 
         res.render('pages/drafts', { 
             posts,
@@ -291,7 +291,7 @@ router.get('/search', async (req, res) => {
         
         // 3. Fetch all forums so the user can see/change filters on the results page
         const [allForums] = await db.execute(
-            'SELECT id, title, header FROM forums ORDER BY title ASC'
+            'SELECT id, title, header, order_by FROM forums ORDER BY order_by ASC, title ASC'
         );
 
         
@@ -320,9 +320,9 @@ router.get('/contribute', async (req, res) => {
         // 1. Fetch ALL forums for the "Post" checkboxes
         // Sorted by header so they group nicely in the view
         const [allForums] = await db.execute(`
-            SELECT id, title, header 
+            SELECT id, title, header, order_by
             FROM forums 
-            ORDER BY header ASC, title ASC
+            ORDER BY header ASC, order_by ASC, title ASC
         `);
 
         const [headers] = await db.execute(`
